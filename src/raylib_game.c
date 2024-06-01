@@ -26,7 +26,7 @@ int main()
 
     Vector2 center = {200, 200};
     float rad = (2 * PI) / (float)MAX_POINTS;
-    Vector2 positions[10] = {0, 0};
+    Vector2 positions[MAX_POINTS] = {0, 0};
     for (int i = 0; i < MAX_POINTS; i++)
     {
         Vector2 p2 = {0, 0};
@@ -70,7 +70,7 @@ int main()
                 DrawCircleV(positions[i], 5, WHITE);
             }
 
-            DrawLineStrip(&positions, MAX_POINTS, SKYBLUE);
+            DrawLineStrip(&positions[0], MAX_POINTS, SKYBLUE);
             DrawLineV(positions[0], positions[MAX_POINTS - 1], SKYBLUE);
         }
     }
