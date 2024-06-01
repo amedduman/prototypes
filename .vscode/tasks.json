@@ -5,7 +5,7 @@
         {
             "label": "Run",
             "type": "shell",
-            "command": "cmake --build build && ./build/raylib-game-template/raylib-game-template"
+            "command": "clear && cmake --build build && ./build/raylib-game-template/raylib-game-template"
         }
     ]
   }

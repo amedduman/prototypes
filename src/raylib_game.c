@@ -1,6 +1,5 @@
 #include "defer.h"
 #include "raylib.h"
-#include "rlgl.h" // Required for: Vertex definition
 #include "raymath.h"
 
 #define MAX_POINTS 12
@@ -17,6 +16,40 @@ Vector2 RotatePoint(Vector2 center, Vector2 point, float angle)
     point = (Vector2){x * cos - y * sin, x * sin + y * cos};
     point = Vector2Add(center, point);
     return point;
+}
+
+Vector2 RotatePoint_PreCalcCosSin(Vector2 center, Vector2 point, float cos, float sin)
+{
+    float x = point.x - center.x;
+    float y = point.y - center.y;
+    point = (Vector2){x * cos - y * sin, x * sin + y * cos};
+    point = Vector2Add(center, point);
+    return point;
+}
+
+void Rotate(Vector2 *positions, Vector2 center)
+{
+    float angle = PI / 16;
+    float cosCW = cosf(angle);
+    float sinCW = sinf(angle);
+    float cosCCW = cosf(-angle);
+    float sinCCW = sinf(-angle);
+
+    if (IsKeyDown(KEY_D))
+    {
+        for (int i = 0; i < MAX_POINTS; i++)
+        {
+            positions[i] = RotatePoint_PreCalcCosSin(center, positions[i], cosCW, sinCW);
+        }
+    }
+
+    if (IsKeyDown(KEY_A))
+    {
+        for (int i = 0; i < MAX_POINTS; i++)
+        {
+            positions[i] = RotatePoint_PreCalcCosSin(center, positions[i], cosCCW, sinCCW);
+        }
+    }
 }
 
 int main()
@@ -44,21 +77,7 @@ int main()
 
     while (!WindowShouldClose())
     {
-        if (IsKeyDown(KEY_RIGHT))
-        {
-            for (int i = 0; i < MAX_POINTS; i++)
-            {
-                positions[i] = RotatePoint(center, positions[i], PI / 16);
-            }
-        }
-
-        if (IsKeyDown(KEY_LEFT))
-        {
-            for (int i = 0; i < MAX_POINTS; i++)
-            {
-                positions[i] = RotatePoint(center, positions[i], -PI / 16);
-            }
-        }
+        Rotate(positions, center);
 
         defer(BeginDrawing(), EndDrawing())
         {
