@@ -2,8 +2,6 @@
 #include "dino.h"
 #include "defer.h"
 
-//cmake --build build && ./build/raylib-game-template/raylib-game-template
-
 const int screenWidht = 400;
 const int screenHeight = 400;
 
