@@ -57,15 +57,20 @@ void Scale(Vector2 *points, Vector2 center)
     float scaleFactor = 1;
 
     if (IsKeyDown(KEY_W))
-        scaleFactor = 1.1f;
-    else if (IsKeyDown(KEY_W))
-        scaleFactor = -1.1f;
+        scaleFactor = 1.1;
+    else if (IsKeyDown(KEY_S))
+        scaleFactor = 0.9;
     else 
         return;
     for (int i = 0; i < MAX_POINTS; i++)
     {
-        points[i] = Vector2Scale(points[i], scaleFactor);
-        points[i] = Vector2Add(points[i], center);
+        Vector2 p = points[i];
+        Vector2 centerToP = Vector2Subtract(p, center);
+        Vector2 scaledP = Vector2Scale(centerToP, scaleFactor);
+        Vector2 newP = Vector2Add(scaledP, center);
+        points[i] = newP;
+        //points[i] = Vector2Scale(points[i], scaleFactor);
+        //points[i] = Vector2Add(points[i], center);
     }
 }
 
@@ -113,7 +118,7 @@ int main()
             velocity.y += 1;
         velocity = Vector2Normalize(velocity);
 
-        //Scale(points, center);
+        Scale(points, center);
         Rotate(points, center);
         Translate(points, velocity);
         center = Vector2Add(center, velocity);
