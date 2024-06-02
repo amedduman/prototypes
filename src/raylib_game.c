@@ -27,7 +27,7 @@ Vector2 RotatePoint_PreCalcCosSin(Vector2 center, Vector2 point, float cos, floa
     return point;
 }
 
-void Rotate(Vector2 *positions, Vector2 center)
+void Rotate(Vector2 *points, Vector2 center)
 {
     float angle = PI / 16;
     float cosCW = cosf(angle);
@@ -39,7 +39,7 @@ void Rotate(Vector2 *positions, Vector2 center)
     {
         for (int i = 0; i < MAX_POINTS; i++)
         {
-            positions[i] = RotatePoint_PreCalcCosSin(center, positions[i], cosCW, sinCW);
+            points[i] = RotatePoint_PreCalcCosSin(center, points[i], cosCW, sinCW);
         }
     }
 
@@ -47,8 +47,33 @@ void Rotate(Vector2 *positions, Vector2 center)
     {
         for (int i = 0; i < MAX_POINTS; i++)
         {
-            positions[i] = RotatePoint_PreCalcCosSin(center, positions[i], cosCCW, sinCCW);
+            points[i] = RotatePoint_PreCalcCosSin(center, points[i], cosCCW, sinCCW);
         }
+    }
+}
+
+void Scale(Vector2 *points, Vector2 center)
+{
+    float scaleFactor = 1;
+
+    if (IsKeyDown(KEY_W))
+        scaleFactor = 1.1f;
+    else if (IsKeyDown(KEY_W))
+        scaleFactor = -1.1f;
+    else 
+        return;
+    for (int i = 0; i < MAX_POINTS; i++)
+    {
+        points[i] = Vector2Scale(points[i], scaleFactor);
+        points[i] = Vector2Add(points[i], center);
+    }
+}
+
+void Translate(Vector2 *points, Vector2 velocity)
+{
+    for (int i = 0; i < MAX_POINTS; i++)
+    {
+        points[i] = Vector2Add(points[i], velocity);
     }
 }
 
@@ -59,7 +84,7 @@ int main()
 
     Vector2 center = {200, 200};
     float rad = (2 * PI) / (float)MAX_POINTS;
-    Vector2 positions[MAX_POINTS] = {0, 0};
+    Vector2 points[MAX_POINTS] = {0, 0};
     for (int i = 0; i < MAX_POINTS; i++)
     {
         Vector2 p2 = {0, 0};
@@ -72,12 +97,26 @@ int main()
             p2 = Vector2Scale(p2, 50);
         p2 = Vector2Add(center, p2);
 
-        positions[i] = p2;
+        points[i] = p2;
     }
 
     while (!WindowShouldClose())
     {
-        Rotate(positions, center);
+        Vector2 velocity = {0, 0};
+        if (IsKeyDown(KEY_RIGHT))
+            velocity.x += 1;
+        else if (IsKeyDown(KEY_LEFT))
+            velocity.x -= 1;
+        if (IsKeyDown(KEY_UP))
+            velocity.y -= 1;
+        else if (IsKeyDown(KEY_DOWN))
+            velocity.y += 1;
+        velocity = Vector2Normalize(velocity);
+
+        //Scale(points, center);
+        Rotate(points, center);
+        Translate(points, velocity);
+        center = Vector2Add(center, velocity);
 
         defer(BeginDrawing(), EndDrawing())
         {
@@ -86,11 +125,11 @@ int main()
             DrawCircleV(center, 5, MAROON);
             for (int i = 0; i < MAX_POINTS; i++)
             {
-                DrawCircleV(positions[i], 5, WHITE);
+                DrawCircleV(points[i], 5, WHITE);
             }
 
-            DrawLineStrip(&positions[0], MAX_POINTS, SKYBLUE);
-            DrawLineV(positions[0], positions[MAX_POINTS - 1], SKYBLUE);
+            DrawLineStrip(&points[0], MAX_POINTS, SKYBLUE);
+            DrawLineV(points[0], points[MAX_POINTS - 1], SKYBLUE);
         }
     }
 
