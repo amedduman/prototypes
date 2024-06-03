@@ -2,6 +2,7 @@
     "C_Cpp.default.compilerPath": "/usr/bin/clang",
     "files.associations": {
         "macros.h": "c",
-        "raymath.h": "c"
+        "raymath.h": "c",
+        "*.m": "c"
     }
 }
