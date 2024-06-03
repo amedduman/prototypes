@@ -9,35 +9,26 @@ const int screenHeight = 400;
 
 int main()
 {
-    defer(InitWindow(screenWidht, screenHeight, "Game"), CloseWindow())
+    defer(InitWindow(screenWidht, screenHeight, "Math"), CloseWindow())
     {
-        SetTargetFPS(24);
+        SetTargetFPS(60);
 
-        Vector2 pos = {screenWidht * 0.5, 0};
-        float radius = 30;
-        float angle = 0;
+        Vector2 center = {screenWidht * 0.5, screenHeight * 0.4};
+        float radius = 5;
+        float x_angle = 0;
+        float y_angle = 0;
 
         Vector2* circles = vector_create();
 
         while (!WindowShouldClose())
         {
-            float cosVal = (cosf(angle) + 1) * 0.5;
-            float sinVal = (sinf(angle) + 1) * 0.5;
+            center.x = center.x + cosf(x_angle) * 5;
+            center.y = center.y + sinf(y_angle) * 3;
 
-            pos.x = Lerp(screenWidht - radius, radius, cosVal);
-            pos.y = Lerp(screenHeight - radius, radius, sinVal);
+            vector_add(&circles, center);
 
-            vector_add(&circles, pos);
-
-            angle += PI * 0.01;
-
-            char sinValText[50];
-            snprintf(sinValText, 50, "Sin: %.2f", sinVal);
-
-            char cosValText[50];
-            snprintf(cosValText, 50, "Cos: %.2f", cosVal);
-
-            
+            x_angle += PI * 0.01;
+            y_angle += PI * 0.03;
 
             defer(BeginDrawing(), EndDrawing())
             {
@@ -45,12 +36,8 @@ int main()
                 
                 for (int i = 0; i < vector_size(circles); i++)
                 {
-                    DrawCircleV(circles[i], radius, MAROON);
+                    DrawCircleV(circles[i], radius, PINK);
                 }
-                
-
-                DrawText(cosValText, 100, 110, 10, WHITE);
-                DrawText(sinValText, 100, 100, 10, WHITE);
             }
         }
     }
