@@ -15,22 +15,22 @@ int main()
         Vector2 pos = {screenWidht * 0.5, 0};
         float radius = 30;
         float angle = 0;
-        
 
         while (!WindowShouldClose())
         {
-            // * (sinf(angle) < 0 ? 1 : -1)
-            //pos.y = sinf(angle) * screenHeight;
-            
-            pos.y = Lerp(screenHeight * 0.5, radius, sinf(angle));
+            float sinVal = (sinf(angle) + 1) * 0.5;
+            pos.y = Lerp(screenHeight - radius, radius, sinVal);
+
             angle += PI * 0.01;
+
+            char angleText[50];
+            snprintf(angleText, 50, "Sin: %.2f", sinVal);
+
             defer(BeginDrawing(), EndDrawing())
             {
                 ClearBackground(DARKGRAY);
                 DrawCircleV(pos, radius, MAROON);
-                char angleText[50];
-                snprintf(angleText, 50, "Sin: %.2f", sinf(angle));
-                DrawText(angleText, 100,100, 10, WHITE);
+                DrawText(angleText, 100, 100, 10, WHITE);
             }
         }
     }
