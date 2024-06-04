@@ -12,33 +12,29 @@ int main()
     defer(InitWindow(screenWidht, screenHeight, "Math"), CloseWindow())
     {
         SetTargetFPS(60);
+        Texture2D arrow = LoadTexture("./src/resources/arrow.png"); 
+        arrow.width = 100;
+        arrow.height = 100;
 
-        Vector2 center = {screenWidht * 0.5, screenHeight * 0.4};
-        float radius = 5;
-        float x_angle = 0;
-        float y_angle = 0;
+        Rectangle sourceRect = {0,0,100,100};
+        Rectangle destRect = {200, 200, 100,100};
+        Vector2 origin = {0, 50};
 
-        Vector2* circles = vector_create();
+        int rotation = 0;
 
         while (!WindowShouldClose())
         {
-            center.x = center.x + cosf(x_angle) * 5;
-            center.y = center.y + sinf(y_angle) * 3;
 
-            vector_add(&circles, center);
-
-            x_angle += PI * 0.01;
-            y_angle += PI * 0.03;
+            rotation++;
 
             defer(BeginDrawing(), EndDrawing())
             {
                 ClearBackground(DARKGRAY);
-                
-                for (int i = 0; i < vector_size(circles); i++)
-                {
-                    DrawCircleV(circles[i], radius, PINK);
-                }
+
+                DrawTexturePro(arrow, sourceRect, destRect, origin, (float)rotation, WHITE);
+                //DrawTexture(arrow, 150, 150, WHITE);                
             }
         }
+
     }
 }
