@@ -13,28 +13,30 @@ int main()
     {
         SetTargetFPS(60);
         Texture2D arrow = LoadTexture("./src/resources/arrow.png"); 
-        arrow.width = 100;
-        arrow.height = 100;
 
-        Rectangle sourceRect = {0,0,100,100};
-        Rectangle destRect = {200, 200, 100,100};
-        Vector2 origin = {0, 50};
-
-        int rotation = 0;
+        Rectangle sourceRect = {0,0,arrow.width,arrow.height};
+        Rectangle destRect = {200, 200, (float)arrow.width * 0.2, (float)arrow.height * 0.2};
+        Vector2 origin = {(float)destRect.width / 2, (float)destRect.height / 2};
 
         while (!WindowShouldClose())
         {
-
-            rotation++;
+            Vector2 mouse = GetMousePosition();
+            Vector2 arrowPos = (Vector2){destRect.x, destRect.y};
+            float dy = mouse.y - arrowPos.y;
+            float dx = mouse.x - arrowPos.x;
+            float angleInRad = atan2f(dy, dx);
 
             defer(BeginDrawing(), EndDrawing())
             {
-                ClearBackground(DARKGRAY);
+                ClearBackground(GOLD);
 
-                DrawTexturePro(arrow, sourceRect, destRect, origin, (float)rotation, WHITE);
-                //DrawTexture(arrow, 150, 150, WHITE);                
+                DrawTexturePro(arrow, sourceRect, destRect, origin, RAD2DEG * angleInRad, WHITE);
+                DrawText(TextFormat("%f", RAD2DEG * angleInRad), 100, 100, 10, BLACK);
+                DrawCircleV(GetMousePosition(), 5, MAROON);
+                DrawLineV(arrowPos, mouse, RED);
             }
         }
 
+        UnloadTexture(arrow);
     }
 }
