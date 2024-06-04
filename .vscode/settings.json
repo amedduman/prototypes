@@ -3,6 +3,7 @@
     "files.associations": {
         "macros.h": "c",
         "raymath.h": "c",
-        "*.m": "c"
+        "*.m": "c",
+        "particle.h": "c"
     }
 }
