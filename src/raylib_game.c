@@ -19,39 +19,55 @@ float GetRandomFloat(float min, float max)
     return randomFloat;
 }
 
+Vector2 RotatePoint(Vector2 center, Vector2 point, float angle)
+{
+    float cos = cosf(angle);
+    float sin = sinf(angle);
+    float x = point.x - center.x;
+    float y = point.y - center.y;
+    point = (Vector2){x * cos - y * sin, x * sin + y * cos};
+    point = Vector2Add(center, point);
+    return point;
+}
+
 int main()
 {
     defer(InitWindow(screenWidht, screenHeight, "Math"), CloseWindow())
     {
         SetTargetFPS(60);
 
-        Vector2 gravity = {0, 0.2};
-        Particle *particles = vector_create();
+        Vector2 center = {200, 200};
+        Vector2 point1 = {center.x + 20, center.y + 20};
+        Vector2 point2 = {center.x, center.y - 20};
+        Vector2 point3 = {center.x - 20, center.y + 20};
 
-        for (int i = 0; i < 100; i++)
-        {
-            Particle p;
-            particle_create(&p, (Vector2){200, 200}, (Vector2){GetRandomFloat(-5, 5), GetRandomFloat(-5, 5)}, gravity);
-            vector_add(&particles, p);
-        }
+        Vector2 *trianglePoints = vector_create();
+
+        vector_add(&trianglePoints, point1);
+        vector_add(&trianglePoints, point2);
+        vector_add(&trianglePoints, point3);
 
         while (!WindowShouldClose())
         {
             if (IsKeyDown(KEY_A))
             {
-                for (int i = 0; i < vector_size(particles); i++)
+                for (int i = 0; i < vector_size(trianglePoints); i++)
                 {
-                    particle_update(&particles[i]);
+                    trianglePoints[i] = RotatePoint(center, trianglePoints[i], PI * -0.5 * GetFrameTime());
                 }
             }
+            if (IsKeyDown(KEY_D))
+            {
+                for (int i = 0; i < vector_size(trianglePoints); i++)
+                {
+                    trianglePoints[i] = RotatePoint(center, trianglePoints[i], PI * 0.5 * GetFrameTime());
+                }
+            }
+
             defer(BeginDrawing(), EndDrawing())
             {
                 ClearBackground(GOLD);
-
-                for (int i = 0; i < vector_size(particles); i++)
-                {
-                    particle_draw(&particles[i]);
-                }
+                DrawTriangle(trianglePoints[0], trianglePoints[1], trianglePoints[2], WHITE);
             }
         }
     }
