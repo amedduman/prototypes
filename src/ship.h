@@ -17,7 +17,7 @@ typedef struct ship
 {
     Vector2 pos;
     Vector2 vel;
-    float accMag;
+    float acc_mag;
     Vector2 front;
     Vector2 *trianglePoints;
 } ship;
@@ -26,7 +26,7 @@ void ship_create(ship *ship)
 {
     ship->pos = (Vector2){200, 200};
     ship->vel = (Vector2){0, 0};
-    ship->accMag = 0;
+    ship->acc_mag = 0;
     ship->front = (Vector2){ship->pos.x, ship->pos.y - 20};
 
     Vector2 point1 = {ship->pos.x + 20, ship->pos.y + 20};
@@ -69,11 +69,12 @@ void ship_rotate(ship *ship, bool do_clock_wise)
 
 void ship_update(ship *ship)
 {
-    if (ship->accMag > 0)
+    if (ship->acc_mag > 0)
     {
-        Vector2 ship_real_dir = Vector2Subtract(ship->front, ship->pos);
-        ship_real_dir = Vector2Normalize(ship_real_dir);
-        ship->vel = Vector2Add(ship->vel, ship_real_dir);
+        Vector2 ship_move_dir = Vector2Subtract(ship->front, ship->pos);
+        ship_move_dir = Vector2Normalize(ship_move_dir);
+        ship->vel = Vector2Add(ship->vel, (Vector2){ship_move_dir.x * ship->acc_mag, ship_move_dir.y * ship->acc_mag});
+
         ship->pos = Vector2Add(ship->pos, ship->vel);
 
         for (int i = 0; i < vector_size(ship->trianglePoints); i++)
@@ -109,3 +110,56 @@ float GetRandomFloat(float min, float max)
 
     return randomFloat;
 }
+
+/*
+#include "defer.h"
+#include "raylib.h"
+#include "raymath.h"
+#include <stdio.h>
+#include "vec.h"
+#include "Particle.h"
+#include "ship.h"
+
+const int screenWidht = 400;
+const int screenHeight = 400;
+
+int main()
+{
+    defer(InitWindow(screenWidht, screenHeight, "Math"), CloseWindow())
+    {
+        SetTargetFPS(60);
+        ship player_ship;
+        ship_create(&player_ship);
+
+        while (!WindowShouldClose())
+        {
+            if (IsKeyDown(KEY_A))
+            {
+                ship_rotate(&player_ship, false);
+            }
+            if (IsKeyDown(KEY_D))
+            {
+                ship_rotate(&player_ship, true);
+            }
+            if (IsKeyDown(KEY_W))
+            {
+                player_ship.acc_mag = 0.1;
+            }
+            else
+            {
+                player_ship.acc_mag = 0;
+                player_ship.vel = (Vector2){0,0};
+            }
+
+            ship_update(&player_ship);
+
+            defer(BeginDrawing(), EndDrawing())
+            {
+                ClearBackground(GOLD);
+
+                ship_draw(&player_ship);
+            }
+        }
+    }
+}
+*/

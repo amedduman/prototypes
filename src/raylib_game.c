@@ -3,47 +3,45 @@
 #include "raymath.h"
 #include <stdio.h>
 #include "vec.h"
-#include "Particle.h"
+#include "particle.h"
 #include "ship.h"
 
-const int screenWidht = 400;
-const int screenHeight = 400;
+const int screenWidht = 800;
+const int screenHeight = 800;
 
 int main()
 {
     defer(InitWindow(screenWidht, screenHeight, "Math"), CloseWindow())
     {
         SetTargetFPS(60);
-        ship player_ship;
-        ship_create(&player_ship);
+
+        particle sun;
+        particle planet;
+
+        sun.pos = (Vector2){400, 400};
+        sun.mass = 3;
+        sun.radius = 20;
+
+        planet.pos = (Vector2){250, 100};
+        planet.radius = 5;
+        planet.vel = (Vector2){40, 0};
 
         while (!WindowShouldClose())
         {
             if (IsKeyDown(KEY_A))
             {
-                ship_rotate(&player_ship, false);
+                particle_gravitate_to(&planet, &sun);
+                particle_update(&planet);
             }
-            if (IsKeyDown(KEY_D))
-            {
-                ship_rotate(&player_ship, true);
-            }
-            if (IsKeyDown(KEY_W))
-            {
-                player_ship.accMag = 0.1;
-            }
-            else
-            {
-                player_ship.accMag = 0;
-                player_ship.vel = (Vector2){0,0};
-            }
-
-            ship_update(&player_ship);
 
             defer(BeginDrawing(), EndDrawing())
             {
                 ClearBackground(GOLD);
 
-                ship_draw(&player_ship);
+                particle_draw(&sun);
+                particle_draw(&planet);
+
+                DrawLineEx(planet.pos, Vector2Add(planet.vel, planet.pos), 3, BLACK);
             }
         }
     }
