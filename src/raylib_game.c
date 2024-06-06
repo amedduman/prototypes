@@ -9,8 +9,6 @@
 const int screenWidht = 400;
 const int screenHeight = 400;
 
-
-
 int main()
 {
     defer(InitWindow(screenWidht, screenHeight, "Math"), CloseWindow())
@@ -31,11 +29,11 @@ int main()
             }
             if (IsKeyDown(KEY_W))
             {
-                player_ship.acc = (Vector2){0, -1};
+                player_ship.accMag = 0.1;
             }
             else
             {
-                player_ship.acc = (Vector2){0, 0};
+                player_ship.accMag = 0;
                 player_ship.vel = (Vector2){0,0};
             }
 

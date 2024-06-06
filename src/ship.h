@@ -17,8 +17,8 @@ typedef struct ship
 {
     Vector2 pos;
     Vector2 vel;
-    Vector2 acc;
-    ;
+    float accMag;
+    Vector2 front;
     Vector2 *trianglePoints;
 } ship;
 
@@ -26,7 +26,8 @@ void ship_create(ship *ship)
 {
     ship->pos = (Vector2){200, 200};
     ship->vel = (Vector2){0, 0};
-    ship->acc = (Vector2){0, 0};
+    ship->accMag = 0;
+    ship->front = (Vector2){ship->pos.x, ship->pos.y - 20};
 
     Vector2 point1 = {ship->pos.x + 20, ship->pos.y + 20};
     Vector2 point2 = {ship->pos.x, ship->pos.y - 20};
@@ -41,37 +42,61 @@ void ship_create(ship *ship)
 
 void ship_rotate(ship *ship, bool do_clock_wise)
 {
+    float angle = PI * 0.5 * GetFrameTime();
+    // ship->dir = Vector2Add(ship->dir, ship->pos);
+
     for (int i = 0; i < vector_size(ship->trianglePoints); i++)
     {
         if (do_clock_wise)
         {
-            ship->trianglePoints[i] = RotatePoint(ship->pos, ship->trianglePoints[i], PI * 0.5 * GetFrameTime());
+            ship->trianglePoints[i] = RotatePoint(ship->pos, ship->trianglePoints[i], angle);
         }
         else
         {
-            ship->trianglePoints[i] = RotatePoint(ship->pos, ship->trianglePoints[i], PI * -0.5 * GetFrameTime());
+            ship->trianglePoints[i] = RotatePoint(ship->pos, ship->trianglePoints[i], -angle);
         }
+    }
+
+    if (do_clock_wise)
+    {
+        ship->front = RotatePoint(ship->pos, ship->front, angle);
+    }
+    else
+    {
+        ship->front = RotatePoint(ship->pos, ship->front, -angle);
     }
 }
 
-void ship_update(ship* ship)
+void ship_update(ship *ship)
 {
-    ship->vel = Vector2Add(ship->vel, ship->acc);
-    ship->pos = Vector2Add(ship->pos, ship->vel);
-
-    for (int i = 0; i < vector_size(ship->trianglePoints); i++)
+    if (ship->accMag > 0)
     {
-        ship->trianglePoints[i] = Vector2Add(ship->trianglePoints[i], ship->vel);
-    }    
+        Vector2 ship_real_dir = Vector2Subtract(ship->front, ship->pos);
+        ship_real_dir = Vector2Normalize(ship_real_dir);
+        ship->vel = Vector2Add(ship->vel, ship_real_dir);
+        ship->pos = Vector2Add(ship->pos, ship->vel);
+
+        for (int i = 0; i < vector_size(ship->trianglePoints); i++)
+        {
+            ship->trianglePoints[i] = Vector2Add(ship->trianglePoints[i], ship->vel);
+        }
+
+        ship->front = Vector2Add(ship->front, ship->vel);
+    }
 }
 
-void ship_draw(ship* ship)
+void ship_draw(ship *ship)
 {
     DrawTriangle(
         ship->trianglePoints[0],
         ship->trianglePoints[1],
         ship->trianglePoints[2],
         WHITE);
+
+    DrawLineEx(ship->pos, ship->front, 5, RED);
+
+    //DrawText(TextFormat("%f, %f", ship->dir.x, ship->dir.y), 100, 100, 15, WHITE);
+    // DrawCircleV(Vector2Add(ship->pos, ship->dir), 10, RED);
 }
 
 float GetRandomFloat(float min, float max)
