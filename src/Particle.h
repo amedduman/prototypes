@@ -51,6 +51,16 @@ void particle_gravitate_to(particle *this, particle *other)
     this->acc = (Vector2){gravity.x * magnitude_of_gravity, gravity.y * magnitude_of_gravity};
 }
 
+void particle_spring_to(particle* p0, particle* p1, float springLength, float springConst)
+{
+    float springForceMag = (Vector2Distance(p0->pos, p1->pos) - springLength) * springConst;
+    Vector2 springForce = Vector2Subtract(p0->pos, p1->pos);
+    springForce = ut_Vector2MulVal(springForce, springForceMag);
+    
+    p1->acc = springForce;
+    p0->acc = ut_Vector2MulVal(springForce, -1.0);
+}
+
 void particle_update(particle *particle)
 {
     particle->vel = Vector2Add(particle->vel, particle->acc);

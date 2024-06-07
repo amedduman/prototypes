@@ -8,61 +8,52 @@
 const int screenWidth = 400;
 const int screenHeight = 400;
 
-void spring(particle* p0, particle* p1, float springLength, float springConst)
-{
-    float springForceMag = (Vector2Distance(p0->pos, p1->pos) - springLength) * springConst;
-    Vector2 springForce = Vector2Subtract(p0->pos, p1->pos);
-    springForce = ut_Vector2MulVal(springForce, springForceMag);
-    
-    p1->acc = springForce;
-    p0->acc = ut_Vector2MulVal(springForce, -1.0);
-}
-
 int main()
 {
     defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow())
     {
         SetTargetFPS(60);
 
-        Vector2 gravity = {0.0f, 9.0f};
+        Vector2 gravity = {0.0f,0.0f};
+        float friction = 0.99f;
 
         particle particleA;
-        particle_create(&particleA, (Vector2){300, 100}, (Vector2){3, 0}, (Vector2){0, 0}, 10, 1, 0.9f);
+        particle_create(&particleA, (Vector2){300, 100}, (Vector2){3, 0}, (Vector2){0, 0}, 10, 1, friction);
         particleA.col = RED;
         particle particleB;
-        particle_create(&particleB, (Vector2){100, 100}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, 0.9f);
+        particle_create(&particleB, (Vector2){100, 100}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, friction);
         particle particleC;
-        particle_create(&particleC, (Vector2){200, 200}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, 0.9f);
+        particle_create(&particleC, (Vector2){200, 200}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, friction);
         particleC.col = BLUE;
         
-        float springConst = 0.01f;
+        float springConst = 0.02f;
         float springLength = 50;
+
+        bool is_particleA_hold = false;
 
         while (!WindowShouldClose())
         {
-            float x = 0;
-            float y = 0;
-            if(IsKeyDown(KEY_RIGHT))
+            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
             {
-                x = 40;
+               if(ut_IsPointCircleIntersect(GetMousePosition(), particleA.pos, particleA.radius))
+                {
+                    particleA.col = GREEN;
+                    is_particleA_hold = true;
+                } 
             }
-            else if(IsKeyDown(KEY_LEFT))
+            if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
             {
-                x = -40;
+                particleA.col = RED;
+                is_particleA_hold = false;
             }
-            if(IsKeyDown(KEY_UP))
+            if(is_particleA_hold)
             {
-                y = -40;
+                particleA.pos = GetMousePosition();
             }
-            else if(IsKeyDown(KEY_DOWN))
-            {
-                y = 40;
-            }
-            particleA.vel = (Vector2){x, y};
-
-            spring(&particleA, &particleB, springLength, springConst);
-            spring(&particleB, &particleC, springLength, springConst);
-            spring(&particleC, &particleA, springLength, springConst);
+            
+            particle_spring_to(&particleA, &particleB, springLength, springConst);
+            particle_spring_to(&particleB, &particleC, springLength, springConst);
+            particle_spring_to(&particleC, &particleA, springLength, springConst);
 
             particleA.acc = Vector2Add(particleA.acc, gravity);
             particleB.acc = Vector2Add(particleB.acc, gravity);
