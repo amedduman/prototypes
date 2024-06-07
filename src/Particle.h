@@ -19,7 +19,8 @@ void particle_create(particle *particle, Vector2 pos, Vector2 vel, Vector2 acc, 
     particle->acc = acc;
     particle->radius = radius;
     particle->mass = mass;
-    particle->friction = friction;
+    friction = Clamp(friction, 0, 1);
+    particle->friction = 1.0f - friction;
 }
 
 // returns angle (in radians) between two particles

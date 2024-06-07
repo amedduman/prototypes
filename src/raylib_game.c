@@ -15,7 +15,7 @@ int main()
         SetTargetFPS(60);
 
         particle weight;
-        particle_create(&weight, (Vector2){100,100}, (Vector2){0,0}, (Vector2){0,0}, 10, 1, 0.9f);
+        particle_create(&weight, (Vector2){100,100}, (Vector2){0,0}, (Vector2){10,0}, 10, 1, 0.4f);
         float springConst = 0.2;
         while (!WindowShouldClose())
         {
@@ -24,7 +24,7 @@ int main()
             Vector2 springForce = Vector2Subtract(springOrigin, weight.pos);
             springForce = Vector2Normalize(springForce);
             springForce = (Vector2){springForce.x * springForceMag, springForce.y * springForceMag};
-            weight.acc = springForce;
+            //weight.acc = springForce;
 
             particle_update(&weight);
 
