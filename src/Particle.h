@@ -10,6 +10,7 @@ typedef struct
     float radius;
     float mass;
     float friction;
+    Color col;
 } particle;
 
 void particle_create(particle *particle, Vector2 pos, Vector2 vel, Vector2 acc, float radius, float mass, float friction)
@@ -21,6 +22,7 @@ void particle_create(particle *particle, Vector2 pos, Vector2 vel, Vector2 acc, 
     particle->mass = mass;
     friction = Clamp(friction, 0, 1);
     particle->friction = 1.0f - friction;
+    particle->col = WHITE;
 }
 
 // returns angle (in radians) between two particles
@@ -58,5 +60,5 @@ void particle_update(particle *particle)
 
 void particle_draw(particle *particle)
 {
-    DrawCircleV(particle->pos, particle->radius, WHITE);
+    DrawCircleV(particle->pos, particle->radius, particle->col);
 }
