@@ -9,15 +9,17 @@ typedef struct
     Vector2 acc;
     float radius;
     float mass;
+    float friction;
 } particle;
 
-void particle_create(particle *particle, Vector2 pos, Vector2 vel, Vector2 acc, float radius, float mass)
+void particle_create(particle *particle, Vector2 pos, Vector2 vel, Vector2 acc, float radius, float mass, float friction)
 {
     particle->pos = pos;
     particle->vel = vel;
     particle->acc = acc;
     particle->radius = radius;
     particle->mass = mass;
+    particle->friction = friction;
 }
 
 // returns angle (in radians) between two particles
@@ -49,6 +51,7 @@ void particle_gravitate_to(particle *this, particle *other)
 void particle_update(particle *particle)
 {
     particle->vel = Vector2Add(particle->vel, particle->acc);
+    particle->vel = (Vector2){particle->vel.x * particle->friction, particle->vel.y * particle->friction};
     particle->pos = Vector2Add(particle->pos, particle->vel);
 }
 

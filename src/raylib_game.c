@@ -1,73 +1,40 @@
 #include "defer.h"
-#include "raylib.h"
-#include "raymath.h"
-#include <stdio.h>
-#include "vec.h"
+#include "utils.h"
 #include "particle.h"
+#include <raylib.h>
+#include <raymath.h>
+#include <stdio.h>
 
-const int screenWidht = 400;
+const int screenWidth = 400;
 const int screenHeight = 400;
-
-float GetRandomFloat(float min, float max)
-{
-    // Generate a random integer using GetRandomValue
-    int randomInt = GetRandomValue(0, 10000);
-
-    // Scale the random integer to the desired float range
-    float randomFloat = ((float)randomInt / 10000.0f) * (max - min) + min;
-
-    return randomFloat;
-}
 
 int main()
 {
-    defer(InitWindow(screenWidht, screenHeight, "Math"), CloseWindow())
+    defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow())
     {
         SetTargetFPS(60);
 
-        particle *particles = vector_create();
-
-        for (int i = 0; i < 100; i++)
-        {
-            particle p;
-            particle_create(&p, (Vector2){200, 200}, (Vector2){GetRandomFloat(-3.0, 3.0), GetRandomFloat(-3.0, 3.0)}, (Vector2){0, 0}, 5, 5);
-            vector_add(&particles, p);
-        }
-
+        particle weight;
+        particle_create(&weight, (Vector2){100,100}, (Vector2){0,0}, (Vector2){0,0}, 10, 1, 0.9f);
+        float springConst = 0.2;
         while (!WindowShouldClose())
         {
-            for (int i = 0; i < vector_size(particles); i++)
-            {
-                particle_update(&particles[i]);
-            }
+            Vector2 springOrigin = GetMousePosition();
+            float springForceMag = Vector2Distance(weight.pos, springOrigin) * springConst;
+            Vector2 springForce = Vector2Subtract(springOrigin, weight.pos);
+            springForce = Vector2Normalize(springForce);
+            springForce = (Vector2){springForce.x * springForceMag, springForce.y * springForceMag};
+            weight.acc = springForce;
+
+            particle_update(&weight);
 
             defer(BeginDrawing(), EndDrawing())
             {
                 ClearBackground(GOLD);
-                printf("%zu\n", vector_size(particles));
-                for (int i = 0; i < vector_size(particles); i++)
-                {
-                    particle_draw(&particles[i]);
-                }
+                
+                particle_draw(&weight);
+                DrawCircleV(springOrigin, 2, MAROON);
             }
-
-            if (vector_size(particles) > 0)
-            {
-                for (size_t i = 100; i > 0;)
-                {
-                    i--;
-                    Vector2 pos = particles[i].pos;
-                    float radi = particles[i].radius;
-                    if (pos.x > 300 + radi || pos.x < 100 - radi || pos.y > 300 + radi || pos.y < 100 - radi)
-                    {
-                        vector_remove(particles, i);
-                    }
-                }
-            }
-
-            printf("%zu\n", vector_size(particles));
         }
-
-        vector_free(particles);
     }
 }
