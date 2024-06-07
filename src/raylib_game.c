@@ -24,15 +24,16 @@ int main()
     {
         SetTargetFPS(60);
 
-        Vector2 gravity = {0.0f, 3.0f};
+        Vector2 gravity = {0.0f, 9.0f};
 
-        //Vector2 posA = {GetRandomValue(0, screenWidth), GetRandomValue(0, screenHeight)};
         particle particleA;
         particle_create(&particleA, (Vector2){300, 100}, (Vector2){3, 0}, (Vector2){0, 0}, 10, 1, 0.9f);
         particleA.col = RED;
-        //Vector2 posB = {GetRandomValue(0, screenWidth), GetRandomValue(0, screenHeight)};
         particle particleB;
         particle_create(&particleB, (Vector2){100, 100}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, 0.9f);
+        particle particleC;
+        particle_create(&particleC, (Vector2){200, 200}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, 0.9f);
+        particleC.col = BLUE;
         
         float springConst = 0.01f;
         float springLength = 50;
@@ -65,21 +66,30 @@ int main()
                 y = 40;
             }
             particleA.vel = (Vector2){x, y};
-            //particleB.vel = (Vector2){-x, -y};
 
             spring(&particleA, &particleB, springLength, springConst);
+            spring(&particleB, &particleC, springLength, springConst);
+            spring(&particleC, &particleA, springLength, springConst);
+
+            particleA.acc = Vector2Add(particleA.acc, gravity);
+            particleB.acc = Vector2Add(particleB.acc, gravity);
+            particleC.acc = Vector2Add(particleC.acc, gravity);
 
             particle_update(&particleA);
             particle_update(&particleB);
+            particle_update(&particleC);
 
             defer(BeginDrawing(), EndDrawing())
             {
                 ClearBackground(GOLD);
 
                 DrawLineEx(particleA.pos, particleB.pos, 3, DARKBLUE);
+                DrawLineEx(particleB.pos, particleC.pos, 3, DARKBLUE);
+                DrawLineEx(particleC.pos, particleA.pos, 3, DARKBLUE);
 
                 particle_draw(&particleA);
                 particle_draw(&particleB);
+                particle_draw(&particleC);
             }
         }
     }
