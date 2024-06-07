@@ -12,10 +12,10 @@ void spring(particle* p0, particle* p1, float springLength, float springConst)
 {
     float springForceMag = (Vector2Distance(p0->pos, p1->pos) - springLength) * springConst;
     Vector2 springForce = Vector2Subtract(p0->pos, p1->pos);
-    springForce = (Vector2){springForce.x * springForceMag, springForce.y * springForceMag};
-
+    springForce = ut_Vector2MulVal(springForce, springForceMag);
+    
     p1->acc = springForce;
-    p0->acc = (Vector2){springForce.x * -1, springForce.y * -1};
+    p0->acc = ut_Vector2MulVal(springForce, -1.0);
 }
 
 int main()
@@ -40,13 +40,6 @@ int main()
 
         while (!WindowShouldClose())
         {
-            /* Vector2 springOrigin = GetMousePosition();
-            float springForceMag = (Vector2Distance(particleA.pos, springOrigin) - springLength) * springConst;
-            Vector2 springForce = Vector2Subtract(springOrigin, particleA.pos);
-            springForce = Vector2Normalize(springForce); // why normalization?
-            springForce = (Vector2){springForce.x * springForceMag, springForce.y * springForceMag};
-            particleA.acc = Vector2Add(springForce, gravity); */
-
             float x = 0;
             float y = 0;
             if(IsKeyDown(KEY_RIGHT))
