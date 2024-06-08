@@ -49,7 +49,7 @@ Vector2 ut_cubicBezier(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
     return pFinal;
 }
 
-
+/*
 Vector2 ut_drawMultiCurve(Vector2* points, int length)
 {
     Vector2 p0;
@@ -72,3 +72,4 @@ Vector2 ut_drawMultiCurve(Vector2* points, int length)
     midy = (p0.y + p1.y) / 2.0f;
     DrawSplineSegmentBezierQuadratic(p0, (Vector2){midx, midy}, p1, 3, BLACK);
 }
+*/
