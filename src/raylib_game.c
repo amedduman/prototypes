@@ -1,79 +1,60 @@
 #include "defer.h"
 #include "utils.h"
-#include "particle.h"
 #include <raylib.h>
 #include <raymath.h>
-#include <stdio.h>
-
-const int screenWidth = 400;
-const int screenHeight = 400;
 
 int main()
 {
+    const int screenWidth = 400;
+    const int screenHeight = 400;
+
     defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow())
     {
         SetTargetFPS(60);
 
-        Vector2 gravity = {0.0f,0.0f};
-        float friction = 0.99f;
+        Vector2 p0 = {100,100};
+        Vector2 p1 = {200,100};
+        Vector2 p2 = {300,200};
+        Vector2 p3 = {300,300};
 
-        particle particleA;
-        particle_create(&particleA, (Vector2){300, 100}, (Vector2){3, 0}, (Vector2){0, 0}, 10, 1, friction);
-        particleA.col = RED;
-        particle particleB;
-        particle_create(&particleB, (Vector2){100, 100}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, friction);
-        particle particleC;
-        particle_create(&particleC, (Vector2){200, 200}, (Vector2){0, 0}, (Vector2){0, 0}, 10, 1, friction);
-        particleC.col = BLUE;
-        
-        float springConst = 0.02f;
-        float springLength = 50;
-
-        bool is_particleA_hold = false;
-
+        bool is_holding_handle = false;
         while (!WindowShouldClose())
         {
-            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
-               if(ut_IsPointCircleIntersect(GetMousePosition(), particleA.pos, particleA.radius))
+                if (ut_IsPointCircleIntersect(GetMousePosition(), p1, 5))
                 {
-                    particleA.col = GREEN;
-                    is_particleA_hold = true;
-                } 
+                    is_holding_handle = true;                    
+                }                
             }
-            if(IsMouseButtonReleased(MOUSE_LEFT_BUTTON))
+            if(IsMouseButtonDown(MOUSE_LEFT_BUTTON))
             {
-                particleA.col = RED;
-                is_particleA_hold = false;
+                if(is_holding_handle)
+                {
+                    p1 = GetMousePosition();
+                }
             }
-            if(is_particleA_hold)
+            else
             {
-                particleA.pos = GetMousePosition();
+                is_holding_handle = false;
             }
             
-            particle_spring_to(&particleA, &particleB, springLength, springConst);
-            particle_spring_to(&particleB, &particleC, springLength, springConst);
-            particle_spring_to(&particleC, &particleA, springLength, springConst);
-
-            particleA.acc = Vector2Add(particleA.acc, gravity);
-            particleB.acc = Vector2Add(particleB.acc, gravity);
-            particleC.acc = Vector2Add(particleC.acc, gravity);
-
-            particle_update(&particleA);
-            particle_update(&particleB);
-            particle_update(&particleC);
 
             defer(BeginDrawing(), EndDrawing())
             {
                 ClearBackground(GOLD);
 
-                DrawLineEx(particleA.pos, particleB.pos, 3, DARKBLUE);
-                DrawLineEx(particleB.pos, particleC.pos, 3, DARKBLUE);
-                DrawLineEx(particleC.pos, particleA.pos, 3, DARKBLUE);
+                for (float t = 0; t < 1; t += 0.01f)
+                {
+                    Vector2 circleCenter = ut_QuadraticBezier(p0, p1, p2, t);
+                    DrawCircleLinesV(circleCenter, 3, RED);
+                }
+                
 
-                particle_draw(&particleA);
-                particle_draw(&particleB);
-                particle_draw(&particleC);
+                DrawCircleV(p0, 5, WHITE);
+                DrawCircleV(p1, 5, WHITE);
+                DrawCircleV(p2, 5, WHITE);
+                DrawCircleV(p3, 5, WHITE);
             }
         }
     }
