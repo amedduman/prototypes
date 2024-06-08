@@ -32,7 +32,7 @@ Vector2 ut_QuadraticBezier(Vector2 p0, Vector2 p1, Vector2 p2, float t)
 	return pFinal;
 }
 
-Vector2 cubicBezier(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
+Vector2 ut_cubicBezier(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
 {
     Vector2 pFinal = {0,0};
 
@@ -40,7 +40,7 @@ Vector2 cubicBezier(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
                 powf(1 - t, 2) * 3 * t * p1.x + 
                 (1 - t) * 3 * t * t * p2.x + 
                 t * t * t * p3.x;
-                
+
     pFinal.y = powf(1 - t, 3) * p0.y + 
                 powf(1 - t, 2) * 3 * t * p1.y + 
                 (1 - t) * 3 * t * t * p2.y + 
