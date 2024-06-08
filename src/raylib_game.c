@@ -14,20 +14,21 @@ int main()
 {
     const int screenWidth = 400;
     const int screenHeight = 400;
+    const int arrayLength = 30;
 
     defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow())
     {
-        postcard *postcards[10];
+        postcard *postcards[arrayLength];
         float card_z = 500;
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < arrayLength; i++)
         {
             // Allocate memory for each postcard
             postcards[i] = (postcard *)malloc(sizeof(postcard));
 
-            int rnd_pos_x = GetRandomValue(0, screenWidth);
-            int rnd_pos_y = GetRandomValue(0, screenHeight);
+            int rnd_pos_x = GetRandomValue(-screenWidth / 2, screenWidth / 2);
+            int rnd_pos_y = GetRandomValue(-screenHeight / 2, screenHeight / 2);
             int rnd_size_x = GetRandomValue(20, 100);
-            int rnd_size_y = GetRandomValue(20, 20);
+            int rnd_size_y = GetRandomValue(20, 100);
 
             postcards[i]->pos = (Vector3){rnd_pos_x, rnd_pos_y, card_z};
             postcards[i]->size = (Vector3){rnd_size_x, rnd_size_y, 50};
@@ -54,9 +55,12 @@ int main()
             {
                 ClearBackground(GOLD);
 
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < arrayLength; i++)
                 {
-                    Vector2 screen_pos = {postcards[i]->pos.x * perspective, postcards[i]->pos.y * perspective};
+                    Vector2 screen_pos = {
+                        (postcards[i]->pos.x * perspective) + screenWidth / 2,
+                        (postcards[i]->pos.y * perspective) + screenHeight / 2
+                        };
                     Vector2 screen_size = {postcards[i]->size.x * perspective, postcards[i]->size.y * perspective};
 
                     DrawRectangleV(screen_pos, screen_size, DARKBLUE);
@@ -65,7 +69,7 @@ int main()
         }
 
         // Free allocated memory
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < arrayLength; i++)
         {
             free(postcards[i]);
         }
