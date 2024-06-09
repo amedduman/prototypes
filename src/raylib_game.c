@@ -79,9 +79,6 @@ int main() {
 
       defer(BeginDrawing(), EndDrawing()) { ClearBackground(GOLD); }
 
-      for (int i = 0; i < arrLen; i++) {
-        DrawCircleV(points[i].screen_pos, radius, BLACK);
-      }
       drawLine(points[0].screen_pos, points[1].screen_pos);
       drawLine(points[1].screen_pos, points[2].screen_pos);
       drawLine(points[2].screen_pos, points[3].screen_pos);
