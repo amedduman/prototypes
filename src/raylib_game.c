@@ -34,13 +34,15 @@ void translateModel(point *points, int arrLen, Vector3 translateVec) {
   }
 }
 
-void rotateX(point *points, int arrLen, float angleInRad) {
+void rotateX(point *points, int arrLen, Vector3 center, float angleInRad) {
   float cos = cosf(angleInRad);
   float sin = sinf(angleInRad);
 
   for (int i = 0; i < arrLen; i++) {
-    points[i].pos.y = points[i].pos.y * cos - points[i].pos.z * sin;
-    points[i].pos.z = points[i].pos.z * cos + points[i].pos.y * sin;
+    float y = points[i].pos.y - center.y;
+    float z = points[i].pos.z - center.z;
+    points[i].pos.y = y * cos - z * sin + center.y;
+    points[i].pos.z = z * cos + y * sin + center.z;
   }
 }
 
@@ -53,20 +55,18 @@ void rotateY(point *points, int arrLen, Vector3 center, float angleInRad) {
     float z = points[i].pos.z - center.z;
     points[i].pos.x = x * cos - z * sin + center.x;
     points[i].pos.z = z * cos + x * sin + center.z;
-    /*
-    points[i].pos.x = points[i].pos.x * cos - points[i].pos.z * sin;
-    points[i].pos.z = points[i].pos.z * cos + points[i].pos.x * sin;
-    */
   }
 }
 
-void rotateZ(point *points, int arrLen, float angleInRad) {
+void rotateZ(point *points, int arrLen, Vector3 center, float angleInRad) {
   float cos = cosf(angleInRad);
   float sin = sinf(angleInRad);
 
   for (int i = 0; i < arrLen; i++) {
-    points[i].pos.x = points[i].pos.x * cos - points[i].pos.y * sin;
-    points[i].pos.y = points[i].pos.y * cos + points[i].pos.x * sin;
+    float x = points[i].pos.x - center.x;
+    float y = points[i].pos.y - center.y;
+    points[i].pos.x = x * cos - y * sin + center.x;
+    points[i].pos.y = y * cos + x * sin + center.y;
   }
 }
 
@@ -80,13 +80,13 @@ int main() {
 
   points[0].pos = (Vector3){-500, -500, 1000};
   points[1].pos = (Vector3){500, -500, 1000};
-  points[2].pos = (Vector3){500, -500, 500};
-  points[3].pos = (Vector3){-500, -500, 500};
+  points[2].pos = (Vector3){500, -500, 0};
+  points[3].pos = (Vector3){-500, -500, 0};
   points[4].pos = (Vector3){-500, 500, 1000};
   points[5].pos = (Vector3){500, 500, 1000};
-  points[6].pos = (Vector3){500, 500, 500};
-  points[7].pos = (Vector3){-500, 500, 500};
-  points[8].pos = (Vector3){0, 0, 750};
+  points[6].pos = (Vector3){500, 500, 0};
+  points[7].pos = (Vector3){-500, 500, 0};
+  points[8].pos = (Vector3){0, 0, 500};
 
   defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) {
     SetTargetFPS(60);
@@ -112,8 +112,12 @@ int main() {
 
       translateModel(points, arrLen, utVec3MulVal(translateVec, 10));
 
-      if (IsKeyDown(KEY_F))
+      if (IsKeyDown(KEY_X))
+        rotateX(points, arrLen, points[arrLen - 1].pos, 0.05f);
+      if (IsKeyDown(KEY_Y))
         rotateY(points, arrLen, points[arrLen - 1].pos, 0.05f);
+      if (IsKeyDown(KEY_Z))
+        rotateZ(points, arrLen, points[arrLen - 1].pos, 0.05f);
 
       project(points, arrLen, fl, screenWidth, screenHeight);
 
