@@ -16,31 +16,32 @@ int main() {
   const int arrayLength = 30;
 
   defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) {
-    SetTargetFPS(1);
+    SetTargetFPS(60);
 
     postcard *postcards[arrayLength];
     float radius = 300;
     float centerZ = 300;
-
-    for (int i = 0; i < arrayLength; i++) {
-      // Allocate memory for each postcard
-      postcards[i] = (postcard *)malloc(sizeof(postcard));
-
-      float angle = PI * 2 / arrayLength * i;
-      float pos_x = cosf(angle) * radius;
-      float pos_y = 0;
-      float pos_z = sinf(angle) * radius + centerZ;
-
-      int size_x = 50;
-      int size_y = 50;
-
-      postcards[i]->pos = (Vector3){pos_x, pos_y, pos_z};
-      postcards[i]->size = (Vector3){size_x, size_y, 50};
-    }
-
     float fl = 300.0;
+    float baseAngle = 0;
 
     while (!WindowShouldClose()) {
+
+      baseAngle += 0.5f * GetFrameTime();
+
+      for (int i = 0; i < arrayLength; i++) {
+        // Allocate memory for each postcard
+        postcards[i] = (postcard *)malloc(sizeof(postcard));
+
+        float angle = PI * 2 / arrayLength * i + baseAngle;
+        float pos_x = cosf(angle) * radius;
+        float pos_y = 0;
+        float pos_z = sinf(angle) * radius + centerZ;
+
+        int cardSize = 30;
+        postcards[i]->pos = (Vector3){pos_x, pos_y, pos_z};
+        postcards[i]->size = (Vector3){cardSize, cardSize, cardSize};
+      }
+
       defer(BeginDrawing(), EndDrawing()) {
         ClearBackground(GOLD);
 
