@@ -33,6 +33,36 @@ void translateModel(point *points, int arrLen, Vector3 translateVec) {
   }
 }
 
+void rotateX(point *points, int arrLen, float angleInRad) {
+  float cos = cosf(angleInRad);
+  float sin = sinf(angleInRad);
+
+  for (int i = 0; i < arrLen; i++) {
+    points[i].pos.y = points[i].pos.y * cos - points[i].pos.z * sin;
+    points[i].pos.z = points[i].pos.z * cos + points[i].pos.y * sin;
+  }
+}
+
+void rotateY(point *points, int arrLen, float angleInRad) {
+  float cos = cosf(angleInRad);
+  float sin = sinf(angleInRad);
+
+  for (int i = 0; i < arrLen; i++) {
+    points[i].pos.x = points[i].pos.x * cos - points[i].pos.z * sin;
+    points[i].pos.z = points[i].pos.z * cos + points[i].pos.x * sin;
+  }
+}
+
+void rotateZ(point *points, int arrLen, float angleInRad) {
+  float cos = cosf(angleInRad);
+  float sin = sinf(angleInRad);
+
+  for (int i = 0; i < arrLen; i++) {
+    points[i].pos.x = points[i].pos.x * cos - points[i].pos.y * sin;
+    points[i].pos.y = points[i].pos.y * cos + points[i].pos.x * sin;
+  }
+}
+
 int main() {
   const int screenWidth = 800;
   const int screenHeight = 800;
@@ -74,6 +104,9 @@ int main() {
         translateVec.z = -1;
 
       translateModel(points, arrLen, utVecMulVal(translateVec, 10));
+
+      if (IsKeyDown(KEY_F))
+        rotateY(points, arrLen, 0.05f);
 
       project(points, arrLen, fl, screenWidth, screenHeight);
 
