@@ -10,6 +10,10 @@ Vector2 ut_Vector2MulVal(Vector2 vec, float val) {
   return (Vector2){vec.x * val, vec.y * val};
 }
 
+Vector3 utVecMulVal(Vector3 vec, float val) {
+  return (Vector3){vec.x * val, vec.y * val, vec.z * val};
+}
+
 bool ut_IsPointCircleIntersect(Vector2 point, Vector2 center, float radius) {
   return Vector2DistanceSqr(center, point) < radius * radius;
 }

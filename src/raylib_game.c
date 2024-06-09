@@ -23,6 +23,16 @@ void project(point *points, int arrLen, float fl, int screenWidth,
   }
 }
 
+void drawLine(Vector2 p0, Vector2 p1) {
+  DrawLine(p0.x, p0.y, p1.x, p1.y, BLACK);
+}
+
+void translateModel(point *points, int arrLen, Vector3 translateVec) {
+  for (int i = 0; i < arrLen; i++) {
+    points[i].pos = Vector3Add(points[i].pos, translateVec);
+  }
+}
+
 int main() {
   const int screenWidth = 800;
   const int screenHeight = 800;
@@ -41,18 +51,49 @@ int main() {
   points[6].pos = (Vector3){500, 500, 500};
   points[7].pos = (Vector3){-500, 500, 500};
 
-  project(points, arrLen, fl, screenWidth, screenHeight);
-
   defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+
+      Vector3 translateVec = {0, 0, 0};
+
+      if (IsKeyDown(KEY_A))
+        translateVec.x = -1;
+      else if (IsKeyDown(KEY_D))
+        translateVec.x = 1;
+
+      if (IsKeyDown(KEY_W))
+        translateVec.y = -1;
+      else if (IsKeyDown(KEY_S))
+        translateVec.y = 1;
+
+      if (IsKeyDown(KEY_UP))
+        translateVec.z = 1;
+      else if (IsKeyDown(KEY_DOWN))
+        translateVec.z = -1;
+
+      translateModel(points, arrLen, utVecMulVal(translateVec, 10));
+
+      project(points, arrLen, fl, screenWidth, screenHeight);
 
       defer(BeginDrawing(), EndDrawing()) { ClearBackground(GOLD); }
 
       for (int i = 0; i < arrLen; i++) {
         DrawCircleV(points[i].screen_pos, radius, BLACK);
       }
+      drawLine(points[0].screen_pos, points[1].screen_pos);
+      drawLine(points[1].screen_pos, points[2].screen_pos);
+      drawLine(points[2].screen_pos, points[3].screen_pos);
+      drawLine(points[3].screen_pos, points[0].screen_pos);
+      drawLine(points[4].screen_pos, points[5].screen_pos);
+      drawLine(points[5].screen_pos, points[6].screen_pos);
+      drawLine(points[6].screen_pos, points[7].screen_pos);
+      drawLine(points[7].screen_pos, points[4].screen_pos);
+      drawLine(points[0].screen_pos, points[4].screen_pos);
+      drawLine(points[1].screen_pos, points[5].screen_pos);
+      drawLine(points[2].screen_pos, points[6].screen_pos);
+      drawLine(points[3].screen_pos, points[7].screen_pos);
     }
   }
 }
