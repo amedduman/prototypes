@@ -10,7 +10,7 @@ Vector2 ut_Vector2MulVal(Vector2 vec, float val) {
   return (Vector2){vec.x * val, vec.y * val};
 }
 
-Vector3 utVecMulVal(Vector3 vec, float val) {
+Vector3 utVec3MulVal(Vector3 vec, float val) {
   return (Vector3){vec.x * val, vec.y * val, vec.z * val};
 }
 
@@ -43,7 +43,22 @@ Vector2 ut_cubicBezier(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3,
 
 Color GetRandomColor() {
   return (Color){GetRandomValue(0, 255), GetRandomValue(0, 255),
-                 GetRandomValue(0, 255), GetRandomValue(255, 255)};
+                 GetRandomValue(0, 255), 255};
+}
+
+Color GetRandomTransparentColor(int minTransparency) {
+  return (Color){GetRandomValue(0, 255), GetRandomValue(0, 255),
+                 GetRandomValue(0, 255), GetRandomValue(minTransparency, 255)};
+}
+
+Vector2 RotatePoint(Vector2 center, Vector2 point, float angle) {
+  float cos = cosf(angle);
+  float sin = sinf(angle);
+  float x = point.x - center.x;
+  float y = point.y - center.y;
+  point = (Vector2){x * cos - y * sin, x * sin + y * cos};
+  point = Vector2Add(center, point);
+  return point;
 }
 
 /*

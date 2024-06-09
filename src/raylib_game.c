@@ -13,6 +13,7 @@ typedef struct {
 
 void project(point *points, int arrLen, float fl, int screenWidth,
              int screenHeight) {
+
   for (int i = 0; i < arrLen; i++) {
     float perspective = fl / (fl + points[i].pos.z);
 
@@ -43,13 +44,19 @@ void rotateX(point *points, int arrLen, float angleInRad) {
   }
 }
 
-void rotateY(point *points, int arrLen, float angleInRad) {
+void rotateY(point *points, int arrLen, Vector3 center, float angleInRad) {
   float cos = cosf(angleInRad);
   float sin = sinf(angleInRad);
 
   for (int i = 0; i < arrLen; i++) {
+    float x = points[i].pos.x - center.x;
+    float z = points[i].pos.z - center.z;
+    points[i].pos.x = x * cos - z * sin + center.x;
+    points[i].pos.z = z * cos + x * sin + center.z;
+    /*
     points[i].pos.x = points[i].pos.x * cos - points[i].pos.z * sin;
     points[i].pos.z = points[i].pos.z * cos + points[i].pos.x * sin;
+    */
   }
 }
 
@@ -68,9 +75,8 @@ int main() {
   const int screenHeight = 800;
 
   float fl = 300;
-  int arrLen = 8;
+  int arrLen = 9;
   point points[arrLen];
-  float radius = 5;
 
   points[0].pos = (Vector3){-500, -500, 1000};
   points[1].pos = (Vector3){500, -500, 1000};
@@ -80,6 +86,7 @@ int main() {
   points[5].pos = (Vector3){500, 500, 1000};
   points[6].pos = (Vector3){500, 500, 500};
   points[7].pos = (Vector3){-500, 500, 500};
+  points[8].pos = (Vector3){0, 0, 750};
 
   defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) {
     SetTargetFPS(60);
@@ -103,27 +110,34 @@ int main() {
       else if (IsKeyDown(KEY_DOWN))
         translateVec.z = -1;
 
-      translateModel(points, arrLen, utVecMulVal(translateVec, 10));
+      translateModel(points, arrLen, utVec3MulVal(translateVec, 10));
 
       if (IsKeyDown(KEY_F))
-        rotateY(points, arrLen, 0.05f);
+        rotateY(points, arrLen, points[arrLen - 1].pos, 0.05f);
 
       project(points, arrLen, fl, screenWidth, screenHeight);
 
-      defer(BeginDrawing(), EndDrawing()) { ClearBackground(GOLD); }
+      defer(BeginDrawing(), EndDrawing()) {
 
-      drawLine(points[0].screen_pos, points[1].screen_pos);
-      drawLine(points[1].screen_pos, points[2].screen_pos);
-      drawLine(points[2].screen_pos, points[3].screen_pos);
-      drawLine(points[3].screen_pos, points[0].screen_pos);
-      drawLine(points[4].screen_pos, points[5].screen_pos);
-      drawLine(points[5].screen_pos, points[6].screen_pos);
-      drawLine(points[6].screen_pos, points[7].screen_pos);
-      drawLine(points[7].screen_pos, points[4].screen_pos);
-      drawLine(points[0].screen_pos, points[4].screen_pos);
-      drawLine(points[1].screen_pos, points[5].screen_pos);
-      drawLine(points[2].screen_pos, points[6].screen_pos);
-      drawLine(points[3].screen_pos, points[7].screen_pos);
+        ClearBackground(GOLD);
+
+        drawLine(points[0].screen_pos, points[1].screen_pos);
+        drawLine(points[1].screen_pos, points[2].screen_pos);
+        drawLine(points[2].screen_pos, points[3].screen_pos);
+        drawLine(points[3].screen_pos, points[0].screen_pos);
+        drawLine(points[4].screen_pos, points[5].screen_pos);
+        drawLine(points[5].screen_pos, points[6].screen_pos);
+        drawLine(points[6].screen_pos, points[7].screen_pos);
+        drawLine(points[7].screen_pos, points[4].screen_pos);
+        drawLine(points[0].screen_pos, points[4].screen_pos);
+        drawLine(points[1].screen_pos, points[5].screen_pos);
+        drawLine(points[2].screen_pos, points[6].screen_pos);
+        drawLine(points[3].screen_pos, points[7].screen_pos);
+
+        DrawCircleLinesV(
+            (Vector2){points[8].screen_pos.x, points[8].screen_pos.y}, 10,
+            WHITE);
+      }
     }
   }
 }
