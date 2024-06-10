@@ -5,6 +5,12 @@
 #include <raymath.h>
 #include <stdlib.h>
 
+float linearTween(float currentTime, float beginningValue, float changeInValue,
+                  float duration) {
+  // return changeInValue * currentTime / beginningValue + duration;
+  return beginningValue + changeInValue * (currentTime / duration);
+}
+
 int main() {
   const int screenWidth = 400;
   const int screenHeight = 400;
@@ -13,36 +19,30 @@ int main() {
 
     SetTargetFPS(60);
 
-    float easing = 0.2f;
-    int pointsNum = 40;
-    Vector2 points[pointsNum];
-    for (int i = 0; i < pointsNum; i++) {
-      points[i] = (Vector2){0, 0};
-    }
-    Vector2 target = GetMousePosition();
+    Vector2 circlePos = {0, 0};
+    Vector2 startPos = utGetScreenCenter();
+    Vector2 targetPos = {100, 100};
+    float duration = 1;
+
+    float changeX = targetPos.x - startPos.x;
+    float changeY = targetPos.y - startPos.y;
+
+    circlePos = startPos;
+
+    float startTime = GetTime();
 
     while (!WindowShouldClose()) {
 
-      target = GetMousePosition();
-
-      for (int i = 0; i < pointsNum; i++) {
-
-        Vector2 dir = Vector2Subtract(target, points[i]);
-        dir = ut_Vector2MulVal(dir, easing);
-        points[i] = Vector2Add(dir, points[i]);
-
-        target = points[i];
+      float currentTime = GetTime() - startTime;
+      if (currentTime < duration) {
+        circlePos.x = linearTween(currentTime, startPos.x, changeX, duration);
+        circlePos.y = linearTween(currentTime, startPos.y, changeY, duration);
       }
 
       defer(BeginDrawing(), EndDrawing()) {
         ClearBackground(GOLD);
 
-        /**/
-        for (int i = 0; i < pointsNum - 1; i++) {
-          // DrawCircleV(points[i], 8, MAROON);
-          DrawLineEx(points[i], points[i + 1], 3, WHITE);
-        }
-        // DrawLineStrip(points, pointsNum, MAROON);
+        DrawCircleV(circlePos, 8, WHITE);
       }
     }
   }
