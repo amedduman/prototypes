@@ -6,11 +6,11 @@
 float ut_Rndf(float min, float max) {
   return ((float)GetRandomValue(0, 10000) / 10000.0f) * (max - min) + min;
 }
-/*
-bool utfloatComp(float a, float b) {
-    return fabs(a - b) < 1e-6;
+
+bool utfloatComp(float a, float b) 
+{ 
+  return fabs(a - b) < 1e-6; 
 }
-*/
 
 float utfloatCompT(float a, float b, float tolerance)
 {

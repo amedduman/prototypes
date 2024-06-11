@@ -10,29 +10,14 @@ typedef struct {
   Vector2 intersectionPoint;
 } utLineIntersectionResult;
 
-bool utfloatComp(float a, float b) { return fabs(a - b) < 1e-6; }
-
-bool utisPointOnSegment(Vector2 p, Vector2 p0, Vector2 p1) {
-  return p.y  >= fminf(p0.y, p1.y) && p.y  <= fmaxf(p0.y, p1.y) &&
+bool utisPointOnSegment(Vector2 p, Vector2 p0, Vector2 p1) 
+{
+  return p.y >= fminf(p0.y, p1.y) && p.y <= fmaxf(p0.y, p1.y) &&
          p.x >= fminf(p0.x, p1.x) && p.x <= fmaxf(p0.x, p1.x);
-
-  /*
-
-  printf("############\n");
-  printf("%f\n", p0.y);
-  printf("%f\n", p.y);
-  printf("%f\n", p1.y);
-
-  return p.y  >= fminf(p0.y, p1.y) && p.y  <= fmaxf(p0.y, p1.y);
-
-  float e = 0.000001f;
-  return fminf(p0.x, p1.x) <= (p.x - e) && (p.x + e) <= fmaxf(p0.x, p1.x) &&
-         fminf(p0.y, p1.y) <= (p.y - e) && (p.y + e) <= fmaxf(p0.y, p1.y);
-  */
 }
 
-utLineIntersectionResult utcheckLineIntersect(Vector2 p0, Vector2 p1,
-                                              Vector2 p2, Vector2 p3) {
+utLineIntersectionResult utcheckLineIntersect(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+{
   float A1 = p1.y - p0.y;
   float B1 = p0.x - p1.x;
   float C1 = A1 * p0.x + B1 * p0.y;
@@ -44,7 +29,8 @@ utLineIntersectionResult utcheckLineIntersect(Vector2 p0, Vector2 p1,
   float denominator = A1 * B2 - A2 * B1;
 
   // check if lines are parallel or colinear
-  if (utfloatComp(denominator, 0)) {
+  if (utfloatComp(denominator, 0))
+  {
     return (utLineIntersectionResult){false, {0, 0}};
   }
 
@@ -52,22 +38,13 @@ utLineIntersectionResult utcheckLineIntersect(Vector2 p0, Vector2 p1,
   float intersectY = (A1 * C2 - A2 * C1) / denominator;
   Vector2 intersection = {intersectX, intersectY};
   
-  //return (utLineIntersectionResult){true, intersection};
-
-  if (
-      utisPointOnSegment(intersection, p0, p1)
+  if (utisPointOnSegment(intersection, p0, p1)
       &&
-      utisPointOnSegment(intersection, p2, p3)
-    ) 
+      utisPointOnSegment(intersection, p2, p3))
   {
     return (utLineIntersectionResult){true, intersection};
   }
-  /*
-  if (utisPointOnSegment(intersection, p0, p1) &&
-      utisPointOnSegment(intersection, p2, p3)) {
-    return (utLineIntersectionResult){true, intersection};
-  }
-  */
+
   return (utLineIntersectionResult){false, {0, 0}};
 }
 
@@ -82,11 +59,13 @@ void DragCircle(Vector2 *circleCenter, float radius)
     }
 }
 
-int main() {
+int main() 
+{
   const int screenWidth = 400;
   const int screenHeight = 400;
 
-  defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) {
+  defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) 
+  {
 
     SetTargetFPS(60);
 
@@ -95,12 +74,13 @@ int main() {
     Vector2 p2 = {0, 300};
     Vector2 p3 = {350, 300};
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose()) 
+    {
 
-      defer(BeginDrawing(), EndDrawing()) {
+      defer(BeginDrawing(), EndDrawing()) 
+      {
         ClearBackground(GOLD);
-        //
-        //p2 = GetMousePosition();
+
         DragCircle(&p0, 10);
         DragCircle(&p1, 10);
         DragCircle(&p2, 10);
