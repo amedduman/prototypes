@@ -13,6 +13,7 @@ typedef struct
 {
   Vector2 pos;
   Vector2 oldPos;
+  bool isFixed;
 } point;
 
 Vector2 point_getVelocity(point* point)
@@ -32,6 +33,12 @@ void point_update(point* point)
 
 void point_constrain(point* point)
 {
+  if (point->isFixed)
+  {
+    point->pos = point->oldPos;
+    return;
+  }
+
   Vector2 vel = point_getVelocity(point);
 
   // check for screen bounds
@@ -51,7 +58,8 @@ void point_constrain(point* point)
 
 void point_draw(point* point)
 {
-  DrawCircleV(point->pos, 5, WHITE);
+  Color col = point->isFixed ? BLACK : WHITE;
+  DrawCircleV(point->pos, 5, col);
 }
 
 typedef struct
@@ -91,8 +99,8 @@ void stick_draw(stick* stick)
 
 int main() 
 {
-  const int screenWidth = 400;
-  const int screenHeight = 400;
+  const int screenWidth = 800;
+  const int screenHeight = 800;
 
   defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) 
   {
@@ -100,13 +108,13 @@ int main()
 
     #define POINTS_NUM 7
     point points[POINTS_NUM];
-    points[0] = (point){{100,100}, {85,95}};
-    points[1] = (point){{200, 100}, {200, 100}};
-    points[2] = (point){{200,200}, {200,200}};
-    points[3] = (point){{100, 200}, {100, 200}};
-    points[4] = (point){{100, 200}, {100, 200}};
-    points[5] = (point){{200, 200}, {200, 200}};
-    points[6] = (point){{300, 200}, {250, 200}};
+    points[0] = (point){{100,100}, {85,95}, false};
+    points[1] = (point){{200, 100}, {200, 100}, false};
+    points[2] = (point){{200,200}, {200,200}, false};
+    points[3] = (point){{100, 200}, {100, 200}, false};
+    points[4] = (point){{100, 200}, {100, 200}, false};
+    points[5] = (point){{200, 200}, {200, 200}, false};
+    points[6] = (point){{300, 200}, {250, 200}, true};
   
     #define STICKS_NUM 8
     stick sticks[STICKS_NUM];
@@ -136,6 +144,12 @@ int main()
         point_constrain(&points[i]);
       }
 
+      if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+      {
+        points[6].pos = GetMousePosition();
+        points[6].oldPos = GetMousePosition();
+      }
+
       defer(BeginDrawing(), EndDrawing()) 
       {
         ClearBackground(GOLD);
@@ -148,12 +162,7 @@ int main()
         for (int i = 0; i < POINTS_NUM; i++)
         {
           point_draw(&points[i]);
-          if(i == 6)
-          {
-            DrawCircleV(points[6].pos, 5, BLACK);
-          }
         }
-
       }
     }
   }
