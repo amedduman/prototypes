@@ -5,8 +5,8 @@
 #include <raymath.h>
 #include <stdio.h>
 
-#define POINTS_NUM 2
-#define STICKS_NUM 1
+#define POINTS_NUM 4
+#define STICKS_NUM 5
 #define BOUNCE 0.9f
 #define GRAVITY 0.5f
 #define FRICTION 0.99f
@@ -59,12 +59,20 @@ stick stick_create(point* p0, point* p1)
 
 void stick_update(stick* stick)
 {
-  float dist = Vector2Distance(stick->p1->pos, stick->p0->pos);
-  float diff = stick->length - dist;
-  float percent = diff / dist * 0.5f;
-  
-  stick->p0->pos = Vector2AddValue(stick->p0->pos, dist * percent * -1.0f);
-  stick->p1->pos = Vector2AddValue(stick->p1->pos, dist * percent);
+  float dx = stick->p1->pos.x - stick->p0->pos.x;
+	float dy = stick->p1->pos.y - stick->p0->pos.y;
+
+  float distance = sqrtf(dx * dx + dy * dy);
+  float difference = stick->length - distance;
+	float percent = difference / distance / 2;
+
+  float offsetX = dx * percent;
+  float offsetY = dy * percent;
+
+  stick->p0->pos.x -= offsetX;
+  stick->p0->pos.y -= offsetY;
+  stick->p1->pos.x += offsetX;
+  stick->p1->pos.y += offsetY;
 }
 
 void stick_draw(stick* stick)
@@ -82,16 +90,20 @@ int main()
     SetTargetFPS(60);
 
     point points[POINTS_NUM];
-    points[0] = (point){{100,100}, {95,95}};
+    points[0] = (point){{100,100}, {85,95}};
     points[1] = (point){{200, 100}, {200, 100}};
+    points[2] = (point){{200,200}, {200,200}};
+    points[3] = (point){{100, 200}, {100, 200}};
 
-    stick sticks[1];
-
+    stick sticks[STICKS_NUM];
     sticks[0] = stick_create(&points[0], &points[1]);
+    sticks[1] = stick_create(&points[1], &points[2]);
+    sticks[2] = stick_create(&points[2], &points[3]);
+    sticks[3] = stick_create(&points[3], &points[0]);
+    sticks[4] = stick_create(&points[0], &points[2]);
 
     while (!WindowShouldClose()) 
     {
-
       for (int i = 0; i < POINTS_NUM; i++)
       {
         point_update(&points[i]);
@@ -105,10 +117,12 @@ int main()
       defer(BeginDrawing(), EndDrawing()) 
       {
         ClearBackground(GOLD);
+
         for (int i = 0; i < STICKS_NUM; i++)
         {
           stick_draw(&sticks[i]);
         }
+
         for (int i = 0; i < POINTS_NUM; i++)
         {
           point_draw(&points[i]);
