@@ -17,13 +17,24 @@ typedef struct
   Vector2 oldPos;
 } point;
 
-void point_update(point* point)
+Vector2 point_getVelocity(point* point)
 {
   Vector2 vel = Vector2Subtract(point->pos, point->oldPos);
   vel = ut_Vector2MulVal(vel, FRICTION);
+  return vel;
+}
+
+void point_update(point* point)
+{
+  Vector2 vel = point_getVelocity(point);
   point->oldPos = point->pos;
   point->pos = Vector2Add(point->pos, vel);
   point->pos.y += GRAVITY;
+}
+
+void point_constrain(point* point)
+{
+  Vector2 vel = point_getVelocity(point);
 
   // check for screen bounds
   int w = GetScreenWidth();
@@ -112,6 +123,11 @@ int main()
       for (int i = 0; i < STICKS_NUM; i++)
       {
         stick_update(&sticks[i]);
+      }
+
+      for (int i = 0; i < POINTS_NUM; i++)
+      {
+        point_constrain(&points[i]);
       }
 
       defer(BeginDrawing(), EndDrawing()) 
