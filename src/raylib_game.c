@@ -5,8 +5,6 @@
 #include <raymath.h>
 #include <stdio.h>
 
-#define POINTS_NUM 4
-#define STICKS_NUM 5
 #define BOUNCE 0.9f
 #define GRAVITY 0.5f
 #define FRICTION 0.99f
@@ -100,18 +98,26 @@ int main()
   {
     SetTargetFPS(60);
 
+    #define POINTS_NUM 7
     point points[POINTS_NUM];
     points[0] = (point){{100,100}, {85,95}};
     points[1] = (point){{200, 100}, {200, 100}};
     points[2] = (point){{200,200}, {200,200}};
     points[3] = (point){{100, 200}, {100, 200}};
-
+    points[4] = (point){{100, 200}, {100, 200}};
+    points[5] = (point){{200, 200}, {200, 200}};
+    points[6] = (point){{300, 200}, {250, 200}};
+  
+    #define STICKS_NUM 8
     stick sticks[STICKS_NUM];
     sticks[0] = stick_create(&points[0], &points[1]);
     sticks[1] = stick_create(&points[1], &points[2]);
     sticks[2] = stick_create(&points[2], &points[3]);
     sticks[3] = stick_create(&points[3], &points[0]);
     sticks[4] = stick_create(&points[0], &points[2]);
+    sticks[5] = stick_create(&points[0], &points[4]);
+    sticks[6] = stick_create(&points[4], &points[5]);
+    sticks[7] = stick_create(&points[5], &points[6]);
 
     while (!WindowShouldClose()) 
     {
@@ -142,6 +148,10 @@ int main()
         for (int i = 0; i < POINTS_NUM; i++)
         {
           point_draw(&points[i]);
+          if(i == 6)
+          {
+            DrawCircleV(points[6].pos, 5, BLACK);
+          }
         }
 
       }
