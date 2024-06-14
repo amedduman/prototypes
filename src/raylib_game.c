@@ -1,169 +1,27 @@
-#include "defer.h"
+#include "raylib.h"
 #include "utils.h"
-#include <math.h>
-#include <raylib.h>
-#include <raymath.h>
-#include <stdio.h>
-
-#define BOUNCE 0.9f
-#define GRAVITY 0.5f
-#define FRICTION 0.99f
-
-typedef struct
-{
-  Vector2 pos;
-  Vector2 oldPos;
-  bool isFixed;
-} point;
-
-Vector2 point_getVelocity(point* point)
-{
-  Vector2 vel = Vector2Subtract(point->pos, point->oldPos);
-  vel = ut_Vector2MulVal(vel, FRICTION);
-  return vel;
-}
-
-void point_update(point* point)
-{
-  Vector2 vel = point_getVelocity(point);
-  point->oldPos = point->pos;
-  point->pos = Vector2Add(point->pos, vel);
-  point->pos.y += GRAVITY;
-}
-
-void point_constrain(point* point)
-{
-  if (point->isFixed)
-  {
-    point->pos = point->oldPos;
-    return;
-  }
-
-  Vector2 vel = point_getVelocity(point);
-
-  // check for screen bounds
-  int w = GetScreenWidth();
-  int h = GetScreenHeight();
-  if (point->pos.x > w || point->pos.x < 0)
-  {
-    point->pos.x = point->pos.x > 0 ? w : 0;
-    point->oldPos.x = point->pos.x + vel.x * BOUNCE;
-  }
-  if(point->pos.y > h || point->pos.y < 0)
-  {
-    point->pos.y = point->pos.y > 0 ? h : 0;
-    point->oldPos.y = point->pos.y + vel.y * BOUNCE;
-  }
-}
-
-void point_draw(point* point)
-{
-  Color col = point->isFixed ? BLACK : WHITE;
-  DrawCircleV(point->pos, 5, col);
-}
-
-typedef struct
-{
-  point* p0;
-  point* p1;
-  float length;
-} stick;
-
-stick stick_create(point* p0, point* p1)
-{
-  return (stick){p0, p1, Vector2Distance(p0->pos, p1->pos)};
-}
-
-void stick_update(stick* stick)
-{
-  float dx = stick->p1->pos.x - stick->p0->pos.x;
-	float dy = stick->p1->pos.y - stick->p0->pos.y;
-
-  float distance = sqrtf(dx * dx + dy * dy);
-  float difference = stick->length - distance;
-	float percent = difference / distance / 2;
-
-  float offsetX = dx * percent;
-  float offsetY = dy * percent;
-
-  stick->p0->pos.x -= offsetX;
-  stick->p0->pos.y -= offsetY;
-  stick->p1->pos.x += offsetX;
-  stick->p1->pos.y += offsetY;
-}
-
-void stick_draw(stick* stick)
-{
-  DrawLineEx(stick->p0->pos, stick->p1->pos, 3, WHITE);
-}
+#include "segment.h"
 
 int main() 
 {
-  const int screenWidth = 800;
-  const int screenHeight = 800;
+  const int screenWidth = 400;
+  const int screenHeight = 400;
 
-  defer(InitWindow(screenWidth, screenHeight, "Math"), CloseWindow()) 
+  InitWindow(screenWidth, screenHeight, "Math");
+  SetTargetFPS(60);
+
+  segment seg = segment_create((Vector2){100,100}, 50, -PI / 4);
+
+  while (!WindowShouldClose()) 
   {
-    SetTargetFPS(60);
 
-    #define POINTS_NUM 7
-    point points[POINTS_NUM];
-    points[0] = (point){{100,100}, {85,95}, false};
-    points[1] = (point){{200, 100}, {200, 100}, false};
-    points[2] = (point){{200,200}, {200,200}, false};
-    points[3] = (point){{100, 200}, {100, 200}, false};
-    points[4] = (point){{100, 200}, {100, 200}, false};
-    points[5] = (point){{200, 200}, {200, 200}, false};
-    points[6] = (point){{300, 200}, {250, 200}, true};
-  
-    #define STICKS_NUM 8
-    stick sticks[STICKS_NUM];
-    sticks[0] = stick_create(&points[0], &points[1]);
-    sticks[1] = stick_create(&points[1], &points[2]);
-    sticks[2] = stick_create(&points[2], &points[3]);
-    sticks[3] = stick_create(&points[3], &points[0]);
-    sticks[4] = stick_create(&points[0], &points[2]);
-    sticks[5] = stick_create(&points[0], &points[4]);
-    sticks[6] = stick_create(&points[4], &points[5]);
-    sticks[7] = stick_create(&points[5], &points[6]);
 
-    while (!WindowShouldClose()) 
-    {
-      for (int i = 0; i < POINTS_NUM; i++)
-      {
-        point_update(&points[i]);
-      }
+    BeginDrawing();
+    ClearBackground(GOLD);
 
-      for (int i = 0; i < STICKS_NUM; i++)
-      {
-        stick_update(&sticks[i]);
-      }
+    segment_draw(&seg);
 
-      for (int i = 0; i < POINTS_NUM; i++)
-      {
-        point_constrain(&points[i]);
-      }
-
-      if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
-      {
-        points[6].pos = GetMousePosition();
-        points[6].oldPos = GetMousePosition();
-      }
-
-      defer(BeginDrawing(), EndDrawing()) 
-      {
-        ClearBackground(GOLD);
-
-        for (int i = 0; i < STICKS_NUM; i++)
-        {
-          stick_draw(&sticks[i]);
-        }
-
-        for (int i = 0; i < POINTS_NUM; i++)
-        {
-          point_draw(&points[i]);
-        }
-      }
-    }
+    EndDrawing();
   }
+  CloseWindow();
 }
