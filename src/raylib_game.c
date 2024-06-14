@@ -10,13 +10,18 @@ int main()
 
   InitWindow(screenWidth, screenHeight, "Math");
   SetTargetFPS(60);
-
-  struct segment seg1 = segment_create((Vector2){100,100}, 50, -PI / 4, BLACK, NULL);
-  struct segment seg2 = segment_create(seg1.end, 50, 0, WHITE, &seg1);
+  Vector2 screenCenter = (Vector2){(float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2};
+  
+  struct segment seg1 = segment_create(screenCenter, 50, -PI / 4, BLACK, NULL);
+  struct segment seg2 = segment_create(seg1.end, 50, -PI / 4, WHITE, &seg1);
 
   while (!WindowShouldClose()) 
   {
 
+    segment_rotate(&seg1);
+
+    segment_update(&seg1);
+    segment_update(&seg2);
 
     BeginDrawing();
     ClearBackground(GOLD);
