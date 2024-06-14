@@ -1,6 +1,8 @@
 #pragma once 
 #include "raylib.h"
+#include <math.h>
 #include <raymath.h>
+#include <stdlib.h>
 #include <sys/_types/_null.h>
 
 struct segment
@@ -40,9 +42,9 @@ struct segment segment_create(Vector2 start, float length, float angleInRad, Col
         };
 }
 
-void segment_rotate(struct segment* segment)
+void segment_rotate(struct segment* segment, float angleInRad)
 {
-    segment->localAngle += 0.01f;
+    segment->localAngle += angleInRad;
 }
 
 void segment_update(struct segment* segment)
