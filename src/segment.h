@@ -2,13 +2,15 @@
 #include "raylib.h"
 #include <raymath.h>
 
-typedef struct
+struct segment
 {
     Vector2 start;
     Vector2 end;
     float length;
     float angleInRad;
-} segment;
+    struct segment* parent;
+    Color col;
+};
 
 Vector2 segment_calc_end(Vector2 start, float length, float angleInRad)
 {
@@ -18,17 +20,19 @@ Vector2 segment_calc_end(Vector2 start, float length, float angleInRad)
     };
 }
 
-segment segment_create(Vector2 start, float length, float angleInRad)
+struct segment segment_create(Vector2 start, float length, float angleInRad, Color col, struct segment* parent)
 {
-    return (segment){
+    return (struct segment){
         .start = start,
         .end = segment_calc_end(start, length, angleInRad),
         .length = length,
         .angleInRad = angleInRad,
+        .parent = parent,
+        .col = col,
         };
 }
 
-void segment_draw(segment* segment)
+void segment_draw(struct segment* segment)
 {
-    DrawLineEx(segment->start, segment->end, 3, WHITE);
+    DrawLineEx(segment->start, segment->end, 3, segment->col);
 }
