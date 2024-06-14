@@ -60,5 +60,5 @@ void segment_update(struct segment* segment)
 
 void segment_draw(struct segment* segment)
 {
-    DrawLineEx(segment->start, segment->end, 3, segment->col);
+    DrawLineEx(segment->start, segment->end, 2, segment->col);
 }
