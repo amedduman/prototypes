@@ -1,11 +1,5 @@
 #pragma once 
-#include "raylib.h"
 #include "utils.h"
-#include <math.h>
-#include <raymath.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/_types/_null.h>
 
 struct segment
 {
@@ -13,8 +7,6 @@ struct segment
     Vector2 end;
     float length;
     float angleInRad;
-    float localAngle;
-    struct segment* parent;
     Color col;
 };
 
@@ -26,30 +18,18 @@ Vector2 segment_calc_end(Vector2 start, float length, float angleInRad)
     };
 }
 
-/*
-Vector2 segment_calc_start(Vector2 end, float length, float angleInRad)
-{
-    return (Vector2){
-        .x = end.x - length * cosf(angleInRad),
-        .y = end.y - length * sinf(angleInRad)
-    };
-}
-*/
-
 Vector2 segment_calc_endS(struct segment* segment)
 {
     return segment_calc_end(segment->start, segment->length, segment->angleInRad);
 }
 
-struct segment segment_create(Vector2 start, float length, float angleInRad, Color col, struct segment* parent)
+struct segment segment_create(Vector2 start, float length, float angleInRad, Color col)
 {
     return (struct segment){
         .start = start,
         .end = segment_calc_end(start, length, angleInRad),
         .length = length,
         .angleInRad = angleInRad,
-        .localAngle = angleInRad,
-        .parent = parent,
         .col = col,
         };
 }
@@ -67,6 +47,7 @@ void segment_point_to(struct segment* segment, Vector2 target)
     float angleDifference = targetAngle - currentAngle;
 
     segment->end = RotatePoint(segment->start, segment->end, angleDifference);
+    segment->angleInRad = angleDifference;
 }
 
 void segment_follow(struct segment* segment, Vector2 target)
@@ -79,6 +60,31 @@ void segment_follow(struct segment* segment, Vector2 target)
   segment->start = dir;
   segment->end = segment_calc_endS(segment);
   segment_point_to(segment, target);
+}
+
+void segment_draw(struct segment* segment)
+{
+    DrawLineEx(segment->start, segment->end, 2, segment->col);
+}
+
+/*
+void segment_translate_to(struct segment* segment, Vector2 point)
+{
+    Vector2 diff_to_start = Vector2Subtract(point, segment->start);
+    segment->start = Vector2Add(segment->start, diff_to_start);
+
+    Vector2 diff_to_end = Vector2Subtract(point, segment->end);
+    segment->end = Vector2Add(segment->end, diff_to_end);
+    
+
+}
+
+Vector2 segment_calc_start(Vector2 end, float length, float angleInRad)
+{
+    return (Vector2){
+        .x = end.x - length * cosf(angleInRad),
+        .y = end.y - length * sinf(angleInRad)
+    };
 }
 
 void segment_rotate(struct segment* segment, float angleInRad)
@@ -96,8 +102,4 @@ void segment_update(struct segment* segment)
     }
     segment->end = segment_calc_endS(segment);
 }
-
-void segment_draw(struct segment* segment)
-{
-    DrawLineEx(segment->start, segment->end, 2, segment->col);
-}
+*/
