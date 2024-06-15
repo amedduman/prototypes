@@ -47,7 +47,7 @@ void segment_point_to(struct segment* segment, Vector2 target)
     float angleDifference = targetAngle - currentAngle;
 
     segment->end = RotatePoint(segment->start, segment->end, angleDifference);
-    segment->angleInRad = angleDifference;
+    segment->angleInRad = targetAngle;
 }
 
 void segment_follow(struct segment* segment, Vector2 target)
