@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "raymath.h"
 #include "utils.h"
 #include "segment.h"
 
@@ -12,8 +13,8 @@ int main()
     SetTargetFPS(60);
     Vector2 screenCenter = (Vector2){(float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2};
 
-    float segLength = 10;
-    const int seg_count = 20;
+    float segLength = 6;
+    const int seg_count = 50;
     struct segment segs[seg_count];
     
     for (int i = 0; i < seg_count; i++)
@@ -25,11 +26,34 @@ int main()
     Vector2 fixedPoint = utGetScreenCenter();
 
 
+    Vector2 ballPos = utGetScreenCenter();
+    Vector2 ballVel = {2,3};
+    float ballRadius = 5;
+
+
     while (!WindowShouldClose()) 
     {
-      segs[0].start = fixedPoint;
+      ballPos = Vector2Add(ballPos, ballVel);
 
-      segment_follow(&segs[seg_count - 1], GetMousePosition());
+      if (ballPos.x + ballRadius > screenWidth)
+      {
+        ballVel.x *= -1;
+      }
+      if (ballPos.x - ballRadius < 0)
+      {
+        ballVel.x *= -1;
+      }
+      if (ballPos.y + ballRadius > screenHeight)
+      {
+        ballVel.y *= -1;
+      }
+      if (ballPos.y - ballRadius < 0)
+      {
+        ballVel.y *= -1;
+      }
+
+      //segment_follow(&segs[seg_count - 1], GetMousePosition());
+      segment_follow(&segs[seg_count - 1], ballPos);
       for (int i = seg_count - 2; i >= 0 - 1; i--)
       {
         segment_follow(&segs[i], segs[i + 1].start);
@@ -46,6 +70,10 @@ int main()
       defer(BeginDrawing(), EndDrawing())
       {
         ClearBackground(GOLD);
+
+        DrawCircleV(utGetScreenCenter(), 4, BLACK);
+
+        DrawCircleV(ballPos, ballRadius, MAROON);
 
         for (int i = 0; i < seg_count; i++)
         {
