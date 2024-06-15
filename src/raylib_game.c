@@ -14,25 +14,23 @@ int main()
   Vector2 screenCenter = (Vector2){(float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2};
   
   struct segment seg1 = segment_create(screenCenter, 50, -PI / 4, WHITE, NULL);
-  //struct segment seg2 = segment_create(seg1.end, 50, -PI / 4, WHITE, &seg1);
-  //struct segment seg3 = segment_create(seg2.end, 50, -PI / 4, WHITE, &seg2);
+  struct segment seg2 = segment_create(seg1.end, 50, -PI / 4, WHITE, &seg1);
+  struct segment seg3 = segment_create(seg2.end, 50, -PI / 4, WHITE, &seg2);
 
   while (!WindowShouldClose()) 
   {
     segment_follow(&seg1, GetMousePosition());
-    //segment_update(&seg1);
-    //segment_update(&seg1);
-    //segment_update(&seg2);
-    //segment_update(&seg3);
-    
+    segment_follow(&seg2, seg1.start);
+    segment_follow(&seg3, seg2.start);
+
     /////////////////////////////
     BeginDrawing();
     ClearBackground(GOLD);
 
     segment_draw(&seg1);
-    //segment_draw(&seg2);
-    //segment_draw(&seg3);
-    
+    segment_draw(&seg2);
+    segment_draw(&seg3);
+
     EndDrawing();
     /////////////////////////////
   }
