@@ -26,6 +26,16 @@ Vector2 segment_calc_end(Vector2 start, float length, float angleInRad)
     };
 }
 
+/*
+Vector2 segment_calc_start(Vector2 end, float length, float angleInRad)
+{
+    return (Vector2){
+        .x = end.x - length * cosf(angleInRad),
+        .y = end.y - length * sinf(angleInRad)
+    };
+}
+*/
+
 Vector2 segment_calc_endS(struct segment* segment)
 {
     return segment_calc_end(segment->start, segment->length, segment->angleInRad);
@@ -57,6 +67,18 @@ void segment_point_to(struct segment* segment, Vector2 target)
     float angleDifference = targetAngle - currentAngle;
 
     segment->end = RotatePoint(segment->start, segment->end, angleDifference);
+}
+
+void segment_follow(struct segment* segment, Vector2 target)
+{
+  Vector2 dir = Vector2Subtract(segment->start, target);
+  dir = Vector2Normalize(dir);
+  dir = ut_Vector2MulVal(dir, segment->length);
+  dir = Vector2Add(dir, target);
+
+  segment->start = dir;
+  segment->end = segment_calc_endS(segment);
+  segment_point_to(segment, target);
 }
 
 void segment_rotate(struct segment* segment, float angleInRad)

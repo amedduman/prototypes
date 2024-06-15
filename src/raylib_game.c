@@ -19,7 +19,8 @@ int main()
 
   while (!WindowShouldClose()) 
   {
-    segment_point_to(&seg1, GetMousePosition());
+    segment_follow(&seg1, GetMousePosition());
+    //segment_update(&seg1);
     //segment_update(&seg1);
     //segment_update(&seg2);
     //segment_update(&seg3);
@@ -31,7 +32,7 @@ int main()
     segment_draw(&seg1);
     //segment_draw(&seg2);
     //segment_draw(&seg3);
-
+    
     EndDrawing();
     /////////////////////////////
   }
