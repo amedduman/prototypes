@@ -22,4 +22,8 @@ int main(void)
 
 /*
   clear && clang main.c -I include/  -L lib/ -lraylib -framework CoreFoundation -framework IOKit -framework Cocoa && ./a.out
+
+  clear && make && ./game
+
+  make clean
 */
