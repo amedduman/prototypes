@@ -1,40 +1,46 @@
 # Compiler
-CC = gcc
+CC = clang
 
-# Compiler flags
-CFLAGS = -Iinclude
+# Directories
+INCLUDE_DIR = include
+LIB_DIR = lib
+SRC_DIR = src
 
-# Linker flags
-LDFLAGS = -Llib -lraylib -framework CoreFoundation -framework IOKit -framework Cocoa
+# Files
+LIBS = $(LIB_DIR)/libraylib.a
+FRAMEWORKS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+INCLUDES = -I$(INCLUDE_DIR)
+SRCS = $(wildcard $(SRC_DIR)/*.c) main.c
+OBJS = $(SRCS:.c=.o)
 
-# Source files
-SRCS = main.c $(wildcard src/*.c)
-
-# Object files directory
-OBJDIR = bin
-OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(notdir $(SRCS)))
-
-# Executable name
+# Output
 TARGET = game
 
-# Default rule
+# Compiler flags
+CFLAGS = -Wall -Wextra -Werror $(INCLUDES)
+
+# Linker flags
+LDFLAGS = $(LIBS) $(FRAMEWORKS)
+
+# Build rules
 all: $(TARGET)
 
-# Rule to build the target executable
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-# Rule to build object files
-$(OBJDIR)/%.o: %.c | $(OBJDIR)
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Create the object directory if it doesn't exist
-$(OBJDIR):
-	mkdir -p $(OBJDIR)
-
-# Clean rule
+# Clean rules
 clean:
 	rm -f $(OBJS) $(TARGET)
 
-# Phony targets
+# Dependencies
+-include $(OBJS:.o=.d)
+
+%.d: %.c
+	@$(CC) $(CFLAGS) -MM $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
 .PHONY: all clean
