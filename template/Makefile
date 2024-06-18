@@ -10,8 +10,9 @@ LDFLAGS = -Llib -lraylib -framework CoreFoundation -framework IOKit -framework C
 # Source files
 SRCS = main.c $(wildcard src/*.c)
 
-# Object files
-OBJS = $(SRCS:.c=.o)
+# Object files directory
+OBJDIR = bin
+OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(notdir $(SRCS)))
 
 # Executable name
 TARGET = game
@@ -24,8 +25,12 @@ $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 # Rule to build object files
-%.o: %.c
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# Create the object directory if it doesn't exist
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 # Clean rule
 clean:

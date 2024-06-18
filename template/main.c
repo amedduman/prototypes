@@ -1,11 +1,12 @@
 #include "include/raylib.h"
+#include "src/circle.h"
 
 int main(void)
 {
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(screenWidth, screenHeight, "Game");
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
@@ -13,7 +14,7 @@ int main(void)
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
-
+        DrawMyCircle();
         EndDrawing();
     }
     CloseWindow();
