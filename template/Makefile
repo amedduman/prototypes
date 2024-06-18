@@ -1,17 +1,19 @@
 # Compiler
-CC = clang
+CC = gcc
 
 # Directories
 INCLUDE_DIR = include
 LIB_DIR = lib
 SRC_DIR = src
+BUILD_DIR = build
 
 # Files
 LIBS = $(LIB_DIR)/libraylib.a
 FRAMEWORKS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 INCLUDES = -I$(INCLUDE_DIR)
 SRCS = $(wildcard $(SRC_DIR)/*.c) main.c
-OBJS = $(SRCS:.c=.o)
+OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRCS))
+DEPS = $(OBJS:.o=.d)
 
 # Output
 TARGET = game
@@ -28,19 +30,22 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-%.o: %.c
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 # Clean rules
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(BUILD_DIR) $(TARGET)
 
 # Dependencies
--include $(OBJS:.o=.d)
+-include $(DEPS)
 
-%.d: %.c
+$(BUILD_DIR)/%.d: %.c | $(BUILD_DIR)
 	@$(CC) $(CFLAGS) -MM $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,$(BUILD_DIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 .PHONY: all clean
