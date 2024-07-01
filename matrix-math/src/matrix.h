@@ -5,6 +5,7 @@
 typedef struct{
   int rows;
   int cols;
+  int elementCount;
   float* values;
 } my_matrix;
 
@@ -12,17 +13,26 @@ void my_matrix_init(my_matrix* m, int rows, int cols)
 {
   m->rows = rows;
   m->cols = cols;
-  m->values = (float*)malloc(rows * cols * sizeof(float));
+  m->elementCount = rows * cols;
+  m->values = (float*)malloc(m->elementCount * sizeof(float));
 
-  for (int i = 0; i < rows * cols; i++)
+  for (int i = 0; i < m->elementCount; i++)
   {
     m->values[i] = i;
   }
 }
 
+void my_matrix_randomize(my_matrix* m)
+{
+  for (int i = 0; i < m->elementCount; i++)
+  {
+    m->values[i] = rand() % 10;
+  }
+}
+
 void my_matrix_print(my_matrix* m)
 {
-  for (int i = 0; i < m->rows * m->cols; i++)
+  for (int i = 0; i < m->elementCount; i++)
   {
     printf("%f\n",m->values[i]);
   }
@@ -38,10 +48,76 @@ float my_matrix_get_val(my_matrix* m, int row, int col)
   row--;
   col--;
   int index = m->cols * row + col;
-  if(index < 0 || index >= m->rows * m->cols)
+  if(index < 0 || index >= m->elementCount)
   {
     printf("there is a mistake at calculation of index. This shouldn't happen");
     return -2;
   }
   return m->values[index];
+}
+
+void my_matrix_mul_with_scaler(my_matrix* m, float scaler)
+{
+  for (int i = 0; i < m->elementCount; i++)
+  {
+    m->values[i] *= scaler;
+  }
+}
+
+void my_matrix_add_with_scaler(my_matrix* m, float scaler)
+{
+  for (int i = 0; i < m->elementCount; i++)
+  {
+    m->values[i] += scaler;
+  }
+}
+
+typedef enum
+{
+  mul = 0,
+  add = 1,
+}element_wise_matrix_calculation_type;
+
+static my_matrix my_matrix_element_wise_calculations(my_matrix* m1, my_matrix* m2, element_wise_matrix_calculation_type calc_type)
+{
+  my_matrix result_matrix;
+  my_matrix_init(&result_matrix, m1->rows, m1->cols);
+
+  if (m1->rows == m2->rows && m1->cols == m2->cols)
+  {
+    for (int i = 0; i < m1->elementCount; i++)
+    {
+      switch (calc_type)
+      {
+        case mul:
+        result_matrix.values[i] = m1->values[i] * m2->values[i];
+        break;
+
+        case add:
+        result_matrix.values[i] = m1->values[i] + m2->values[i];
+        break;
+      }
+    }
+  }
+  else
+  {
+    printf("the rows and columns of matrixes are not matching");
+  }
+
+  return result_matrix;
+}
+
+my_matrix my_matrix_mul_with_matrix(my_matrix* m1, my_matrix* m2)
+{
+  return my_matrix_element_wise_calculations(m1, m2, mul);
+}
+
+my_matrix my_matrix_add_with_matrix(my_matrix* m1, my_matrix* m2)
+{
+  return my_matrix_element_wise_calculations(m1, m2, add);
+}
+
+void my_matrix_free(my_matrix *m)
+{
+    free(m->values);
 }
