@@ -14,14 +14,17 @@ int main(void)
     my_matrix_init(&m1, 2, 3);
     my_matrix_randomize(&m1);
     my_matrix_print(&m1);
+    
     printf("------------------\n");
+    
     my_matrix m2;
-    my_matrix_init(&m2, 2, 3);
+    my_matrix_init(&m2, 3, 2);
     my_matrix_randomize(&m2);
     my_matrix_print(&m2);
 
     printf("------------------\n");
-    my_matrix mul_matrix = my_matrix_mul_with_matrix(&m1, &m2);
+
+    my_matrix mul_matrix = my_matrix_marix_product(&m1, &m2);
     my_matrix_print(&mul_matrix);
 
     SetTargetFPS(60);

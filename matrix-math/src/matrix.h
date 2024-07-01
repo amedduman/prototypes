@@ -18,7 +18,7 @@ void my_matrix_init(my_matrix* m, int rows, int cols)
 
   for (int i = 0; i < m->elementCount; i++)
   {
-    m->values[i] = i;
+    m->values[i] = 0;
   }
 }
 
@@ -47,6 +47,17 @@ float my_matrix_get_val(my_matrix* m, int row, int col)
   }
   row--;
   col--;
+  int index = m->cols * row + col;
+  if(index < 0 || index >= m->elementCount)
+  {
+    printf("there is a mistake at calculation of index. This shouldn't happen");
+    return -2;
+  }
+  return m->values[index];
+}
+
+float my_matrix_get_val_zero_based(my_matrix* m, int row, int col)
+{
   int index = m->cols * row + col;
   if(index < 0 || index >= m->elementCount)
   {
@@ -115,6 +126,41 @@ my_matrix my_matrix_mul_with_matrix(my_matrix* m1, my_matrix* m2)
 my_matrix my_matrix_add_with_matrix(my_matrix* m1, my_matrix* m2)
 {
   return my_matrix_element_wise_calculations(m1, m2, add);
+}
+
+static float mul_row_col_values(my_matrix* m1, int row, my_matrix* m2, int col)
+{
+  float total = 0;
+  for (int i = 0; i < m1->cols; i++)
+  {
+    total += my_matrix_get_val_zero_based(m1, row, i) * my_matrix_get_val_zero_based(m2, i, col);
+  }
+
+  return total;
+}
+
+my_matrix my_matrix_marix_product(my_matrix* m1, my_matrix* m2)
+{
+  my_matrix result_matrix;
+  my_matrix_init(&result_matrix, m1->rows, m2->cols);
+
+  if(m1->cols != m2->rows)
+  {
+    printf("columns and rows count of two matrixes are not the same.");
+    return result_matrix;
+  }
+
+  for (int i = 0; i < m1->rows; i++)
+  {
+    for (int j = 0; j < m2->cols; j++)
+    {
+      float result = mul_row_col_values(m1, i, m2, j);
+
+      result_matrix.values[i * m1->rows + j] = result;
+    }
+  }
+
+  return result_matrix;
 }
 
 void my_matrix_free(my_matrix *m)
