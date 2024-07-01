@@ -1,7 +1,29 @@
 #include "include/raylib.h"
-#include "src/circle.h"
 #include "src/matrix.h"
 #include <stdio.h>
+
+typedef struct
+{
+  Vector2 points[5];
+} square;
+
+void square_init(square* s, Vector2 pos, float width, float height)
+{
+  s->points[0] = pos;
+  s->points[1] = (Vector2){pos.x - width / 2, pos.y - height / 2}; // top-left corner
+  s->points[2] = (Vector2){pos.x + width / 2, pos.y - height / 2}; // top-right corner
+  s->points[3] = (Vector2){pos.x - width / 2, pos.y + height / 2}; // bottom-left corner
+  s->points[4] = (Vector2){pos.x + width / 2, pos.y + height /2}; // bottom-right corner
+}
+
+void square_draw(square* s)
+{
+  DrawLineEx(s->points[1], s->points[2], 1, BLACK);
+  DrawLineEx(s->points[2], s->points[4], 1, BLACK);
+  DrawLineEx(s->points[4], s->points[3], 1, BLACK);
+  DrawLineEx(s->points[3], s->points[1], 1, BLACK);
+
+}
 
 int main(void)
 {
@@ -10,22 +32,8 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Game");
 
-    my_matrix m1;
-    my_matrix_init(&m1, 2, 3);
-    my_matrix_randomize(&m1);
-    my_matrix_print(&m1);
-    
-    printf("------------------\n");
-    
-    my_matrix m2;
-    my_matrix_init(&m2, 3, 2);
-    my_matrix_randomize(&m2);
-    my_matrix_print(&m2);
-
-    printf("------------------\n");
-
-    my_matrix mul_matrix = my_matrix_marix_product(&m1, &m2);
-    my_matrix_print(&mul_matrix);
+    square s;
+    square_init(&s, (Vector2){400, 200}, 50, 50);
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
@@ -33,7 +41,9 @@ int main(void)
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
-        DrawMyCircle();
+
+        square_draw(&s);
+
         EndDrawing();
     }
     CloseWindow();
