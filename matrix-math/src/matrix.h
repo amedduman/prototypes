@@ -1,4 +1,5 @@
 #pragma once
+#include "../include/raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -150,17 +151,29 @@ my_matrix my_matrix_marix_product(my_matrix* m1, my_matrix* m2)
     return result_matrix;
   }
 
+  int result_matrix_index = 0;
+
   for (int i = 0; i < m1->rows; i++)
   {
     for (int j = 0; j < m2->cols; j++)
     {
       float result = mul_row_col_values(m1, i, m2, j);
-
-      result_matrix.values[i * m1->rows + j] = result;
+      result_matrix.values[result_matrix_index] = result; // result_matrix.values[i * m1->rows + j] = result;
+      result_matrix_index++;
     }
   }
 
   return result_matrix;
+}
+
+Vector2 my_matrix_mul_with_Vector2(my_matrix* m, Vector2 v)
+{
+  my_matrix vm;
+  my_matrix_init(&vm, 2, 1);
+  float vmValues[] = {v.x, v.y};
+  vm.values = vmValues;
+  my_matrix result_matrix = my_matrix_marix_product(m, &vm);
+  return (Vector2){result_matrix.values[0], result_matrix.values[1]};
 }
 
 void my_matrix_free(my_matrix *m)

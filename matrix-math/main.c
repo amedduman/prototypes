@@ -1,4 +1,5 @@
 #include "include/raylib.h"
+#include "include/raymath.h"
 #include "src/matrix.h"
 #include <stdio.h>
 
@@ -33,11 +34,41 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "Game");
 
     square s;
-    square_init(&s, (Vector2){400, 200}, 50, 50);
+    square_init(&s, (Vector2){0, 0}, 50, 50);
+    /*
+    [sx 0] 
+    [ 0 sy​]
+    */
+    my_matrix scaleMatrix;
+    my_matrix_init(&scaleMatrix, 2, 2);
+    float sx = 1.1;
+    float sy = 1.1;
+    float scaleMatrixValues[4] = {sx, 0, 0, sy};
+    scaleMatrix.values = scaleMatrixValues;
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
+      if(IsKeyPressed(KEY_SPACE))
+      {
+        /*
+        printf("-----------\n");
+        printf("x: %f, y: %f\n", s.points[1].x, s.points[1].y);
+
+        s.points[1] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[1]);
+
+        printf("-----------\n");
+        printf("x: %f, y: %f\n", s.points[1].x, s.points[1].y);
+        */
+        for (int i = 0; i < 5; i++)
+        {
+          s.points[i].x = s.points[i].x * sx;
+          s.points[i].y = s.points[i].y * sy;
+          // s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
+          // s.points[i] = Vector2Add(s.points[0], s.points[i]);
+        }
+      }
+
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
