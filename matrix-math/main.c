@@ -1,6 +1,7 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
 #include "src/matrix.h"
+#include <math.h>
 #include <stdio.h>
 
 typedef struct
@@ -35,37 +36,36 @@ int main(void)
 
     square s;
     square_init(&s, (Vector2){0, 0}, 50, 50);
-    /*
-    [sx 0] 
-    [ 0 sy​]
-    */
+
     my_matrix scaleMatrix;
     my_matrix_init(&scaleMatrix, 2, 2);
-    float sx = 1.1;
-    float sy = 1.1;
+    float sx = 2;
+    float sy = 2;
     float scaleMatrixValues[4] = {sx, 0, 0, sy};
     scaleMatrix.values = scaleMatrixValues;
+
+    my_matrix rotMatrix;
+    my_matrix_init(&rotMatrix, 2, 2);
+    float angleInRad = PI / 8;
+    float rotMatrixValues[4] = {cosf(angleInRad), -sinf(angleInRad), sinf(angleInRad), cosf(angleInRad)};
+    rotMatrix.values = rotMatrixValues;
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
       if(IsKeyPressed(KEY_SPACE))
       {
-        /*
-        printf("-----------\n");
-        printf("x: %f, y: %f\n", s.points[1].x, s.points[1].y);
-
-        s.points[1] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[1]);
-
-        printf("-----------\n");
-        printf("x: %f, y: %f\n", s.points[1].x, s.points[1].y);
-        */
         for (int i = 0; i < 5; i++)
         {
-          s.points[i].x = s.points[i].x * sx;
-          s.points[i].y = s.points[i].y * sy;
-          // s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
-          // s.points[i] = Vector2Add(s.points[0], s.points[i]);
+          s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
+        }
+      }
+
+      if(IsKeyPressed(KEY_F))
+      {
+        for (int i = 0; i < 5; i++)
+        {
+          s.points[i] = my_matrix_mul_with_Vector2(&rotMatrix, s.points[i]);
         }
       }
 
