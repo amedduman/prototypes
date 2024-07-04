@@ -147,7 +147,7 @@ my_matrix my_matrix_marix_product(my_matrix* m1, my_matrix* m2)
 
   if(m1->cols != m2->rows)
   {
-    printf("columns and rows count of two matrixes are not the same.");
+    printf("columns and rows count of two matrixes are not the same.\n");
     return result_matrix;
   }
 
@@ -169,10 +169,12 @@ my_matrix my_matrix_marix_product(my_matrix* m1, my_matrix* m2)
 Vector2 my_matrix_mul_with_Vector2(my_matrix* m, Vector2 v)
 {
   my_matrix vm;
-  my_matrix_init(&vm, 2, 1);
-  float vmValues[] = {v.x, v.y};
+  my_matrix_init(&vm, 3, 1);
+  float vmValues[] = {v.x, v.y, 1};
   vm.values = vmValues;
   my_matrix result_matrix = my_matrix_marix_product(m, &vm);
+  printf("------------\n");
+  my_matrix_print(&vm);
   return (Vector2){result_matrix.values[0], result_matrix.values[1]};
 }
 

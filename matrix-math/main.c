@@ -11,11 +11,11 @@ typedef struct
 
 void square_init(square* s, Vector2 pos, float width, float height)
 {
-  s->points[0] = pos;
+  s->points[0] = (Vector2){pos.x, pos.y};
   s->points[1] = (Vector2){pos.x - width / 2, pos.y - height / 2}; // top-left corner
   s->points[2] = (Vector2){pos.x + width / 2, pos.y - height / 2}; // top-right corner
   s->points[3] = (Vector2){pos.x - width / 2, pos.y + height / 2}; // bottom-left corner
-  s->points[4] = (Vector2){pos.x + width / 2, pos.y + height /2}; // bottom-right corner
+  s->points[4] = (Vector2){pos.x + width / 2, pos.y + height / 2}; // bottom-right corner
 }
 
 void square_draw(square* s)
@@ -37,6 +37,13 @@ int main(void)
     square s;
     square_init(&s, (Vector2){0, 0}, 50, 50);
 
+    my_matrix trMatrix;
+    my_matrix_init(&trMatrix, 3, 3);
+    float tx = 50;
+    float ty = 100;
+    float trMatrixValues[9] = {1, 0, tx, 0, 1, ty, 0, 0, 1};
+    trMatrix.values = trMatrixValues;
+
     my_matrix scaleMatrix;
     my_matrix_init(&scaleMatrix, 2, 2);
     float sx = 2;
@@ -57,25 +64,17 @@ int main(void)
       {
         for (int i = 0; i < 5; i++)
         {
-          s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
+          s.points[i] = my_matrix_mul_with_Vector2(&trMatrix, s.points[i]);
         }
       }
 
-      if(IsKeyPressed(KEY_F))
-      {
-        for (int i = 0; i < 5; i++)
-        {
-          s.points[i] = my_matrix_mul_with_Vector2(&rotMatrix, s.points[i]);
-        }
-      }
+      BeginDrawing();
 
-        BeginDrawing();
+      ClearBackground(RAYWHITE);
 
-        ClearBackground(RAYWHITE);
+      square_draw(&s);
 
-        square_draw(&s);
-
-        EndDrawing();
+      EndDrawing();
     }
     CloseWindow();
     return 0;
