@@ -26,6 +26,71 @@ void square_draw(square* s)
   DrawLineEx(s->points[3], s->points[1], 1, BLACK);
 
 }
+my_matrix getTranslationMatrix(float tx, float ty)
+{
+    my_matrix trMatrix;
+    my_matrix_init(&trMatrix, 3, 3);
+    
+    trMatrix.values[0] = 1;
+    trMatrix.values[1] = 0;
+    trMatrix.values[2] = tx;
+    trMatrix.values[3] = 0;
+    trMatrix.values[4] = 1;
+    trMatrix.values[5] = ty;
+    trMatrix.values[6] = 0;
+    trMatrix.values[7] = 0;
+    trMatrix.values[8] = 1;
+    
+    return trMatrix;
+}
+
+my_matrix getScaleMatrix(float sx, float sy)
+{
+    my_matrix scaleMatrix;
+    my_matrix_init(&scaleMatrix, 2, 2);
+
+    /*
+    float scaleMatrixValues[9] = {sx, 0, 0,
+                                  0, sy, 0,
+                                  0, 0, 1};
+    */
+
+    scaleMatrix.values[0] = sx;
+    scaleMatrix.values[1] = 0;
+    scaleMatrix.values[2] = 0;
+    scaleMatrix.values[3] = 0;
+    scaleMatrix.values[4] = sy;
+    scaleMatrix.values[5] = 0;
+    scaleMatrix.values[6] = 0;
+    scaleMatrix.values[7] = 0;
+    scaleMatrix.values[8] = 1;
+
+    return scaleMatrix;
+}
+
+my_matrix getRotationMatrix(float angleInRad)
+{
+    my_matrix rotMatrix;
+    my_matrix_init(&rotMatrix, 2, 2);
+
+    /*
+    float rotMatrixValues[9] = {cosf(angleInRad), -sinf(angleInRad), 0,
+                                sinf(angleInRad), cosf(angleInRad),  0,
+                                0,                0,                 1};
+    */
+
+    rotMatrix.values[0] = cosf(angleInRad);
+    rotMatrix.values[1] = -sinf(angleInRad);
+    rotMatrix.values[2] = 0;
+    rotMatrix.values[3] = sinf(angleInRad);
+    rotMatrix.values[4] = cosf(angleInRad);
+    rotMatrix.values[5] = 0;
+    rotMatrix.values[6] = 0;
+    rotMatrix.values[7] = 0;
+    rotMatrix.values[8] = 1;
+
+    return rotMatrix;
+}
 
 int main(void)
 {
@@ -35,37 +100,38 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "Game");
 
     square s;
-    square_init(&s, (Vector2){0, 0}, 50, 50);
-
-    my_matrix trMatrix;
-    my_matrix_init(&trMatrix, 3, 3);
-    float tx = 50;
-    float ty = 100;
-    float trMatrixValues[9] = {1, 0, tx, 0, 1, ty, 0, 0, 1};
-    trMatrix.values = trMatrixValues;
-
-    my_matrix scaleMatrix;
-    my_matrix_init(&scaleMatrix, 2, 2);
-    float sx = 2;
-    float sy = 2;
-    float scaleMatrixValues[4] = {sx, 0, 0, sy};
-    scaleMatrix.values = scaleMatrixValues;
-
-    my_matrix rotMatrix;
-    my_matrix_init(&rotMatrix, 2, 2);
-    float angleInRad = PI / 8;
-    float rotMatrixValues[4] = {cosf(angleInRad), -sinf(angleInRad), sinf(angleInRad), cosf(angleInRad)};
-    rotMatrix.values = rotMatrixValues;
+    square_init(&s, (Vector2){200, 100}, 50, 50);
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
-      if(IsKeyPressed(KEY_SPACE))
+      Vector2 moveVec = {0,0};
+      float speed = 5;
+
+      if (IsKeyDown(KEY_UP))
       {
-        for (int i = 0; i < 5; i++)
-        {
+        moveVec.y = -1;
+      }
+      else if (IsKeyDown(KEY_DOWN))
+      {
+        moveVec.y = 1;
+      }
+      if (IsKeyDown(KEY_RIGHT))
+      {
+        moveVec.x = 1;
+      }
+      else if (IsKeyDown(KEY_LEFT))
+      {
+        moveVec.x = -1;
+      }
+
+      moveVec = (Vector2){moveVec.x * speed, moveVec.y * speed};
+
+      my_matrix trMatrix = getTranslationMatrix(moveVec.x, moveVec.y);
+
+      for (int i = 0; i < 5; i++)
+      {
           s.points[i] = my_matrix_mul_with_Vector2(&trMatrix, s.points[i]);
-        }
       }
 
       BeginDrawing();

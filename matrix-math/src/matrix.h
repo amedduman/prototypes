@@ -173,8 +173,6 @@ Vector2 my_matrix_mul_with_Vector2(my_matrix* m, Vector2 v)
   float vmValues[] = {v.x, v.y, 1};
   vm.values = vmValues;
   my_matrix result_matrix = my_matrix_marix_product(m, &vm);
-  printf("------------\n");
-  my_matrix_print(&vm);
   return (Vector2){result_matrix.values[0], result_matrix.values[1]};
 }
 
