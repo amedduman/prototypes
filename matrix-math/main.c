@@ -49,12 +49,6 @@ my_matrix getScaleMatrix(float sx, float sy)
     my_matrix scaleMatrix;
     my_matrix_init(&scaleMatrix, 3, 3);
 
-    /*
-    float scaleMatrixValues[9] = {sx, 0, 0,
-                                  0, sy, 0,
-                                  0, 0, 1};
-    */
-
     scaleMatrix.values[0] = sx;
     scaleMatrix.values[1] = 0;
     scaleMatrix.values[2] = 0;
@@ -72,12 +66,6 @@ my_matrix getRotationMatrix(float angleInRad)
 {
     my_matrix rotMatrix;
     my_matrix_init(&rotMatrix, 3, 3);
-
-    /*
-    float rotMatrixValues[9] = {cosf(angleInRad), -sinf(angleInRad), 0,
-                                sinf(angleInRad), cosf(angleInRad),  0,
-                                0,                0,                 1};
-    */
 
     rotMatrix.values[0] = cosf(angleInRad);
     rotMatrix.values[1] = -sinf(angleInRad);
@@ -137,11 +125,11 @@ int main(void)
       float scaleFactor = 1;
       if (IsKeyDown(KEY_W))
       {
-        scaleFactor = 1.1;
+        scaleFactor = 1.01;
       }
       else if (IsKeyDown(KEY_S))
       {
-        scaleFactor = 0.9;
+        scaleFactor = 0.99;
       }
 
       my_matrix scaleMatrix = getScaleMatrix(scaleFactor, scaleFactor);
@@ -154,11 +142,30 @@ int main(void)
         my_matrix moveToOriginMatrix = getTranslationMatrix(-tx, -ty);
         my_matrix moveToPositionMatrix = getTranslationMatrix(tx, ty);
         
-        my_matrix resultmatrix = my_matrix_marix_product(&moveToOriginMatrix, &scaleMatrix);
-        resultmatrix = my_matrix_marix_product(&resultmatrix, &moveToPositionMatrix);
-
         s.points[i] = my_matrix_mul_with_Vector2(&moveToOriginMatrix, s.points[i]);
         s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
+        s.points[i] = my_matrix_mul_with_Vector2(&moveToPositionMatrix, s.points[i]);
+      }
+
+      float angle = 0;
+      if (IsKeyDown(KEY_A))
+      {
+        angle = -PI / 100;
+      }
+      else if (IsKeyDown(KEY_D))
+      {
+        angle = PI / 100;
+      }
+
+      my_matrix rotMatrix = getRotationMatrix(angle);
+
+      for (int i = 0; i < 5; i++)
+      {
+        my_matrix moveToOriginMatrix = getTranslationMatrix(-tx, -ty);
+        my_matrix moveToPositionMatrix = getTranslationMatrix(tx, ty);
+        
+        s.points[i] = my_matrix_mul_with_Vector2(&moveToOriginMatrix, s.points[i]);
+        s.points[i] = my_matrix_mul_with_Vector2(&rotMatrix, s.points[i]);
         s.points[i] = my_matrix_mul_with_Vector2(&moveToPositionMatrix, s.points[i]);
       }
 
