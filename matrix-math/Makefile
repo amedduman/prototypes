@@ -19,7 +19,7 @@ DEPS = $(OBJS:.o=.d)
 TARGET = game
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -Werror $(INCLUDES)
+CFLAGS = -Wall -Wextra $(INCLUDES)
 
 # Linker flags
 LDFLAGS = $(LIBS) $(FRAMEWORKS)

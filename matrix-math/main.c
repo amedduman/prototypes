@@ -47,7 +47,7 @@ my_matrix getTranslationMatrix(float tx, float ty)
 my_matrix getScaleMatrix(float sx, float sy)
 {
     my_matrix scaleMatrix;
-    my_matrix_init(&scaleMatrix, 2, 2);
+    my_matrix_init(&scaleMatrix, 3, 3);
 
     /*
     float scaleMatrixValues[9] = {sx, 0, 0,
@@ -71,7 +71,7 @@ my_matrix getScaleMatrix(float sx, float sy)
 my_matrix getRotationMatrix(float angleInRad)
 {
     my_matrix rotMatrix;
-    my_matrix_init(&rotMatrix, 2, 2);
+    my_matrix_init(&rotMatrix, 3, 3);
 
     /*
     float rotMatrixValues[9] = {cosf(angleInRad), -sinf(angleInRad), 0,
@@ -100,11 +100,12 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "Game");
 
     square s;
-    square_init(&s, (Vector2){200, 100}, 50, 50);
+    square_init(&s, (Vector2){200, 200}, 50, 50);
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
+/*
       Vector2 moveVec = {0,0};
       float speed = 5;
 
@@ -132,6 +133,44 @@ int main(void)
       for (int i = 0; i < 5; i++)
       {
           s.points[i] = my_matrix_mul_with_Vector2(&trMatrix, s.points[i]);
+      }
+
+      float scaleFactor = 1;
+      if (IsKeyDown(KEY_W))
+      {
+        scaleFactor = 1.1;
+      }
+      else if (IsKeyDown(KEY_S))
+      {
+        scaleFactor = 0.9;
+      }
+
+      my_matrix scaleMatrix = getScaleMatrix(scaleFactor, scaleFactor);
+*/
+      if (IsKeyPressed(KEY_SPACE))
+      {
+        for (int i = 0; i < 5; i++)
+        {
+          float tx = -s.points[i].x;
+          float ty = -s.points[i].y;
+          
+          printf("-----------\n");
+          printf("pointIndex: %d\n", i);
+          printf("tx: %f, ty: %f\n", tx, ty);
+          my_matrix moveToOriginMatrix = getTranslationMatrix(tx, ty);
+          my_matrix moveToPositionMatrix = getTranslationMatrix(-tx, -ty);
+          
+          // my_matrix resultmatrix = my_matrix_marix_product(&moveToOriginMatrix, &scaleMatrix);
+          // resultmatrix = my_matrix_marix_product(&resultmatrix, &moveToPositionMatrix);
+
+          printf("px: %f, py: %f\n", s.points[i].x, s.points[i].y);
+          s.points[i] = my_matrix_mul_with_Vector2(&moveToOriginMatrix, s.points[i]);
+          
+          printf("px: %f, py: %f\n", s.points[i].x, s.points[i].y);
+          
+          //s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
+          //s.points[i] = my_matrix_mul_with_Vector2(&moveToPositionMatrix, s.points[i]);
+        }
       }
 
       BeginDrawing();
