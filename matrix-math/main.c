@@ -105,7 +105,6 @@ int main(void)
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
-/*
       Vector2 moveVec = {0,0};
       float speed = 5;
 
@@ -146,31 +145,21 @@ int main(void)
       }
 
       my_matrix scaleMatrix = getScaleMatrix(scaleFactor, scaleFactor);
-*/
-      if (IsKeyPressed(KEY_SPACE))
-      {
-        for (int i = 0; i < 5; i++)
-        {
-          float tx = -s.points[i].x;
-          float ty = -s.points[i].y;
-          
-          printf("-----------\n");
-          printf("pointIndex: %d\n", i);
-          printf("tx: %f, ty: %f\n", tx, ty);
-          my_matrix moveToOriginMatrix = getTranslationMatrix(tx, ty);
-          my_matrix moveToPositionMatrix = getTranslationMatrix(-tx, -ty);
-          
-          // my_matrix resultmatrix = my_matrix_marix_product(&moveToOriginMatrix, &scaleMatrix);
-          // resultmatrix = my_matrix_marix_product(&resultmatrix, &moveToPositionMatrix);
 
-          printf("px: %f, py: %f\n", s.points[i].x, s.points[i].y);
-          s.points[i] = my_matrix_mul_with_Vector2(&moveToOriginMatrix, s.points[i]);
-          
-          printf("px: %f, py: %f\n", s.points[i].x, s.points[i].y);
-          
-          //s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
-          //s.points[i] = my_matrix_mul_with_Vector2(&moveToPositionMatrix, s.points[i]);
-        }
+      Vector2 squareCenter = s.points[0];
+      float tx = s.points[0].x;
+      float ty = s.points[0].y;
+      for (int i = 0; i < 5; i++)
+      {
+        my_matrix moveToOriginMatrix = getTranslationMatrix(-tx, -ty);
+        my_matrix moveToPositionMatrix = getTranslationMatrix(tx, ty);
+        
+        my_matrix resultmatrix = my_matrix_marix_product(&moveToOriginMatrix, &scaleMatrix);
+        resultmatrix = my_matrix_marix_product(&resultmatrix, &moveToPositionMatrix);
+
+        s.points[i] = my_matrix_mul_with_Vector2(&moveToOriginMatrix, s.points[i]);
+        s.points[i] = my_matrix_mul_with_Vector2(&scaleMatrix, s.points[i]);
+        s.points[i] = my_matrix_mul_with_Vector2(&moveToPositionMatrix, s.points[i]);
       }
 
       BeginDrawing();
