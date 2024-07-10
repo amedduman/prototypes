@@ -1,6 +1,42 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
 
+
+Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float angle) {
+    float cosAngle = cosf(angle);
+    float sinAngle = sinf(angle);
+
+    // Translate point to origin
+    float x = point.x - center.x;
+    float y = point.y - center.y;
+    float z = point.z - center.z;
+
+    // Normalize the rotation axis
+    float axisLength = sqrtf(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
+    float u = axis.x / axisLength;
+    float v = axis.y / axisLength;
+    float w = axis.z / axisLength;
+
+    // Compute the rotated point coordinates
+    float newX = (u * (u * x + v * y + w * z) * (1 - cosAngle) 
+                  + x * cosAngle 
+                  + (-w * y + v * z) * sinAngle);
+    
+    float newY = (v * (u * x + v * y + w * z) * (1 - cosAngle) 
+                  + y * cosAngle 
+                  + (w * x - u * z) * sinAngle);
+    
+    float newZ = (w * (u * x + v * y + w * z) * (1 - cosAngle) 
+                  + z * cosAngle 
+                  + (-v * x + u * y) * sinAngle);
+
+    // Translate the point back
+    Vector3 rotatedPoint = {newX, newY, newZ};
+    rotatedPoint = Vector3Add(center, rotatedPoint);
+
+    return rotatedPoint;
+}
+
 typedef struct {
   float fov;
   float aspect;
@@ -37,7 +73,7 @@ typedef struct
   Vector3 center;
   Vector3 vertices[8];
   int numberOfVertices;
-  int numberOfTriangles;
+  int numberOfTriangleIndicies;
   int triangleIndicies[36];
 } Cube;
 
@@ -46,7 +82,7 @@ Cube cube_init(Vector3 center)
   Cube cube;
   cube.center = center;
   cube.numberOfVertices = 8;
-  cube.numberOfTriangles = 12;
+  cube.numberOfTriangleIndicies = 36;
   
   // vertices 
   cube.vertices[0] = Vector3Add(center, (Vector3){-1, -1, -1});  // Front bottom left
@@ -80,7 +116,7 @@ Cube cube_init(Vector3 center)
     1, 0, 4
   };
 
-  for (int i = 0; i < cube.numberOfTriangles * 3; i++)
+  for (int i = 0; i < cube.numberOfTriangleIndicies; i++)
   {
       cube.triangleIndicies[i] = triangleIndicies[i];
   }
@@ -90,7 +126,7 @@ Cube cube_init(Vector3 center)
 
 void cube_draw(const Cube* cube, const myCamera* camera)
 {
-    for (int i = 0; i < cube->numberOfTriangles; i += 3)
+    for (int i = 0; i < cube->numberOfTriangleIndicies; i += 3)
     {
       Vector2 v1 = project_vertex(cube->vertices[cube->triangleIndicies[i  ]], camera);
       Vector2 v2 = project_vertex(cube->vertices[cube->triangleIndicies[i+1]], camera);
@@ -106,7 +142,7 @@ int main(void)
     const int screenWidth = 400;
     const int screenHeight = 400;
 
-    InitWindow(screenWidth, screenHeight, "Game");
+    InitWindow(screenWidth, screenHeight, "3D Cube");
 
     myCamera camera = {
       .fov = 100.0f,
@@ -115,11 +151,16 @@ int main(void)
       .far = 100.0f
     };
 
-    Cube cube = cube_init((Vector3){0, 0, -10});
-
+    Cube cube = cube_init((Vector3){0, 0, 100});
+    float angle = 0.002f;;
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
+      for (int i = 0; i < cube.numberOfVertices; i++)
+      {
+        cube.vertices[i] = RotatePointAroundAxis((Vector3){0,0, 100}, cube.vertices[i], (Vector3){0, 1, 0}, angle);
+      }
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
