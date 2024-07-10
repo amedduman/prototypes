@@ -1,5 +1,6 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
+#include <stdio.h>
 
 Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float angle) 
 {
@@ -37,25 +38,8 @@ Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float
     return rotatedPoint;
 }
 
-typedef struct 
+Vector2 project_vertex(Vector3 vertex)
 {
-  //float fov;
-  //float aspect;
-  //float near;
-  //float far;
-} myCamera;
-
-Vector2 project_vertex(Vector3 vertex, const myCamera* camera)
-{
-    // Simple perspective projection
-    //float fov_rad = camera->fov * PI / 180.0f;
-    //float scale = 1.0f / tanf(fov_rad / 2.0f);
-    
-    // Apply perspective projection
-    //float x = vertex.x * scale / camera->aspect;
-    //float y = vertex.y * scale;
-    //float z = vertex.z;
-
     float x = vertex.x;
     float y = vertex.y;
     float z = vertex.z;
@@ -69,6 +53,9 @@ Vector2 project_vertex(Vector3 vertex, const myCamera* camera)
     screen.x = (x + 1.0f) * GetScreenWidth() / 2.0f;
     screen.y = (1.0f - y) * GetScreenHeight() / 2.0f;
 
+    //screen.x = x * 100 + GetScreenWidth() / 2.0f;
+    //screen.y = y * 100 + GetScreenHeight() / 2.0f; 
+    //printf("%f\n", screen.x);
     return screen;
 }
 
@@ -89,8 +76,8 @@ Cube cube_init(Vector3 center)
   cube.numberOfTriangleIndicies = 36;
   
   // vertices 
-  cube.vertices[0] = Vector3Add(center, (Vector3){-1, -1, -1});  // Front bottom left
-  cube.vertices[1] = Vector3Add(center, (Vector3){ 1, -1, -1});  // Front bottom right
+  cube.vertices[0] = Vector3Add(center, (Vector3){-1 * 5, -1, -1});  // Front bottom left
+  cube.vertices[1] = Vector3Add(center, (Vector3){ 1 * 11, -1, -1});  // Front bottom right
   cube.vertices[2] = Vector3Add(center, (Vector3){ 1,  1, -1});  // Front top right
   cube.vertices[3] = Vector3Add(center, (Vector3){-1,  1, -1});  // Front top left
   cube.vertices[4] = Vector3Add(center, (Vector3){-1, -1,  1});  // Back bottom left
@@ -128,13 +115,13 @@ Cube cube_init(Vector3 center)
   return cube;
 }
 
-void cube_draw(const Cube* cube, const myCamera* camera)
+void cube_draw(const Cube* cube)
 {
     for (int i = 0; i < cube->numberOfTriangleIndicies; i += 3)
     {
-      Vector2 v1 = project_vertex(cube->vertices[cube->triangleIndicies[i  ]], camera);
-      Vector2 v2 = project_vertex(cube->vertices[cube->triangleIndicies[i+1]], camera);
-      Vector2 v3 = project_vertex(cube->vertices[cube->triangleIndicies[i+2]], camera);
+      Vector2 v1 = project_vertex(cube->vertices[cube->triangleIndicies[i  ]]);
+      Vector2 v2 = project_vertex(cube->vertices[cube->triangleIndicies[i+1]]);
+      Vector2 v3 = project_vertex(cube->vertices[cube->triangleIndicies[i+2]]);
 
       DrawTriangleLines(v1, v2, v3, BLACK);
     }
@@ -146,13 +133,6 @@ int main(void)
     const int screenHeight = 400;
 
     InitWindow(screenWidth, screenHeight, "3D Cube");
-
-    myCamera camera = {
-      //.fov = 60.0f,
-      //.aspect = (float)screenWidth / (float)screenHeight,
-      //.near = 0.1f,
-      //.far = 100.0f
-    };
 
     Cube cube = cube_init((Vector3){0, 0, -10}); // Negative Z value for visibility
     float angle = 0.02f;
@@ -166,9 +146,9 @@ int main(void)
         }
 
         BeginDrawing();
-        ClearBackground(GOLD);
+        ClearBackground(WHITE);
 
-        cube_draw(&cube, &camera);
+        cube_draw(&cube);
 
         EndDrawing();
     }
