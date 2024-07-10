@@ -1,7 +1,6 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
 
-
 Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float angle) {
     float cosAngle = cosf(angle);
     float sinAngle = sinf(angle);
@@ -53,8 +52,7 @@ Vector2 project_vertex(Vector3 vertex, const myCamera* camera)
     // Apply perspective projection
     float x = vertex.x * scale / camera->aspect;
     float y = vertex.y * scale;
-    float z = (vertex.z * (camera->far + camera->near) / (camera->far - camera->near) + 
-               (2 * camera->far * camera->near) / (camera->far - camera->near)) / -vertex.z;
+    float z = vertex.z;
 
     // Perspective division
     x /= z;
@@ -133,7 +131,6 @@ void cube_draw(const Cube* cube, const myCamera* camera)
       Vector2 v3 = project_vertex(cube->vertices[cube->triangleIndicies[i+2]], camera);
 
       DrawTriangleLines(v1, v2, v3, RED);
-      //DrawTriangle(v1, v2, v3, RED);
     }
 }
 
@@ -145,21 +142,22 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "3D Cube");
 
     myCamera camera = {
-      .fov = 100.0f,
+      .fov = 60.0f,
       .aspect = (float)screenWidth / (float)screenHeight,
       .near = 0.1f,
       .far = 100.0f
     };
 
-    Cube cube = cube_init((Vector3){0, 0, 100});
-    float angle = 0.002f;;
+    Cube cube = cube_init((Vector3){0, 0, -10}); // Negative Z value for visibility
+    float angle = 0.02f;
+
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
-      for (int i = 0; i < cube.numberOfVertices; i++)
-      {
-        cube.vertices[i] = RotatePointAroundAxis((Vector3){0,0, 100}, cube.vertices[i], (Vector3){0, 1, 0}, angle);
-      }
+        for (int i = 0; i < cube.numberOfVertices; i++)
+        {
+            cube.vertices[i] = RotatePointAroundAxis(cube.center, cube.vertices[i], (Vector3){0, 1, 0}, angle);
+        }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
