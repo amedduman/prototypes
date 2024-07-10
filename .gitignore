@@ -19,7 +19,8 @@
 # Libraries
 *.lib
 *.a
-!template/lib/libraylib.a
+# don't ignore compiled raylib library
+!template/lib/libraylib.a 
 *.la
 *.lo
 
@@ -36,6 +37,8 @@
 *.i*86
 *.x86_64
 *.hex
+# ignore game executable of projects
+*/game 
 
 # Debug files
 *.dSYM/
