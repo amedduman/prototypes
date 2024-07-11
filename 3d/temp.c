@@ -50,12 +50,14 @@ Vector2 project_vertex(Vector3 vertex)
 
     // Convert to screen coordinates
     Vector2 screen;
-    screen.x = (x + 1.0f) * GetScreenWidth() / 2.0f;
-    screen.y = (1.0f - y) * GetScreenHeight() / 2.0f;
+    //screen.x = (x  + 1.0f) * GetScreenWidth() / 2.0f;
+    //screen.y = (-y + 1.0f ) * GetScreenHeight() / 2.0f;
 
-    //screen.x = x * 100 + GetScreenWidth() / 2.0f;
-    //screen.y = y * 100 + GetScreenHeight() / 2.0f; 
-    //printf("%f\n", screen.x);
+    float w = GetScreenWidth() / 2.0f;
+    float h = GetScreenHeight() / 2.0f;
+
+    screen.x =  x * w + w;
+    screen.y = -y * h + h; // negative because y is inverted in raylib
     return screen;
 }
 
@@ -76,8 +78,8 @@ Cube cube_init(Vector3 center)
   cube.numberOfTriangleIndicies = 36;
   
   // vertices 
-  cube.vertices[0] = Vector3Add(center, (Vector3){-1 * 5, -1, -1});  // Front bottom left
-  cube.vertices[1] = Vector3Add(center, (Vector3){ 1 * 11, -1, -1});  // Front bottom right
+  cube.vertices[0] = Vector3Add(center, (Vector3){-1, -1, -1});  // Front bottom left
+  cube.vertices[1] = Vector3Add(center, (Vector3){ 1, -1, -1});  // Front bottom right
   cube.vertices[2] = Vector3Add(center, (Vector3){ 1,  1, -1});  // Front top right
   cube.vertices[3] = Vector3Add(center, (Vector3){-1,  1, -1});  // Front top left
   cube.vertices[4] = Vector3Add(center, (Vector3){-1, -1,  1});  // Back bottom left
