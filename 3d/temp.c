@@ -45,20 +45,16 @@ Vector2 project_vertex(Vector3 vertex)
     float z = vertex.z;
 
     // Perspective division
-    x /= z;
-    y /= z;
+    x /= -z;
+    y /= -z;
 
-    // Convert to screen coordinates
-    Vector2 screen;
-    //screen.x = (x  + 1.0f) * GetScreenWidth() / 2.0f;
-    //screen.y = (-y + 1.0f ) * GetScreenHeight() / 2.0f;
+    float x_proj_remap = (1 + x) / 2;
+    float y_proj_remap = (1 + y) / 2;
 
-    float w = GetScreenWidth() / 2.0f;
-    float h = GetScreenHeight() / 2.0f;
+    float x_proj_pix = x_proj_remap * GetScreenWidth();
+    float y_proj_pix = y_proj_remap * GetScreenHeight();
 
-    screen.x =  x * w + w;
-    screen.y = -y * h + h; // negative because y is inverted in raylib
-    return screen;
+    return (Vector2){x_proj_pix, y_proj_pix};    
 }
 
 typedef struct
@@ -70,7 +66,7 @@ typedef struct
   int triangleIndicies[36];
 } Cube;
 
-Cube cube_init(Vector3 center)
+Cube cube_init(Vector3 center, float scale)
 {
   Cube cube;
   cube.center = center;
@@ -78,14 +74,14 @@ Cube cube_init(Vector3 center)
   cube.numberOfTriangleIndicies = 36;
   
   // vertices 
-  cube.vertices[0] = Vector3Add(center, (Vector3){-1, -1, -1});  // Front bottom left
-  cube.vertices[1] = Vector3Add(center, (Vector3){ 1, -1, -1});  // Front bottom right
-  cube.vertices[2] = Vector3Add(center, (Vector3){ 1,  1, -1});  // Front top right
-  cube.vertices[3] = Vector3Add(center, (Vector3){-1,  1, -1});  // Front top left
-  cube.vertices[4] = Vector3Add(center, (Vector3){-1, -1,  1});  // Back bottom left
-  cube.vertices[5] = Vector3Add(center, (Vector3){ 1, -1,  1});  // Back bottom right
-  cube.vertices[6] = Vector3Add(center, (Vector3){ 1,  1,  1});  // Back top right
-  cube.vertices[7] = Vector3Add(center, (Vector3){-1,  1,  1});  // Back top left
+  cube.vertices[0] = Vector3Add(center, (Vector3){-1 * scale, -1 * scale, -1 * scale});  // Front bottom left
+  cube.vertices[1] = Vector3Add(center, (Vector3){ 1 * scale, -1 * scale, -1 * scale});  // Front bottom right
+  cube.vertices[2] = Vector3Add(center, (Vector3){ 1 * scale,  1 * scale, -1 * scale});  // Front top right
+  cube.vertices[3] = Vector3Add(center, (Vector3){-1 * scale,  1 * scale, -1 * scale});  // Front top left
+  cube.vertices[4] = Vector3Add(center, (Vector3){-1 * scale, -1 * scale,  1 * scale});  // Back bottom left
+  cube.vertices[5] = Vector3Add(center, (Vector3){ 1 * scale, -1 * scale,  1 * scale});  // Back bottom right
+  cube.vertices[6] = Vector3Add(center, (Vector3){ 1 * scale,  1 * scale,  1 * scale});  // Back top right
+  cube.vertices[7] = Vector3Add(center, (Vector3){-1 * scale,  1 * scale,  1 * scale});  // Back top left
 
   // triangles
   int triangleIndicies[36] = {
@@ -136,8 +132,9 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "3D Cube");
 
-    Cube cube = cube_init((Vector3){0, 0, -10}); // Negative Z value for visibility
+    Cube cube = cube_init((Vector3){100, 0, -500},  100); // Negative Z value for visibility
     float angle = 0.02f;
+    //angle = 0;
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
