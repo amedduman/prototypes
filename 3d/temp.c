@@ -172,32 +172,58 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "3D Cube");
 
-    Cube cube = cube_init((Vector3){0, 0, 0},  10); // Negative Z value for visibility
-    float angle = 0.02f;
+    Cube cube = cube_init((Vector3){0, 0, 0},  1); // Negative Z value for visibility
 
     myCam cam;
-    cam.position = (Vector3){10, 10, 100};
+    cam.position = (Vector3){0, 0, 10};
     cam.lookAtPoint = (Vector3){0, 0, 0};
     cam.upVector = (Vector3){0, 1, 0};
-
-    Matrix viewMatrix = myGetCameraViewMatrix(&cam);
-
-    bool dodo = true;
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
-        for (int i = 0; i < cube.numberOfVertices; i++)
-        {
-         if (dodo) cube.vertices[i] = MultiplyMatrixVector(viewMatrix, cube.vertices[i]);
-        }
-        dodo = false;
-        BeginDrawing();
-        ClearBackground(WHITE);
 
-        cube_draw(&cube);
+      if (IsKeyDown(KEY_A))
+      {
+        cam.position = Vector3Add(cam.position, (Vector3){-0.1, 0, 0});
+      }
 
-        EndDrawing();
+      if (IsKeyDown(KEY_D))
+      {
+        cam.position = Vector3Add(cam.position, (Vector3){0.1, 0, 0});
+      }
+
+      if (IsKeyDown(KEY_W))
+      {
+        cam.position = Vector3Add(cam.position, (Vector3){0, 0.1, 0});
+      }
+
+      if (IsKeyDown(KEY_S))
+      {
+        cam.position = Vector3Add(cam.position, (Vector3){0, -0.1, 0});
+      }
+
+      Matrix viewMatrix = myGetCameraViewMatrix(&cam);
+
+       Vector3 transformedVertices[8];
+      for (int i = 0; i < cube.numberOfVertices; i++)
+      {
+        transformedVertices[i] = MultiplyMatrixVector(viewMatrix, cube.vertices[i]);
+      }
+
+      BeginDrawing();
+      ClearBackground(WHITE);
+
+      for (int i = 0; i < cube.numberOfTriangleIndicies; i += 3)
+      {
+          Vector2 v1 = project_vertex(transformedVertices[cube.triangleIndicies[i]]);
+          Vector2 v2 = project_vertex(transformedVertices[cube.triangleIndicies[i+1]]);
+          Vector2 v3 = project_vertex(transformedVertices[cube.triangleIndicies[i+2]]);
+
+          DrawTriangleLines(v1, v2, v3, BLACK);
+      }
+
+      EndDrawing();
     }
     CloseWindow();
     return 0;
