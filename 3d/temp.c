@@ -3,42 +3,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float angle) 
-{
-    float cosAngle = cosf(angle);
-    float sinAngle = sinf(angle);
-
-    // Translate point to origin
-    float x = point.x - center.x;
-    float y = point.y - center.y;
-    float z = point.z - center.z;
-
-    // Normalize the rotation axis
-    float axisLength = sqrtf(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
-    float u = axis.x / axisLength;
-    float v = axis.y / axisLength;
-    float w = axis.z / axisLength;
-
-    // Compute the rotated point coordinates
-    float newX = (u * (u * x + v * y + w * z) * (1 - cosAngle) 
-                  + x * cosAngle 
-                  + (-w * y + v * z) * sinAngle);
-    
-    float newY = (v * (u * x + v * y + w * z) * (1 - cosAngle) 
-                  + y * cosAngle 
-                  + (w * x - u * z) * sinAngle);
-    
-    float newZ = (w * (u * x + v * y + w * z) * (1 - cosAngle) 
-                  + z * cosAngle 
-                  + (-v * x + u * y) * sinAngle);
-
-    // Translate the point back
-    Vector3 rotatedPoint = {newX, newY, newZ};
-    rotatedPoint = Vector3Add(center, rotatedPoint);
-
-    return rotatedPoint;
-}
-
 typedef struct
 {
   Vector3 position;
@@ -46,7 +10,7 @@ typedef struct
   Vector3 upVector;
 }myCam;
 
-Matrix myGetCameraViewMatrix(myCam *cam)
+Matrix myGetCameraViewMatrix(const myCam *cam)
 {
   Vector3 forward = Vector3Normalize(Vector3Subtract(cam->position, cam->lookAtPoint));
   Vector3 right = Vector3Normalize(Vector3CrossProduct(cam->upVector, forward));
@@ -153,16 +117,21 @@ Cube cube_init(Vector3 center, float scale)
   return cube;
 }
 
-void cube_draw(const Cube* cube)
+void cube_draw(const Cube* cube, const myCam* cam)
 {
-    for (int i = 0; i < cube->numberOfTriangleIndicies; i += 3)
-    {
-      Vector2 v1 = project_vertex(cube->vertices[cube->triangleIndicies[i  ]]);
-      Vector2 v2 = project_vertex(cube->vertices[cube->triangleIndicies[i+1]]);
-      Vector2 v3 = project_vertex(cube->vertices[cube->triangleIndicies[i+2]]);
+  Matrix viewMatrix = myGetCameraViewMatrix(cam);
+  for (int i = 0; i < cube->numberOfTriangleIndicies; i += 3)
+  {
+    Vector3 v1 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i]]);
+    Vector3 v2 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+1]]);
+    Vector3 v3 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+2]]);
 
-      DrawTriangleLines(v1, v2, v3, BLACK);
-    }
+    Vector2 p1 = project_vertex(v1);
+    Vector2 p2 = project_vertex(v2);
+    Vector2 p3 = project_vertex(v3);
+
+    DrawTriangleLines(p1, p2, p3, BLACK);
+  }
 }
 
 int main(void)
@@ -172,7 +141,7 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "3D Cube");
 
-    Cube cube = cube_init((Vector3){0, 0, 0},  1); // Negative Z value for visibility
+    Cube cube = cube_init((Vector3){0, 0, 0},  1);
 
     myCam cam;
     cam.position = (Vector3){0, 0, 10};
@@ -183,25 +152,12 @@ int main(void)
     while (!WindowShouldClose())
     {
 
-      if (IsKeyDown(KEY_A))
-      {
-        cam.position = Vector3Add(cam.position, (Vector3){-0.1, 0, 0});
-      }
-
-      if (IsKeyDown(KEY_D))
-      {
-        cam.position = Vector3Add(cam.position, (Vector3){0.1, 0, 0});
-      }
-
-      if (IsKeyDown(KEY_W))
-      {
-        cam.position = Vector3Add(cam.position, (Vector3){0, 0.1, 0});
-      }
-
-      if (IsKeyDown(KEY_S))
-      {
-        cam.position = Vector3Add(cam.position, (Vector3){0, -0.1, 0});
-      }
+      if (IsKeyDown(KEY_A)) cam.position.x -= 0.1f;
+      if (IsKeyDown(KEY_D)) cam.position.x += 0.1f;
+      if (IsKeyDown(KEY_W)) cam.position.y -= 0.1f;
+      if (IsKeyDown(KEY_S)) cam.position.y += 0.1f;
+      if (IsKeyDown(KEY_Q)) cam.position.z -= 0.1f;
+      if (IsKeyDown(KEY_E)) cam.position.z += 0.1f;
 
       Matrix viewMatrix = myGetCameraViewMatrix(&cam);
 
@@ -214,14 +170,7 @@ int main(void)
       BeginDrawing();
       ClearBackground(WHITE);
 
-      for (int i = 0; i < cube.numberOfTriangleIndicies; i += 3)
-      {
-          Vector2 v1 = project_vertex(transformedVertices[cube.triangleIndicies[i]]);
-          Vector2 v2 = project_vertex(transformedVertices[cube.triangleIndicies[i+1]]);
-          Vector2 v3 = project_vertex(transformedVertices[cube.triangleIndicies[i+2]]);
-
-          DrawTriangleLines(v1, v2, v3, BLACK);
-      }
+      cube_draw(&cube, &cam);
 
       EndDrawing();
     }
