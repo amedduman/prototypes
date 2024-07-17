@@ -1,5 +1,6 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
+#include <stdbool.h>
 #include <stdio.h>
 
 Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float angle) 
@@ -36,6 +37,45 @@ Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float
     rotatedPoint = Vector3Add(center, rotatedPoint);
 
     return rotatedPoint;
+}
+
+typedef struct
+{
+  Vector3 position;
+  Vector3 lookAtPoint;
+  Vector3 upVector;
+}myCam;
+
+Matrix myGetCameraViewMatrix(myCam *cam)
+{
+  Vector3 forward = Vector3Normalize(Vector3Subtract(cam->position, cam->lookAtPoint));
+  Vector3 right = Vector3Normalize(Vector3CrossProduct(cam->upVector, forward));
+  Vector3 up = Vector3CrossProduct(forward, right);
+
+  Matrix r = {
+    right.x, right.y, right.z, 0,
+    up.x, up.y, up.z, 0,
+    forward.x, forward.y, forward.z, 0,
+    0, 0, 0, 1
+  };
+
+  Matrix t = {
+    1, 0, 0, -cam->position.x,
+    0, 1, 0, -cam->position.y,
+    0, 0, 1, -cam->position.z,
+    0, 0, 0, 1
+  };
+
+  return MatrixMultiply(r, t);
+}
+
+Vector3 MultiplyMatrixVector(Matrix mat, Vector3 vec)
+{
+    Vector3 result;
+    result.x = mat.m0 * vec.x + mat.m4 * vec.y + mat.m8 * vec.z + mat.m12;
+    result.y = mat.m1 * vec.x + mat.m5 * vec.y + mat.m9 * vec.z + mat.m13;
+    result.z = mat.m2 * vec.x + mat.m6 * vec.y + mat.m10 * vec.z + mat.m14;
+    return result;
 }
 
 Vector2 project_vertex(Vector3 vertex)
@@ -132,18 +172,26 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "3D Cube");
 
-    Cube cube = cube_init((Vector3){100, 0, -500},  100); // Negative Z value for visibility
+    Cube cube = cube_init((Vector3){0, 0, 0},  10); // Negative Z value for visibility
     float angle = 0.02f;
-    //angle = 0;
+
+    myCam cam;
+    cam.position = (Vector3){10, 10, 100};
+    cam.lookAtPoint = (Vector3){0, 0, 0};
+    cam.upVector = (Vector3){0, 1, 0};
+
+    Matrix viewMatrix = myGetCameraViewMatrix(&cam);
+
+    bool dodo = true;
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
         for (int i = 0; i < cube.numberOfVertices; i++)
         {
-            cube.vertices[i] = RotatePointAroundAxis(cube.center, cube.vertices[i], (Vector3){0, 1, 0}, angle);
+         if (dodo) cube.vertices[i] = MultiplyMatrixVector(viewMatrix, cube.vertices[i]);
         }
-
+        dodo = false;
         BeginDrawing();
         ClearBackground(WHITE);
 
