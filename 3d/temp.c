@@ -10,6 +10,8 @@ typedef struct
   Vector3 upVector;
   float fov;
   float aspect;
+  float near;
+  float far;
 }myCam;
 
 Matrix myGetCameraViewMatrix(const myCam *cam)
@@ -74,6 +76,56 @@ Vector2 project_vertex(Vector3 vertex, const myCam* cam)
     float y_proj_pix = y_proj_remap * GetScreenHeight();
 
     return (Vector2){x_proj_pix, y_proj_pix};    
+}
+
+// REMEMBER -> the incomin point is in the camera space
+Vector2 manual_perspective_projection(const Vector3 point, const myCam* cam)
+{
+  // Check if the point is behind the camera
+  if (point.z >= 0)
+  {
+    printf("Point is behind the camera: z = %f\n", point.z);
+    return (Vector2){-1, -1};  // Return an invalid point
+  }
+
+    // Convert FOV to radians
+    float fovRad = cam->fov * DEG2RAD;
+
+    
+    // Calculate the cotangent of half the FOV
+    float cotHalfFov = 1.0f / tanf(fovRad * 0.5f);
+
+    // perspective projection ↓
+
+    // apply FOV
+    float x_proj = point.x * cotHalfFov;
+    float y_proj = point.y * cotHalfFov;
+
+    // Apply aspect ratio correction to x
+    x_proj *= cam->aspect;
+    
+    // Apply perspective division
+    x_proj = point.x / point.z;
+    y_proj = point.y / point.z;
+    
+    // mapping ↓
+    
+    // Map z to [0, 1] range
+    float z_proj = (cam->far + cam->near) / (cam->far - cam->near) + (-2 * cam->far * cam->near) / ((cam->far - cam->near) * point.z);
+    
+    // Clip if outside the near and far planes
+    if (fabsf(point.z) < cam->near || fabsf(point.z) > cam->far) 
+    {
+      printf("this point is outside the near and far planes\n");
+      printf("point.z: %f\n", fabsf(point.z));
+      return (Vector2){-1, -1};  // Return an invalid point
+    }
+    
+    // Map to screen space (assuming [-1, 1] to [0, screenWidth/Height])
+    float x_screen = (x_proj + 1.0f) * 0.5f * GetScreenWidth();
+    float y_screen = (1.0f - y_proj) * 0.5f * GetScreenHeight();
+    
+    return (Vector2){x_screen, y_screen};
 }
 
 typedef struct
@@ -141,9 +193,9 @@ void cube_draw(const Cube* cube, const myCam* cam)
     Vector3 v2 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+1]]);
     Vector3 v3 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+2]]);
 
-    Vector2 p1 = project_vertex(v1, cam);
-    Vector2 p2 = project_vertex(v2, cam);
-    Vector2 p3 = project_vertex(v3, cam);
+    Vector2 p1 = manual_perspective_projection(v1, cam);
+    Vector2 p2 = manual_perspective_projection(v2, cam);
+    Vector2 p3 = manual_perspective_projection(v3, cam);
 
     DrawTriangleLines(p1, p2, p3, BLACK);
   }
@@ -163,7 +215,9 @@ int main(void)
       .lookAtPoint = (Vector3){0, 0, 0},
       .upVector = (Vector3){0, 1, 0},
       .aspect = (float)screenWidth / (float)screenHeight,
-      .fov = 60.0f
+      .fov = 60.0f,
+      .near = 1,
+      .far = 100
     };
 
     SetTargetFPS(60);
