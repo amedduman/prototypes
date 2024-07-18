@@ -40,45 +40,83 @@ Matrix myGetCameraViewMatrix(const myCam *cam)
 Vector3 MultiplyMatrixVector(Matrix mat, Vector3 vec)
 {
     Vector3 result;
-    result.x = mat.m0 * vec.x + mat.m4 * vec.y + mat.m8 * vec.z + mat.m12;
-    result.y = mat.m1 * vec.x + mat.m5 * vec.y + mat.m9 * vec.z + mat.m13;
+    result.x = mat.m0 * vec.x + mat.m4 * vec.y + mat.m8  * vec.z + mat.m12;
+    result.y = mat.m1 * vec.x + mat.m5 * vec.y + mat.m9  * vec.z + mat.m13;
     result.z = mat.m2 * vec.x + mat.m6 * vec.y + mat.m10 * vec.z + mat.m14;
     return result;
 }
 
-Vector2 project_vertex(Vector3 vertex, const myCam* cam)
+Vector4 MultiplyMatrixVector4(Matrix mat, Vector4 vec)
 {
-    float x = vertex.x;
-    float y = vertex.y;
-    float z = vertex.z;
-
-    float fovRad = cam->fov * DEG2RAD;
-    float tanHalfFov = tanf(fovRad / 2.0f);
-
-    // multiplying values to adjust them according to fov and aspect ratio of screen
-    x = x * tanHalfFov * cam->aspect;
-    y = y * tanHalfFov;
-
-    // Perspective division
-    x = x / z;
-    y = y / z;
-
-    // after vertices being transformed to camera space and being divide by z for perpective they are 
-    // end up being between -1,1 which is we called as normalized device space
-    // so we are going to map them between 0,1 to make calculations easier for ourselves
-    // and since y is reversed in screen space we are going to do 1 - y instead of 1 + y
-    float x_proj_remap = (1 + x) * 0.5f ;
-    float y_proj_remap = (1 - y) * 0.5f;
-
-    // after mapping we are going to multiply them with screen width and height
-    // to get pixel cordinate of the point 
-    float x_proj_pix = x_proj_remap * GetScreenWidth();
-    float y_proj_pix = y_proj_remap * GetScreenHeight();
-
-    return (Vector2){x_proj_pix, y_proj_pix};    
+    Vector4 result;
+    result.x = mat.m0 * vec.x + mat.m4 * vec.y + mat.m8  * vec.z + mat.m12;
+    result.y = mat.m1 * vec.x + mat.m5 * vec.y + mat.m9  * vec.z + mat.m13;
+    result.z = mat.m2 * vec.x + mat.m6 * vec.y + mat.m10 * vec.z + mat.m14;
+    result.w = mat.m3 * vec.x + mat.m7 * vec.y + mat.m11 * vec.z + mat.m15;
+    return result;
 }
 
-// REMEMBER -> the incomin point is in the camera space
+Vector4 Vector4FromVector3(Vector3 vec, float w)
+{
+    Vector4 result;
+    result.x = vec.x;
+    result.y = vec.y;
+    result.z = vec.z;
+    result.w = w;
+    return result;
+}
+
+Matrix CreatePerspectiveProjectionMatrix(float fovY, float aspect, float near, float far)
+{
+    float tanHalfFovY = tanf(fovY * 0.5f * DEG2RAD);
+    float f = 1.0f / tanHalfFovY;
+    float nf = 1.0f / (near - far);
+
+    Matrix result = {
+        f / aspect, 0.0f,  0.0f,                         0.0f,
+        0.0f,       f,     0.0f,                         0.0f,
+        0.0f,       0.0f,  (far + near) * nf,           -1.0f,
+        0.0f,       0.0f,  2.0f * far * near * nf,       0.0f
+    };
+
+    return result;
+}
+
+// REMEMBER -> the incoming point is in the camera space
+Vector2 perspective_projection(Vector3 vertex, const myCam* cam)
+{
+  // Create projection matrix
+  Matrix projectionMatrix = CreatePerspectiveProjectionMatrix(cam->fov, cam->aspect, cam->near, cam->far);
+
+  // Apply projection matrix
+  // when we do the projection matrix we transform our points in the clip space
+  Vector4 projected_point =  MultiplyMatrixVector4(projectionMatrix, Vector4FromVector3(vertex, 1.0f));
+
+  // Perform perspective division
+  if (projected_point.w != 0.0f)
+  {
+      projected_point.x /= projected_point.w;
+      projected_point.y /= projected_point.w;
+      projected_point.z /= projected_point.w;
+  }
+
+  // Check if the point is within the view frustum
+  if (projected_point.x < -1.0f || projected_point.x > 1.0f ||
+      projected_point.y < -1.0f || projected_point.y > 1.0f ||
+      projected_point.z < -1.0f || projected_point.z > 1.0f)
+  {
+      return (Vector2){-1, -1};  // Return an invalid point
+  }
+
+  // Map to screen space
+    float x_screen = (projected_point.x + 1.0f) * 0.5f * GetScreenWidth();
+    float y_screen = (1.0f - projected_point.y) * 0.5f * GetScreenHeight();
+    
+    // this point is in the screen space
+    return (Vector2){x_screen, y_screen};
+}
+
+// REMEMBER -> the incoming point is in the camera space
 Vector2 manual_perspective_projection(const Vector3 point, const myCam* cam)
 {
   // Check if the point is behind the camera
@@ -193,11 +231,14 @@ void cube_draw(const Cube* cube, const myCam* cam)
     Vector3 v2 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+1]]);
     Vector3 v3 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+2]]);
 
-    Vector2 p1 = manual_perspective_projection(v1, cam);
-    Vector2 p2 = manual_perspective_projection(v2, cam);
-    Vector2 p3 = manual_perspective_projection(v3, cam);
+    Vector2 p1 = perspective_projection(v1, cam);
+    Vector2 p2 = perspective_projection(v2, cam);
+    Vector2 p3 = perspective_projection(v3, cam);
 
-    DrawTriangleLines(p1, p2, p3, BLACK);
+    if (p1.x >= 0 && p2.x >= 0 && p3.x >= 0)
+    {
+      DrawTriangleLines(p1, p2, p3, BLACK);
+    }
   }
 }
 
