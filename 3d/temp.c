@@ -8,6 +8,8 @@ typedef struct
   Vector3 position;
   Vector3 lookAtPoint;
   Vector3 upVector;
+  float fov;
+  float aspect;
 }myCam;
 
 Matrix myGetCameraViewMatrix(const myCam *cam)
@@ -42,19 +44,32 @@ Vector3 MultiplyMatrixVector(Matrix mat, Vector3 vec)
     return result;
 }
 
-Vector2 project_vertex(Vector3 vertex)
+Vector2 project_vertex(Vector3 vertex, const myCam* cam)
 {
     float x = vertex.x;
     float y = vertex.y;
     float z = vertex.z;
 
+    float fovRad = cam->fov * DEG2RAD;
+    float tanHalfFov = tanf(fovRad / 2.0f);
+
+    // multiplying values to adjust them according to fov and aspect ratio of screen
+    x = x * tanHalfFov * cam->aspect;
+    y = y * tanHalfFov;
+
     // Perspective division
-    x /= -z;
-    y /= -z;
+    x = x / z;
+    y = y / z;
 
-    float x_proj_remap = (1 + x) / 2;
-    float y_proj_remap = (1 + y) / 2;
+    // after vertices being transformed to camera space and being divide by z for perpective they are 
+    // end up being between -1,1 which is we called as normalized device space
+    // so we are going to map them between 0,1 to make calculations easier for ourselves
+    // and since y is reversed in screen space we are going to do 1 - y instead of 1 + y
+    float x_proj_remap = (1 + x) * 0.5f ;
+    float y_proj_remap = (1 - y) * 0.5f;
 
+    // after mapping we are going to multiply them with screen width and height
+    // to get pixel cordinate of the point 
     float x_proj_pix = x_proj_remap * GetScreenWidth();
     float y_proj_pix = y_proj_remap * GetScreenHeight();
 
@@ -126,9 +141,9 @@ void cube_draw(const Cube* cube, const myCam* cam)
     Vector3 v2 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+1]]);
     Vector3 v3 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+2]]);
 
-    Vector2 p1 = project_vertex(v1);
-    Vector2 p2 = project_vertex(v2);
-    Vector2 p3 = project_vertex(v3);
+    Vector2 p1 = project_vertex(v1, cam);
+    Vector2 p2 = project_vertex(v2, cam);
+    Vector2 p3 = project_vertex(v3, cam);
 
     DrawTriangleLines(p1, p2, p3, BLACK);
   }
@@ -143,17 +158,20 @@ int main(void)
 
     Cube cube = cube_init((Vector3){0, 0, 0},  1);
 
-    myCam cam;
-    cam.position = (Vector3){0, 0, 10};
-    cam.lookAtPoint = (Vector3){0, 0, 0};
-    cam.upVector = (Vector3){0, 1, 0};
+    myCam cam = {
+      .position = (Vector3){0, 0, 10},
+      .lookAtPoint = (Vector3){0, 0, 0},
+      .upVector = (Vector3){0, 1, 0},
+      .aspect = (float)screenWidth / (float)screenHeight,
+      .fov = 60.0f
+    };
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
 
-      if (IsKeyDown(KEY_A)) cam.position.x -= 0.1f;
-      if (IsKeyDown(KEY_D)) cam.position.x += 0.1f;
+      if (IsKeyDown(KEY_A)) cam.position.x += 0.1f;
+      if (IsKeyDown(KEY_D)) cam.position.x -= 0.1f;
       if (IsKeyDown(KEY_W)) cam.position.y -= 0.1f;
       if (IsKeyDown(KEY_S)) cam.position.y += 0.1f;
       if (IsKeyDown(KEY_Q)) cam.position.z -= 0.1f;
