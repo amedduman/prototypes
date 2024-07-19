@@ -290,3 +290,67 @@ int main(void)
     CloseWindow();
     return 0;
 }
+
+/*
+https://chatgpt.com/c/8d1d208b-5b02-4476-852d-6ec89bd66884
+
+Clipping space is a crucial concept in the computer graphics pipeline. It refers to a coordinate system where geometric primitives are clipped to the view frustum before being projected onto the screen. Here's a detailed breakdown of its role and the transformations involved:
+1. Graphics Pipeline Overview
+
+The graphics pipeline is a sequence of steps used to transform 3D coordinates into a 2D image on your screen. Key stages include:
+
+    Modeling Transformation: Converts model coordinates to world coordinates.
+    View Transformation: Converts world coordinates to camera/view coordinates.
+    Projection Transformation: Converts view coordinates to clip coordinates.
+    Clipping: Clips primitives to the view frustum.
+    Viewport Transformation: Maps normalized device coordinates to screen coordinates.
+
+2. Clipping Space
+
+Clipping space is an intermediate coordinate system used in the graphics pipeline. It's a result of the projection transformation, where coordinates are transformed from view space to clip space.
+Transformations to Clipping Space:
+
+    Modeling Transformation:
+        vworld=Mmodel⋅vmodelvworld​=Mmodel​⋅vmodel​
+        Transforms vertices from model coordinates to world coordinates using the model matrix (MmodelMmodel​).
+
+    View Transformation:
+        vview=Mview⋅vworldvview​=Mview​⋅vworld​
+        Transforms vertices from world coordinates to view coordinates using the view matrix (MviewMview​).
+
+    Projection Transformation:
+        vclip=Mproj⋅vviewvclip​=Mproj​⋅vview​
+        Transforms vertices from view coordinates to clip coordinates using the projection matrix (MprojMproj​).
+
+3. Role of Clipping Space
+
+In clip space, coordinates are represented in a 4D homogeneous form (x,y,z,w)(x,y,z,w). The main role of clipping space is to prepare the primitives for clipping against the view frustum. The view frustum is typically defined by the following volume in clip space:
+
+    −w≤x≤w−w≤x≤w
+    −w≤y≤w−w≤y≤w
+    −w≤z≤w−w≤z≤w
+
+Primitives outside this volume are clipped (partially or fully removed) to ensure they are within the viewable area.
+4. Clipping Process
+
+The clipping process involves checking and potentially modifying the vertices of each primitive to ensure they lie within the view frustum. This is essential to avoid rendering artifacts and to optimize rendering by not processing primitives outside the view.
+5. Transformations After Clipping Space
+
+After clipping, the coordinates are transformed from clip space to normalized device coordinates (NDC) and then to screen coordinates:
+
+    Normalized Device Coordinates (NDC):
+        Divide the xx, yy, and zz components by the ww component:
+            xndc=xclipwclipxndc​=wclip​xclip​​
+            yndc=yclipwclipyndc​=wclip​yclip​​
+            zndc=zclipwclipzndc​=wclip​zclip​​
+        This step transforms clip coordinates to a normalized cube from [−1,1][−1,1] in all three dimensions.
+
+    Viewport Transformation:
+        Maps NDC coordinates to screen coordinates based on the viewport dimensions.
+
+Summary
+
+Clipping space is used in the projection transformation stage of the graphics pipeline, preparing primitives for clipping against the view frustum. It ensures that only visible parts of the scene are processed in subsequent stages, optimizing rendering performance and accuracy.
+
+If you have any specific aspects or further details you want to delve into, feel free to ask!
+*/
