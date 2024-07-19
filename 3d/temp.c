@@ -1,6 +1,8 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 typedef struct
@@ -166,80 +168,59 @@ Vector2 manual_perspective_projection(const Vector3 point, const myCam* cam)
     return (Vector2){x_screen, y_screen};
 }
 
-typedef struct
-{
-  Vector3 center;
-  Vector3 vertices[8];
-  int numberOfVertices;
-  int numberOfTriangleIndicies;
-  int triangleIndicies[36];
-} Cube;
+#define MAX_VERTICES 10000
+#define MAX_FACES 10000
 
-Cube cube_init(Vector3 center, float scale)
-{
-  Cube cube;
-  cube.center = center;
-  cube.numberOfVertices = 8;
-  cube.numberOfTriangleIndicies = 36;
-  
-  // vertices 
-  cube.vertices[0] = Vector3Add(center, (Vector3){-1 * scale, -1 * scale, -1 * scale});  // Front bottom left
-  cube.vertices[1] = Vector3Add(center, (Vector3){ 1 * scale, -1 * scale, -1 * scale});  // Front bottom right
-  cube.vertices[2] = Vector3Add(center, (Vector3){ 1 * scale,  1 * scale, -1 * scale});  // Front top right
-  cube.vertices[3] = Vector3Add(center, (Vector3){-1 * scale,  1 * scale, -1 * scale});  // Front top left
-  cube.vertices[4] = Vector3Add(center, (Vector3){-1 * scale, -1 * scale,  1 * scale});  // Back bottom left
-  cube.vertices[5] = Vector3Add(center, (Vector3){ 1 * scale, -1 * scale,  1 * scale});  // Back bottom right
-  cube.vertices[6] = Vector3Add(center, (Vector3){ 1 * scale,  1 * scale,  1 * scale});  // Back top right
-  cube.vertices[7] = Vector3Add(center, (Vector3){-1 * scale,  1 * scale,  1 * scale});  // Back top left
+typedef struct {
+    Vector3 vertices[MAX_VERTICES];
+    int vertexCount;
+    int faces[MAX_FACES][3];
+    int faceCount;
+} Model3D;
 
-  // triangles
-  int triangleIndicies[36] = {
-    // Front face
-    0, 1, 2,
-    2, 3, 0,
-    // Right face
-    1, 5, 6,
-    6, 2, 1,
-    // Back face
-    5, 4, 7,
-    7, 6, 5,
-    // Left face
-    4, 0, 3,
-    3, 7, 4,
-    // Top face
-    3, 2, 6,
-    6, 7, 3,
-    // Bottom face
-    4, 5, 1,
-    1, 0, 4
-  };
+Model3D loadOBJ(const char* filename) {
+    Model3D model = {0};
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        printf("Failed to open file: %s\n", filename);
+        return model;
+    }
 
-  for (int i = 0; i < cube.numberOfTriangleIndicies; i++)
-  {
-      cube.triangleIndicies[i] = triangleIndicies[i];
-  }
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == 'v' && line[1] == ' ') {
+            Vector3 vertex;
+            sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+            model.vertices[model.vertexCount++] = vertex;
+        } else if (line[0] == 'f' && line[1] == ' ') {
+            int v1, v2, v3;
+            sscanf(line, "f %d %d %d", &v1, &v2, &v3);
+            model.faces[model.faceCount][0] = v1 - 1;
+            model.faces[model.faceCount][1] = v2 - 1;
+            model.faces[model.faceCount][2] = v3 - 1;
+            model.faceCount++;
+        }
+    }
 
-  return cube;
+    fclose(file);
+    return model;
 }
 
-void cube_draw(const Cube* cube, const myCam* cam)
-{
-  Matrix viewMatrix = myGetCameraViewMatrix(cam);
-  for (int i = 0; i < cube->numberOfTriangleIndicies; i += 3)
-  {
-    Vector3 v1 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i]]);
-    Vector3 v2 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+1]]);
-    Vector3 v3 = MultiplyMatrixVector(viewMatrix, cube->vertices[cube->triangleIndicies[i+2]]);
+void drawModel(const Model3D* model, const myCam* cam) {
+    Matrix viewMatrix = myGetCameraViewMatrix(cam);
+    for (int i = 0; i < model->faceCount; i++) {
+        Vector3 v1 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][0]]);
+        Vector3 v2 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][1]]);
+        Vector3 v3 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][2]]);
 
-    Vector2 p1 = perspective_projection(v1, cam);
-    Vector2 p2 = perspective_projection(v2, cam);
-    Vector2 p3 = perspective_projection(v3, cam);
+        Vector2 p1 = perspective_projection(v1, cam);
+        Vector2 p2 = perspective_projection(v2, cam);
+        Vector2 p3 = perspective_projection(v3, cam);
 
-    if (p1.x >= 0 && p2.x >= 0 && p3.x >= 0)
-    {
-      DrawTriangleLines(p1, p2, p3, BLACK);
+        if (p1.x >= 0 && p2.x >= 0 && p3.x >= 0) {
+            DrawTriangleLines(p1, p2, p3, BLACK);
+        }
     }
-  }
 }
 
 int main(void)
@@ -247,9 +228,14 @@ int main(void)
     const int screenWidth = 400;
     const int screenHeight = 400;
 
-    InitWindow(screenWidth, screenHeight, "3D Cube");
-
-    Cube cube = cube_init((Vector3){0, 0, 0},  1);
+    InitWindow(screenWidth, screenHeight, "3D");
+    Model3D model = loadOBJ("./cube.OBJ");
+    // check if model is loaded 
+    if (model.vertexCount == 0 || model.faceCount == 0)
+    {
+      printf("Failed to load model\n");
+      return 1;
+    }
 
     myCam cam = {
       .position = (Vector3){0, 0, 10},
@@ -273,17 +259,11 @@ int main(void)
       if (IsKeyDown(KEY_E)) cam.position.z += 0.1f;
 
       Matrix viewMatrix = myGetCameraViewMatrix(&cam);
-
-       Vector3 transformedVertices[8];
-      for (int i = 0; i < cube.numberOfVertices; i++)
-      {
-        transformedVertices[i] = MultiplyMatrixVector(viewMatrix, cube.vertices[i]);
-      }
-
+ 
       BeginDrawing();
       ClearBackground(WHITE);
 
-      cube_draw(&cube, &cam);
+      drawModel(&model, &cam);
 
       EndDrawing();
     }
