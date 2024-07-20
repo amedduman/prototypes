@@ -1,177 +1,229 @@
+// #region Includes
 #include "include/raylib.h"
 #include "include/raymath.h"
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+// #endregion
 
-Vector3 RotatePointAroundAxis(Vector3 center, Vector3 point, Vector3 axis, float angle) 
-{
-    float cosAngle = cosf(angle);
-    float sinAngle = sinf(angle);
-
-    // Translate point to origin
-    float x = point.x - center.x;
-    float y = point.y - center.y;
-    float z = point.z - center.z;
-
-    // Normalize the rotation axis
-    float axisLength = sqrtf(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
-    float u = axis.x / axisLength;
-    float v = axis.y / axisLength;
-    float w = axis.z / axisLength;
-
-    // Compute the rotated point coordinates
-    float newX = (u * (u * x + v * y + w * z) * (1 - cosAngle) 
-                  + x * cosAngle 
-                  + (-w * y + v * z) * sinAngle);
-    
-    float newY = (v * (u * x + v * y + w * z) * (1 - cosAngle) 
-                  + y * cosAngle 
-                  + (w * x - u * z) * sinAngle);
-    
-    float newZ = (w * (u * x + v * y + w * z) * (1 - cosAngle) 
-                  + z * cosAngle 
-                  + (-v * x + u * y) * sinAngle);
-
-    // Translate the point back
-    Vector3 rotatedPoint = {newX, newY, newZ};
-    rotatedPoint = Vector3Add(center, rotatedPoint);
-
-    return rotatedPoint;
-}
-
-typedef struct 
-{
-  //float fov;
-  //float aspect;
-  //float near;
-  //float far;
-} myCamera;
-
-Vector2 project_vertex(Vector3 vertex, const myCamera* camera)
-{
-    // Simple perspective projection
-    //float fov_rad = camera->fov * PI / 180.0f;
-    //float scale = 1.0f / tanf(fov_rad / 2.0f);
-    
-    // Apply perspective projection
-    //float x = vertex.x * scale / camera->aspect;
-    //float y = vertex.y * scale;
-    //float z = vertex.z;
-
-    float x = vertex.x;
-    float y = vertex.y;
-    float z = vertex.z;
-
-    // Perspective division
-    x /= z;
-    y /= z;
-
-    // Convert to screen coordinates
-    Vector2 screen;
-    screen.x = (x + 1.0f) * GetScreenWidth() / 2.0f;
-    screen.y = (1.0f - y) * GetScreenHeight() / 2.0f;
-
-    return screen;
-}
-
+// #region Camera
 typedef struct
 {
-  Vector3 center;
-  Vector3 vertices[8];
-  int numberOfVertices;
-  int numberOfTriangleIndicies;
-  int triangleIndicies[36];
-} Cube;
+  Vector3 position;
+  Vector3 lookAtPoint;
+  Vector3 upVector;
+  float fov;
+  float aspect;
+  float near;
+  float far;
+}myCam;
 
-Cube cube_init(Vector3 center)
+Matrix myGetCameraViewMatrix(const myCam *cam)
 {
-  Cube cube;
-  cube.center = center;
-  cube.numberOfVertices = 8;
-  cube.numberOfTriangleIndicies = 36;
-  
-  // vertices 
-  cube.vertices[0] = Vector3Add(center, (Vector3){-1, -1, -1});  // Front bottom left
-  cube.vertices[1] = Vector3Add(center, (Vector3){ 1, -1, -1});  // Front bottom right
-  cube.vertices[2] = Vector3Add(center, (Vector3){ 1,  1, -1});  // Front top right
-  cube.vertices[3] = Vector3Add(center, (Vector3){-1,  1, -1});  // Front top left
-  cube.vertices[4] = Vector3Add(center, (Vector3){-1, -1,  1});  // Back bottom left
-  cube.vertices[5] = Vector3Add(center, (Vector3){ 1, -1,  1});  // Back bottom right
-  cube.vertices[6] = Vector3Add(center, (Vector3){ 1,  1,  1});  // Back top right
-  cube.vertices[7] = Vector3Add(center, (Vector3){-1,  1,  1});  // Back top left
+  Vector3 forward = Vector3Normalize(Vector3Subtract(cam->position, cam->lookAtPoint));
+  Vector3 right = Vector3Normalize(Vector3CrossProduct(cam->upVector, forward));
+  Vector3 up = Vector3CrossProduct(forward, right);
 
-  // triangles
-  int triangleIndicies[36] = {
-    // Front face
-    0, 1, 2,
-    2, 3, 0,
-    // Right face
-    1, 5, 6,
-    6, 2, 1,
-    // Back face
-    5, 4, 7,
-    7, 6, 5,
-    // Left face
-    4, 0, 3,
-    3, 7, 4,
-    // Top face
-    3, 2, 6,
-    6, 7, 3,
-    // Bottom face
-    4, 5, 1,
-    1, 0, 4
+  Matrix r = {
+    right.x, right.y, right.z, 0,
+    up.x, up.y, up.z, 0,
+    forward.x, forward.y, forward.z, 0,
+    0, 0, 0, 1
   };
 
-  for (int i = 0; i < cube.numberOfTriangleIndicies; i++)
+  Matrix t = {
+    1, 0, 0, -cam->position.x,
+    0, 1, 0, -cam->position.y,
+    0, 0, 1, -cam->position.z,
+    0, 0, 0, 1
+  };
+
+  return MatrixMultiply(r, t);
+}
+// #endregion
+
+// #region Matrix
+Vector3 MultiplyMatrixVector(Matrix mat, Vector3 vec)
+{
+    Vector3 result;
+    result.x = mat.m0 * vec.x + mat.m4 * vec.y + mat.m8  * vec.z + mat.m12;
+    result.y = mat.m1 * vec.x + mat.m5 * vec.y + mat.m9  * vec.z + mat.m13;
+    result.z = mat.m2 * vec.x + mat.m6 * vec.y + mat.m10 * vec.z + mat.m14;
+    return result;
+}
+
+Vector4 MultiplyMatrixVector4(Matrix mat, Vector4 vec)
+{
+    Vector4 result;
+    result.x = mat.m0 * vec.x + mat.m4 * vec.y + mat.m8  * vec.z + mat.m12;
+    result.y = mat.m1 * vec.x + mat.m5 * vec.y + mat.m9  * vec.z + mat.m13;
+    result.z = mat.m2 * vec.x + mat.m6 * vec.y + mat.m10 * vec.z + mat.m14;
+    result.w = mat.m3 * vec.x + mat.m7 * vec.y + mat.m11 * vec.z + mat.m15;
+    return result;
+}
+
+Vector4 Vector4FromVector3(Vector3 vec, float w)
+{
+    Vector4 result;
+    result.x = vec.x;
+    result.y = vec.y;
+    result.z = vec.z;
+    result.w = w;
+    return result;
+}
+// #endregion
+
+// #region Projection
+Matrix CreatePerspectiveProjectionMatrix(float fovY, float aspect, float near, float far)
+{
+    float tanHalfFovY = tanf(fovY * 0.5f * DEG2RAD);
+    float f = 1.0f / tanHalfFovY;
+    float nf = 1.0f / (near - far);
+
+    Matrix result = {
+        f / aspect, 0.0f,  0.0f,                         0.0f,
+        0.0f,       f,     0.0f,                         0.0f,
+        0.0f,       0.0f,  (far + near) * nf,           -1.0f,
+        0.0f,       0.0f,  2.0f * far * near * nf,       0.0f
+    };
+
+    return result;
+}
+
+// REMEMBER -> the incoming point is in the camera space
+Vector2 perspective_projection(Vector3 vertex, const myCam* cam)
+{
+  // Create projection matrix
+  Matrix projectionMatrix = CreatePerspectiveProjectionMatrix(cam->fov, cam->aspect, cam->near, cam->far);
+
+  // Apply projection matrix
+  // when we do the projection matrix we transform our points in the clip space
+  Vector4 projected_point =  MultiplyMatrixVector4(projectionMatrix, Vector4FromVector3(vertex, 1.0f));
+
+  // Perform perspective division
+  if (projected_point.w != 0.0f)
   {
-      cube.triangleIndicies[i] = triangleIndicies[i];
+      projected_point.x /= projected_point.w;
+      projected_point.y /= projected_point.w;
+      projected_point.z /= projected_point.w;
   }
 
-  return cube;
+  // Check if the point is within the view frustum
+  if (projected_point.x < -1.0f || projected_point.x > 1.0f ||
+      projected_point.y < -1.0f || projected_point.y > 1.0f ||
+      projected_point.z < -1.0f || projected_point.z > 1.0f)
+  {
+      return (Vector2){-1, -1};  // Return an invalid point
+  }
+
+  // Map to screen space
+    float x_screen = (projected_point.x + 1.0f) * 0.5f * GetScreenWidth();
+    float y_screen = (1.0f - projected_point.y) * 0.5f * GetScreenHeight();
+    
+    // this point is in the screen space
+    return (Vector2){x_screen, y_screen};
+}
+// #endregion
+
+// #region Model
+#define MAX_VERTICES 10000
+#define MAX_FACES 10000
+
+typedef struct {
+    Vector3 vertices[MAX_VERTICES];
+    int vertexCount;
+    int faces[MAX_FACES][3];
+    int faceCount;
+} Model3D;
+
+Model3D loadOBJ(const char* filename) {
+    Model3D model = {0};
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        printf("Failed to open file: %s\n", filename);
+        return model;
+    }
+
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == 'v' && line[1] == ' ') {
+            Vector3 vertex;
+            sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+            model.vertices[model.vertexCount++] = vertex;
+        } else if (line[0] == 'f' && line[1] == ' ') {
+            int v1, v2, v3;
+            sscanf(line, "f %d %d %d", &v1, &v2, &v3);
+            model.faces[model.faceCount][0] = v1 - 1;
+            model.faces[model.faceCount][1] = v2 - 1;
+            model.faces[model.faceCount][2] = v3 - 1;
+            model.faceCount++;
+        }
+    }
+
+    fclose(file);
+    return model;
 }
 
-void cube_draw(const Cube* cube, const myCamera* camera)
-{
-    for (int i = 0; i < cube->numberOfTriangleIndicies; i += 3)
-    {
-      Vector2 v1 = project_vertex(cube->vertices[cube->triangleIndicies[i  ]], camera);
-      Vector2 v2 = project_vertex(cube->vertices[cube->triangleIndicies[i+1]], camera);
-      Vector2 v3 = project_vertex(cube->vertices[cube->triangleIndicies[i+2]], camera);
+void drawModel(const Model3D* model, const myCam* cam) {
+    Matrix viewMatrix = myGetCameraViewMatrix(cam);
+    for (int i = 0; i < model->faceCount; i++) {
+        Vector3 v1 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][0]]);
+        Vector3 v2 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][1]]);
+        Vector3 v3 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][2]]);
 
-      DrawTriangleLines(v1, v2, v3, BLACK);
+        Vector2 p1 = perspective_projection(v1, cam);
+        Vector2 p2 = perspective_projection(v2, cam);
+        Vector2 p3 = perspective_projection(v3, cam);
+
+        if (p1.x >= 0 && p2.x >= 0 && p3.x >= 0) {
+            DrawTriangleLines(p1, p2, p3, BLACK);
+        }
     }
 }
+// #endregion
 
 int main(void)
 {
     const int screenWidth = 400;
     const int screenHeight = 400;
 
-    InitWindow(screenWidth, screenHeight, "3D Cube");
+    InitWindow(screenWidth, screenHeight, "3D");
+    SetTargetFPS(60);
 
-    myCamera camera = {
-      //.fov = 60.0f,
-      //.aspect = (float)screenWidth / (float)screenHeight,
-      //.near = 0.1f,
-      //.far = 100.0f
+    Model3D model = loadOBJ("./cube.OBJ");
+
+    myCam cam = {
+      .position = (Vector3){0, 0, 10},
+      .lookAtPoint = (Vector3){0, 0, 0},
+      .upVector = (Vector3){0, 1, 0},
+      .aspect = (float)screenWidth / (float)screenHeight,
+      .fov = 60.0f,
+      .near = 1,
+      .far = 100
     };
 
-    Cube cube = cube_init((Vector3){0, 0, -10}); // Negative Z value for visibility
-    float angle = 0.02f;
-
-    SetTargetFPS(60);
     while (!WindowShouldClose())
     {
-        for (int i = 0; i < cube.numberOfVertices; i++)
-        {
-            cube.vertices[i] = RotatePointAroundAxis(cube.center, cube.vertices[i], (Vector3){0, 1, 0}, angle);
-        }
+      // #region CameraMovement
+      if (IsKeyDown(KEY_A)) cam.position.x += 0.1f;
+      if (IsKeyDown(KEY_D)) cam.position.x -= 0.1f;
+      if (IsKeyDown(KEY_W)) cam.position.y -= 0.1f;
+      if (IsKeyDown(KEY_S)) cam.position.y += 0.1f;
+      if (IsKeyDown(KEY_Q)) cam.position.z -= 0.1f;
+      if (IsKeyDown(KEY_E)) cam.position.z += 0.1f;
+      // #endregion
 
-        BeginDrawing();
-        ClearBackground(GOLD);
+      Matrix viewMatrix = myGetCameraViewMatrix(&cam);
 
-        cube_draw(&cube, &camera);
+      // #region Drawing
+      BeginDrawing();
+      ClearBackground(WHITE);
 
-        EndDrawing();
+      drawModel(&model, &cam);
+
+      EndDrawing();
+      // #endregion
     }
     CloseWindow();
-    return 0;
 }
