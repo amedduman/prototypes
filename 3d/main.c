@@ -109,6 +109,7 @@ Vector2 perspective_projection(Vector3 vertex, const myCam* cam)
       projected_point.z /= projected_point.w;
   }
 
+  /*
   // Check if the point is within the view frustum
   if (projected_point.x < -1.0f || projected_point.x > 1.0f ||
       projected_point.y < -1.0f || projected_point.y > 1.0f ||
@@ -116,13 +117,14 @@ Vector2 perspective_projection(Vector3 vertex, const myCam* cam)
   {
       return (Vector2){-1, -1};  // Return an invalid point
   }
+  */
 
   // Map to screen space
-    float x_screen = (projected_point.x + 1.0f) * 0.5f * GetScreenWidth();
-    float y_screen = (1.0f - projected_point.y) * 0.5f * GetScreenHeight();
+  float x_screen = (projected_point.x + 1.0f) * 0.5f * GetScreenWidth();
+  float y_screen = (1.0f - projected_point.y) * 0.5f * GetScreenHeight();
     
-    // this point is in the screen space
-    return (Vector2){x_screen, y_screen};
+  // this point is in the screen space
+  return (Vector2){x_screen, y_screen};
 }
 // #endregion
 
@@ -135,10 +137,13 @@ typedef struct {
     int vertexCount;
     int faces[MAX_FACES][3];
     int faceCount;
+    Matrix transform;
 } Model3D;
 
-Model3D loadOBJ(const char* filename) {
+Model3D loadOBJ(const char* filename)
+{
     Model3D model = {0};
+    model.transform = MatrixIdentity();
     FILE* file = fopen(filename, "r");
     if (!file) {
         printf("Failed to open file: %s\n", filename);
@@ -165,24 +170,34 @@ Model3D loadOBJ(const char* filename) {
     return model;
 }
 
-void drawModel(const Model3D* model, const myCam* cam) {
+void drawModel( Model3D* model, const myCam* cam)
+{
     Matrix viewMatrix = myGetCameraViewMatrix(cam);
-    for (int i = 0; i < model->faceCount; i++) {
-        Vector3 v1 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][0]]);
-        Vector3 v2 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][1]]);
-        Vector3 v3 = MultiplyMatrixVector(viewMatrix, model->vertices[model->faces[i][2]]);
+    for (int i = 0; i < model->faceCount; i++)
+    {
+      // Apply model transformation before view transformation
+      Vector3 v1 = MultiplyMatrixVector(model->transform, model->vertices[model->faces[i][0]]);
+      Vector3 v2 = MultiplyMatrixVector(model->transform, model->vertices[model->faces[i][1]]);
+      Vector3 v3 = MultiplyMatrixVector(model->transform, model->vertices[model->faces[i][2]]);
 
-        Vector2 p1 = perspective_projection(v1, cam);
-        Vector2 p2 = perspective_projection(v2, cam);
-        Vector2 p3 = perspective_projection(v3, cam);
+      // Apply view transformation
+      v1 = MultiplyMatrixVector(viewMatrix, v1);
+      v2 = MultiplyMatrixVector(viewMatrix, v2);
+      v3 = MultiplyMatrixVector(viewMatrix, v3);
 
-        if (p1.x >= 0 && p2.x >= 0 && p3.x >= 0) {
-            DrawTriangleLines(p1, p2, p3, BLACK);
-        }
+      Vector2 p1 = perspective_projection(v1, cam);
+      Vector2 p2 = perspective_projection(v2, cam);
+      Vector2 p3 = perspective_projection(v3, cam);
+
+      if (p1.x >= 0 && p2.x >= 0 && p3.x >= 0)
+      {
+          DrawTriangleLines(p1, p2, p3, BLACK);
+      }
     }
 }
 // #endregion
 
+// #region Main
 int main(void)
 {
     const int screenWidth = 400;
@@ -227,3 +242,4 @@ int main(void)
     }
     CloseWindow();
 }
+// #endregion

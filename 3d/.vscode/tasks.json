@@ -6,7 +6,7 @@
           "label": "Run",
           "type": "shell",
           "command": "clear && make && ./game",
-          //"command": "clear && clang temp.c -I include/  -L lib/ -lraylib -framework CoreFoundation -framework IOKit -framework Cocoa && ./a.out"
+          //"command": "clear && clang main.c -I include/  -L lib/ -lraylib -framework CoreFoundation -framework IOKit -framework Cocoa && ./a.out"
       }
   ]
 }
