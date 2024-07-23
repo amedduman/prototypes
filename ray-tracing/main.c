@@ -37,7 +37,6 @@
   typedef struct
   {
     bool is_intersection_found;
-    Vector2 points;
     Vector3 closest_intersection_point;
     Vector3 farthest_intersection_point;
   } ray_sphere_intersection_info;
@@ -59,7 +58,6 @@
       float t1 = fmaxf(t - x, 0);
       float t2 = t + x;
       
-      result.points = (Vector2){t1,t2};
       result.closest_intersection_point = Vector3Add(ro, Vector3Scale(rd, t1));
       result.farthest_intersection_point = Vector3Add(ro, Vector3Scale(rd, t2));
     }
@@ -75,7 +73,6 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Game");
     
-    bool is_intersecting = false;
     Vector2 startPos = {0,0};
     Vector2 endPos = {0,0};
 
@@ -90,28 +87,24 @@ int main(void)
 
       DrawLineV(startPos, endPos, BLACK);
 
-      is_intersecting = ray_sphere_intersection(
-       (Vector3){200,200,0},
-       50, 
-       (Vector3){0,0,0},
-       Vector3Normalize(Vector3Subtract((Vector3){endPos.x, endPos.y, 0}, (Vector3){startPos.x, startPos.y, 0}))
-       ).is_intersection_found;
+      ray_sphere_intersection_info intersection_info = ray_sphere_intersection(
+      (Vector3){200,200,0},
+      50, 
+      (Vector3){0,0,0},
+      Vector3Normalize(Vector3Subtract((Vector3){endPos.x, endPos.y, 0}, (Vector3){startPos.x, startPos.y, 0}))
+      );
 
-       ray_sphere_intersection_info intersection_info = ray_sphere_intersection(
-       (Vector3){200,200,0},
-       50, 
-       (Vector3){0,0,0},
-       Vector3Normalize(Vector3Subtract((Vector3){endPos.x, endPos.y, 0}, (Vector3){startPos.x, startPos.y, 0}))
-       );
-
-      Color circleColor = (is_intersecting) ? RED : GREEN;
-      DrawCircleV((Vector2){200,200}, 50, circleColor);
-      printf("x: %f, y : %f \n", intersection_info.points.x, intersection_info.points.y);
-      //DrawCircleV(Vector2Add(intersection_info.points, (Vector2){200,200}), 10, BLACK);
-      DrawCircleV((Vector2){intersection_info.closest_intersection_point.x, intersection_info.closest_intersection_point.y}, 10, BLACK);
-      EndDrawing();
-
+      if (intersection_info.is_intersection_found)
+      {
+        DrawCircleV((Vector2){200,200}, 50, GREEN);
+        DrawCircleV((Vector2){intersection_info.closest_intersection_point.x, intersection_info.closest_intersection_point.y}, 10, BLACK);
+      }
+      else
+      {
+        DrawCircleV((Vector2){200,200}, 50, RED);
+      }
       
+      EndDrawing();
     }
     CloseWindow();
     return 0;
