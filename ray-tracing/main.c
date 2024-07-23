@@ -1,5 +1,6 @@
 #include "include/raylib.h"
 #include "include/raymath.h"
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -44,25 +45,33 @@
   // https://www.youtube.com/watch?v=OCZTVpfMSys
   ray_sphere_intersection_info ray_sphere_intersection(Vector3 so, float sr, Vector3 ro, Vector3 rd)
   {
+    assert(Vector3Length(rd) < 1 + EPSILON);
+
     ray_sphere_intersection_info result = {false, {0,0,0}, {0,0,0}};
 
-    float t = Vector3DotProduct(Vector3Subtract(so, ro), rd);
-    Vector3 p = Vector3Add(ro, Vector3Scale(rd, t));
-    float y = Vector3Distance(p, so);
+    // vector between ray origin and sphere origin 
+    Vector3 l = Vector3Subtract(so, ro);
+    // dot product of l and rd
+    float t = Vector3DotProduct(l, rd);
 
-    if (y <= sr)
+    // nearest distance between sphere origin and ray 
+    float d = sqrtf(Vector3LengthSqr(l) - t*t);
+
+    if (d < 0 || d > sr)
     {
-      result.is_intersection_found = true;
-
-      float x = sqrtf(sr * sr - y * y);
-      float t1 = fmaxf(t - x, 0);
-      float t2 = t + x;
-      
-      result.closest_intersection_point = Vector3Add(ro, Vector3Scale(rd, t1));
-      result.farthest_intersection_point = Vector3Add(ro, Vector3Scale(rd, t2));
+      return (ray_sphere_intersection_info) {false, {-1,-1,-1}, {-1,-1,-1}};
     }
 
-    return result;
+    if (t < 0)
+    {
+      return (ray_sphere_intersection_info) {false, {-1,-1,-1}, {-1,-1,-1}};
+    }
+
+    float x = sqrtf(sr*sr - d*d);
+    Vector3 t0 = Vector3Add(ro, Vector3Scale(rd, t - x));
+    Vector3 t1 = Vector3Add(ro, Vector3Scale(rd, t + x));
+    
+    return (ray_sphere_intersection_info) {true, t0, t1};
   }
 // #endregion
 
@@ -73,7 +82,7 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Game");
     
-    Vector2 startPos = {0,0};
+    Vector2 startPos = {200,200};
     Vector2 endPos = {0,0};
 
     SetTargetFPS(60);
@@ -90,7 +99,7 @@ int main(void)
       ray_sphere_intersection_info intersection_info = ray_sphere_intersection(
       (Vector3){200,200,0},
       50, 
-      (Vector3){0,0,0},
+      (Vector3){startPos.x,startPos.y,0},
       Vector3Normalize(Vector3Subtract((Vector3){endPos.x, endPos.y, 0}, (Vector3){startPos.x, startPos.y, 0}))
       );
 
