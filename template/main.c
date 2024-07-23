@@ -1,5 +1,4 @@
 #include "include/raylib.h"
-#include "src/circle.h"
 
 int main(void)
 {
@@ -14,7 +13,6 @@ int main(void)
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
-        DrawMyCircle();
         EndDrawing();
     }
     CloseWindow();
@@ -27,4 +25,8 @@ int main(void)
   clear && make && ./game
 
   make clean
+
+  clang main.c -I include/  -L lib/ -lraylib -framework CoreFoundation -framework IOKit -framework Cocoa
+
+  clang -g main.c -I include/  -L lib/ -lraylib -framework CoreFoundation -framework IOKit -framework Cocoa
 */

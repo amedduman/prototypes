@@ -1,51 +1,63 @@
 # Compiler
-CC = gcc
-
-# Directories
-INCLUDE_DIR = include
-LIB_DIR = lib
-SRC_DIR = src
-BUILD_DIR = build
-
-# Files
-LIBS = $(LIB_DIR)/libraylib.a
-FRAMEWORKS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
-INCLUDES = -I$(INCLUDE_DIR)
-SRCS = $(wildcard $(SRC_DIR)/*.c) main.c
-OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRCS))
-DEPS = $(OBJS:.o=.d)
-
-# Output
-TARGET = game
+CC := clang
 
 # Compiler flags
-CFLAGS = -Wall -Wextra $(INCLUDES)
+CFLAGS := -I./include
+LDFLAGS := -L./lib -lraylib -lm
+FRAMEWORKS := -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 
-# Linker flags
-LDFLAGS = $(LIBS) $(FRAMEWORKS)
+# Source files
+SRC := main.c $(wildcard src/*.c)
 
-# Build rules
-all: $(TARGET)
+# Object files
+OBJ := $(SRC:.c=.o)
 
-$(TARGET): $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS)
+# Executable name
+EXECUTABLE := game.out
 
-$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+# Debug flags
+DEBUG_FLAGS := -g -O0 -DDEBUG
+
+# Release flags
+RELEASE_FLAGS := -O3 -DNDEBUG
+
+# Default build type
+BUILD_TYPE ?= debug
+
+ifeq ($(BUILD_TYPE),debug)
+    CFLAGS += $(DEBUG_FLAGS)
+else
+    CFLAGS += $(RELEASE_FLAGS)
+endif
+
+# Detect macOS
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    LDFLAGS += $(FRAMEWORKS)
+endif
+
+# Phony targets
+.PHONY: all clean debug release
+
+# Default target
+all: $(EXECUTABLE)
+
+# Linking
+$(EXECUTABLE): $(OBJ)
+	$(CC) $^ -o $@ $(LDFLAGS)
+
+# Compilation
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+# Debug build
+debug:
+	$(MAKE) BUILD_TYPE=debug
 
-# Clean rules
+# Release build
+release:
+	$(MAKE) BUILD_TYPE=release
+
+# Clean
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
-
-# Dependencies
--include $(DEPS)
-
-$(BUILD_DIR)/%.d: %.c | $(BUILD_DIR)
-	@$(CC) $(CFLAGS) -MM $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,$(BUILD_DIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
-.PHONY: all clean
+	rm -f $(OBJ) $(EXECUTABLE)
