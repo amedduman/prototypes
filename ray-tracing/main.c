@@ -60,15 +60,11 @@
     float t1 = (-b + sqrt(discriminant)) / (2*a);
     float t2 = (-b - sqrt(discriminant)) / (2*a);
 
-    if (t1 > 1)
-    {
-      Vector3 p = Vector3Add(ro, Vector3Scale(rd, t1));
+    float tmin = fminf(t1, t2);
 
-      return (ray_sphere_intersection_info) {true, p};
-    }
-    if (t2 > 1)
+    if (tmin > 0)
     {
-      Vector3 p = Vector3Add(ro, Vector3Scale(rd, t2));
+      Vector3 p = Vector3Add(ro, Vector3Scale(rd, tmin));
 
       return (ray_sphere_intersection_info) {true, p};
     }
@@ -84,7 +80,7 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Game");
     
-    Vector2 startPos = {220,220};
+    Vector2 startPos = {20,20};
     Vector2 endPos = {0,0};
 
     SetTargetFPS(60);
