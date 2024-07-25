@@ -4,6 +4,45 @@
 #include <math.h>
 #include <stdio.h>
 
+// #region Lights
+
+typedef enum
+{
+  e_light_type_ambient = 0,
+  e_light_type_point = 1,
+  e_light_type_directional = 2
+} light_type;
+
+typedef struct
+{
+  float intensity;
+} light_ambient;
+
+typedef struct
+{
+  float intensity;
+  Vector3 position;
+} light_point;
+
+typedef struct
+{
+  float intensity;
+  Vector3 direction;
+} light_directional;
+
+typedef struct
+{
+  light_type my_type;
+  union 
+  {
+    light_ambient ambient;
+    light_point point;
+    light_directional directional;
+  };
+} light;
+
+// #endregion
+
 // #region Sphere
 typedef struct
 {
@@ -119,7 +158,80 @@ Color trace_ray(Sphere* spheres, int sphere_count, Vector3 ro, Vector3 rd, float
 }
 // #endregion
 
+// #region LightCalculations
+/*
+ComputeLighting(P, N) {
+    i = 0.0
+    for light in scene.Lights {
+        if light.type == ambient 
+        {
+           i += light.intensity
+        } 
+        else 
+        {
+          if light.type == point 
+          {
+             L = light.position - P
+          }
+          else 
+          {
+             L = light.direction
+          }
+
+          n_dot_l = dot(N, L)
+          if n_dot_l > 0 
+          {
+             i += light.intensity * n_dot_l/(length(N) * length(L))
+          }
+        }
+    }
+    return i
+}
+*/
+
+float compute_light(const light* lights, int light_count, Vector3 point, Vector3 normal)
+{
+  assert(Vector3Length(normal) < 1 + EPSILON);
+  float intensity = 0.0f; // intensity
+  Vector3 L = {0,0,0}; // coming light vector
+  for (int i = 0; i < light_count; i++)
+  {
+    light current_light = lights[i];
+
+    if (current_light.my_type == e_light_type_ambient)
+    {
+      intensity += current_light.ambient.intensity;
+    }
+    else
+    {
+      float light_intensity = 0;
+
+      if (current_light.my_type == e_light_type_point)
+      {
+        L = Vector3Subtract(current_light.point.position, point);
+        light_intensity = current_light.point.intensity;
+      }
+      else if (lights[i].my_type == e_light_type_directional)
+      {
+        L = current_light.directional.direction;
+        light_intensity = current_light.directional.intensity;
+      }
+
+      float n_dot_l = Vector3DotProduct(normal, L);
+      if (n_dot_l > 0)
+      {
+        intensity += light_intensity * n_dot_l / (Vector3Length(normal) * Vector3Length(L));
+      }
+    }
+  }
+  return intensity;
+}
+// #endregion
+
+// #region Main
+
 #define sphere_count 3
+#define light_count 3
 
 int main(void)
 {
@@ -133,7 +245,15 @@ int main(void)
       {.center = {2, 0, 4}, .radius = 1, GREEN},
       {.center = {-2, 0, 4}, .radius = 1, BLUE},
     };
-    
+
+    light lights[light_count] = {
+      {e_light_type_ambient, .ambient = {0.2f}},
+      {e_light_type_point, .point = {0.6f, {2, 1, 0}}},
+      {e_light_type_directional, .directional = {0.2f, {1, 4, 4}}}
+    };
+
+
+
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
@@ -159,3 +279,5 @@ int main(void)
     CloseWindow();
     return 0;
 }
+
+// #endregion
