@@ -43,6 +43,47 @@ typedef struct
 
 // #endregion
 
+// #region LightCalculations
+
+float compute_light(const light* lights, int light_count, Vector3 point, Vector3 normal)
+{
+  assert(Vector3Length(normal) < 1 + EPSILON);
+  float intensity = 0.0f; // intensity
+  Vector3 L = {0,0,0}; // coming light vector
+  for (int i = 0; i < light_count; i++)
+  {
+    light current_light = lights[i];
+
+    if (current_light.my_type == e_light_type_ambient)
+    {
+      intensity += current_light.ambient.intensity;
+    }
+    else
+    {
+      float light_intensity = 0;
+
+      if (current_light.my_type == e_light_type_point)
+      {
+        L = Vector3Subtract(current_light.point.position, point);
+        light_intensity = current_light.point.intensity;
+      }
+      else if (lights[i].my_type == e_light_type_directional)
+      {
+        L = current_light.directional.direction;
+        light_intensity = current_light.directional.intensity;
+      }
+
+      float n_dot_l = Vector3DotProduct(normal, L);
+      if (n_dot_l > 0)
+      {
+        intensity += light_intensity * n_dot_l / (Vector3Length(normal) * Vector3Length(L));
+      }
+    }
+  }
+  return intensity;
+}
+// #endregion
+
 // #region Sphere
 typedef struct
 {
@@ -110,7 +151,7 @@ typedef struct
 // #endregion
 
 // #region Raytracing
-Color trace_ray(Sphere* spheres, int sphere_count, Vector3 ro, Vector3 rd, float tmin, float tmax)
+Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_count, Vector3 ro, Vector3 rd, float tmin, float tmax)
 {
   float closest_t = INFINITY;
   bool haveFoundSphereToDraw = false;
@@ -149,82 +190,24 @@ Color trace_ray(Sphere* spheres, int sphere_count, Vector3 ro, Vector3 rd, float
 
   if (haveFoundSphereToDraw)
   {
-    return closestSphere.color;
+    Vector3 intersection_point = Vector3Add(ro, Vector3Scale(rd, closest_t));
+    Vector3 surface_normal = Vector3Subtract(intersection_point, closestSphere.center);
+    surface_normal = Vector3Normalize(surface_normal);
+    
+    float light_intensity = compute_light(lights, light_count, intersection_point, surface_normal);
+    Color resulted_color = {
+      (unsigned char)(closestSphere.color.r * light_intensity),
+      (unsigned char)(closestSphere.color.g * light_intensity),
+      (unsigned char)(closestSphere.color.b * light_intensity),
+      255
+    };
+
+    return resulted_color;
   }
   else
   {
     return GOLD;
   }
-}
-// #endregion
-
-// #region LightCalculations
-/*
-ComputeLighting(P, N) {
-    i = 0.0
-    for light in scene.Lights {
-        if light.type == ambient 
-        {
-           i += light.intensity
-        } 
-        else 
-        {
-          if light.type == point 
-          {
-             L = light.position - P
-          }
-          else 
-          {
-             L = light.direction
-          }
-
-          n_dot_l = dot(N, L)
-          if n_dot_l > 0 
-          {
-             i += light.intensity * n_dot_l/(length(N) * length(L))
-          }
-        }
-    }
-    return i
-}
-*/
-
-float compute_light(const light* lights, int light_count, Vector3 point, Vector3 normal)
-{
-  assert(Vector3Length(normal) < 1 + EPSILON);
-  float intensity = 0.0f; // intensity
-  Vector3 L = {0,0,0}; // coming light vector
-  for (int i = 0; i < light_count; i++)
-  {
-    light current_light = lights[i];
-
-    if (current_light.my_type == e_light_type_ambient)
-    {
-      intensity += current_light.ambient.intensity;
-    }
-    else
-    {
-      float light_intensity = 0;
-
-      if (current_light.my_type == e_light_type_point)
-      {
-        L = Vector3Subtract(current_light.point.position, point);
-        light_intensity = current_light.point.intensity;
-      }
-      else if (lights[i].my_type == e_light_type_directional)
-      {
-        L = current_light.directional.direction;
-        light_intensity = current_light.directional.intensity;
-      }
-
-      float n_dot_l = Vector3DotProduct(normal, L);
-      if (n_dot_l > 0)
-      {
-        intensity += light_intensity * n_dot_l / (Vector3Length(normal) * Vector3Length(L));
-      }
-    }
-  }
-  return intensity;
 }
 // #endregion
 
@@ -269,7 +252,7 @@ int main(void)
         for (int y = -h/2; y < h/2; y++)
         {
           Vector3 rd = canvas_to_viewport(x, y);
-          Color color = trace_ray(spheres, sphere_count, ro, rd, 1, INFINITY);
+          Color color = trace_ray(spheres, sphere_count, lights, light_count, ro, rd, 1, INFINITY);
           canvas_put_pixel(x, y, color);
         }
       }
