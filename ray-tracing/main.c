@@ -45,7 +45,7 @@ typedef struct
 
 // #region LightCalculations
 
-float compute_light(const light* lights, int light_count, Vector3 point, Vector3 normal)
+float compute_light(const light* lights, int light_count, Vector3 point, Vector3 normal, Vector3 view_vector, float specular)
 {
   assert(Vector3Length(normal) < 1 + EPSILON);
   float intensity = 0.0f; // intensity
@@ -73,13 +73,28 @@ float compute_light(const light* lights, int light_count, Vector3 point, Vector3
         light_intensity = current_light.directional.intensity;
       }
 
+      // diffuse
       float n_dot_l = Vector3DotProduct(normal, L);
       if (n_dot_l > 0)
       {
         intensity += light_intensity * n_dot_l / (Vector3Length(normal) * Vector3Length(L));
       }
+
+      // specular
+      if (specular != -1)
+      {
+        Vector3 reflection = Vector3Scale(normal, (Vector3DotProduct(normal, L) * 2)); 
+        reflection = Vector3Subtract(reflection, L);
+        float reflection_dot_view = Vector3DotProduct(reflection, view_vector);
+
+        if (reflection_dot_view > 0)
+        {
+          intensity += light_intensity * powf(reflection_dot_view / (Vector3Length(reflection) * Vector3Length(view_vector)), specular);
+        }
+      }
     }
   }
+
   return intensity;
 }
 // #endregion
@@ -90,6 +105,7 @@ typedef struct
   Vector3 center;
   float radius;
   Color color;
+  float specular;
 } Sphere;
 // #endregion
 
@@ -151,7 +167,7 @@ typedef struct
 // #endregion
 
 // #region Raytracing
-Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_count, Vector3 ro, Vector3 rd, float tmin, float tmax)
+Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_count, Vector3 ro, Vector3 rd, Vector3 cam_pos, float tmin, float tmax)
 {
   float closest_t = INFINITY;
   bool haveFoundSphereToDraw = false;
@@ -194,12 +210,25 @@ Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_coun
     Vector3 surface_normal = Vector3Subtract(intersection_point, closestSphere.center);
     surface_normal = Vector3Normalize(surface_normal);
     
-    float light_intensity = compute_light(lights, light_count, intersection_point, surface_normal);
+    Vector3 view_vector = Vector3Subtract(cam_pos, intersection_point);
+
+    float light_intensity = compute_light(lights, light_count, intersection_point, surface_normal, view_vector, closestSphere.specular);
+
+    /*
     Color resulted_color = {
-      (unsigned char)(closestSphere.color.r * light_intensity),
-      (unsigned char)(closestSphere.color.g * light_intensity),
-      (unsigned char)(closestSphere.color.b * light_intensity),
+      (unsigned char)Clamp((closestSphere.color.r * light_intensity), 0, 255),
+      (unsigned char)Clamp((closestSphere.color.g * light_intensity), 0, 255),
+      (unsigned char)Clamp((closestSphere.color.b * light_intensity), 0, 255),
       255
+    };
+    */
+
+    Color ambient_color = { 10, 10, 10, 255 }; // Very dark gray for ambient
+    Color resulted_color = {
+        (unsigned char)Clamp(closestSphere.color.r * light_intensity + ambient_color.r * (1 - light_intensity), 0, 255),
+        (unsigned char)Clamp(closestSphere.color.g * light_intensity + ambient_color.g * (1 - light_intensity), 0, 255),
+        (unsigned char)Clamp(closestSphere.color.b * light_intensity + ambient_color.b * (1 - light_intensity), 0, 255),
+        255
     };
 
     return resulted_color;
@@ -224,9 +253,9 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "Game");
     
     Sphere spheres[sphere_count] = {
-      {.center = {0, -1, 3}, .radius = 1, RED},
-      {.center = {2, 0, 4}, .radius = 1, GREEN},
-      {.center = {-2, 0, 4}, .radius = 1, BLUE},
+      {.center = {0, -1, 3}, .radius = 1, RED, .specular = 500},
+      {.center = {2, 0, 4}, .radius = 1, BLUE, .specular = 500},
+      {.center = {-2, 0, 4}, .radius = 1, GREEN, .specular = 10},
     };
 
     light lights[light_count] = {
@@ -242,8 +271,9 @@ int main(void)
     {
       BeginDrawing();
 
-      ClearBackground(RAYWHITE);
+      ClearBackground(MAGENTA);
 
+      Vector3 cam_pos = {0,0,0};
       Vector3 ro = {0,0,0};
       int w = GetScreenWidth();
       int h = GetScreenWidth();
@@ -252,7 +282,8 @@ int main(void)
         for (int y = -h/2; y < h/2; y++)
         {
           Vector3 rd = canvas_to_viewport(x, y);
-          Color color = trace_ray(spheres, sphere_count, lights, light_count, ro, rd, 1, INFINITY);
+          rd = Vector3Subtract(rd, ro);
+          Color color = trace_ray(spheres, sphere_count, lights, light_count, ro, rd, cam_pos, 1, INFINITY);
           canvas_put_pixel(x, y, color);
         }
       }
