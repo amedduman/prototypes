@@ -177,7 +177,7 @@ float compute_light(const Sphere* spheres, int sphere_count, float tmax, const l
       }
 
       // Shadow check
-      ray_closest_intersection_result shadow_check_result = ray_closest_intersection(spheres, sphere_count, 0.001f, tmax, point, L);
+      ray_closest_intersection_result shadow_check_result = ray_closest_intersection(spheres, sphere_count, .001, tmax, point, L);
       if (shadow_check_result.has_found)
       {
         continue;
@@ -298,7 +298,7 @@ Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_coun
   }
   else
   {
-    return GOLD;
+    return (Color){24, 1, 97, 255};
   }
 }
 // #endregion
@@ -310,8 +310,8 @@ Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_coun
 
 int main(void)
 {
-    const int screenWidth = 400;
-    const int screenHeight = 400;
+    const int screenWidth = 800;
+    const int screenHeight = 800;
 
     InitWindow(screenWidth, screenHeight, "Game");
     SetTargetFPS(30);
