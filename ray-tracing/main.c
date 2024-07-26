@@ -4,6 +4,16 @@
 #include <math.h>
 #include <stdio.h>
 
+// #region Sphere
+typedef struct
+{
+  Vector3 center;
+  float radius;
+  Color color;
+  float specular;
+} Sphere;
+// #endregion
+
 // #region Lights
 
 typedef enum
@@ -40,98 +50,6 @@ typedef struct
     light_directional directional;
   };
 } light;
-
-// #endregion
-
-// #region LightCalculations
-
-float compute_light(const light* lights, int light_count, Vector3 point, Vector3 normal, Vector3 view_vector, float specular)
-{
-  assert(Vector3Length(normal) < 1 + EPSILON);
-  float intensity = 0.0f; // intensity
-  Vector3 L = {0,0,0}; // coming light vector
-  for (int i = 0; i < light_count; i++)
-  {
-    light current_light = lights[i];
-
-    if (current_light.my_type == e_light_type_ambient)
-    {
-      intensity += current_light.ambient.intensity;
-    }
-    else
-    {
-      float light_intensity = 0;
-
-      if (current_light.my_type == e_light_type_point)
-      {
-        L = Vector3Subtract(current_light.point.position, point);
-        light_intensity = current_light.point.intensity;
-      }
-      else if (lights[i].my_type == e_light_type_directional)
-      {
-        L = current_light.directional.direction;
-        light_intensity = current_light.directional.intensity;
-      }
-
-      // diffuse
-      float n_dot_l = Vector3DotProduct(normal, L);
-      if (n_dot_l > 0)
-      {
-        intensity += light_intensity * n_dot_l / (Vector3Length(normal) * Vector3Length(L));
-      }
-
-      // specular
-      if (specular != -1)
-      {
-        Vector3 reflection = Vector3Scale(normal, (Vector3DotProduct(normal, L) * 2)); 
-        reflection = Vector3Subtract(reflection, L);
-        float reflection_dot_view = Vector3DotProduct(reflection, view_vector);
-
-        if (reflection_dot_view > 0)
-        {
-          intensity += light_intensity * powf(reflection_dot_view / (Vector3Length(reflection) * Vector3Length(view_vector)), specular);
-        }
-      }
-    }
-  }
-
-  return intensity;
-}
-// #endregion
-
-// #region Sphere
-typedef struct
-{
-  Vector3 center;
-  float radius;
-  Color color;
-  float specular;
-} Sphere;
-// #endregion
-
-// #region Canvas
-
-  void canvas_put_pixel(int Cx, int Cy, Color color)
-  {
-    int Sx = GetScreenWidth() / 2 + Cx;
-    int Sy = GetScreenHeight() / 2 - Cy;
-
-    DrawPixel(Sx, Sy, color);
-  }
-
- 
-  Vector3 canvas_to_viewport(int Cx, int Cy)
-  {
-    float Vw = 1.0f; // the viewport height
-    float Vh = 1.0f; // the viewport width
-    float d = 1.0f; // the distance from the camera to the canvas
-
-    float Vx = Cx * (Vw / GetScreenWidth());
-    float Vy = Cy * (Vh / GetScreenHeight());
-    float Vz = d;
-
-    return (Vector3){ Vx, Vy, Vz };
-  }
 
 // #endregion
 
@@ -172,7 +90,7 @@ typedef struct
     float closest_t;
   } ray_closest_intersection_result;
 
-  ray_closest_intersection_result ray_closest_intersection(Sphere* spheres, int sphere_count, float tmin, float tmax, Vector3 ro, Vector3 rd)
+  ray_closest_intersection_result ray_closest_intersection(const Sphere* spheres, int sphere_count, float tmin, float tmax, Vector3 ro, Vector3 rd)
   {
     float closest_t = INFINITY;
     bool haveFoundSphereToDraw = false;
@@ -219,6 +137,97 @@ typedef struct
   }
 // #endregion
 
+// #region LightCalculations
+
+float compute_light(const Sphere* spheres, int sphere_count, float tmax, const light* lights, int light_count, Vector3 point, Vector3 normal, Vector3 view_vector, float specular)
+{
+  assert(Vector3Length(normal) < 1 + EPSILON);
+  float intensity = 0.0f; // intensity
+  Vector3 L = {0,0,0}; // coming light vector
+  for (int i = 0; i < light_count; i++)
+  {
+    light current_light = lights[i];
+
+    if (current_light.my_type == e_light_type_ambient)
+    {
+      intensity += current_light.ambient.intensity;
+    }
+    else
+    {
+      float light_intensity = 0;
+
+      if (current_light.my_type == e_light_type_point)
+      {
+        L = Vector3Subtract(current_light.point.position, point);
+        light_intensity = current_light.point.intensity;
+      }
+      else if (lights[i].my_type == e_light_type_directional)
+      {
+        L = current_light.directional.direction;
+        L = Vector3Add(L, point);
+        light_intensity = current_light.directional.intensity;
+      }
+
+      // Shadow check
+      ray_closest_intersection_result shadow_check_result = ray_closest_intersection(spheres, sphere_count, 0.001f, tmax, point, L);
+      if (shadow_check_result.has_found)
+      {
+        continue;
+      }
+      
+
+      // diffuse
+      float n_dot_l = Vector3DotProduct(normal, L);
+      if (n_dot_l > 0)
+      {
+        intensity += light_intensity * n_dot_l / (Vector3Length(normal) * Vector3Length(L));
+      }
+
+      // specular
+      if (specular != -1)
+      {
+        Vector3 reflection = Vector3Scale(normal, (Vector3DotProduct(normal, L) * 2)); 
+        reflection = Vector3Subtract(reflection, L);
+        float reflection_dot_view = Vector3DotProduct(reflection, view_vector);
+
+        if (reflection_dot_view > 0)
+        {
+          intensity += light_intensity * powf(reflection_dot_view / (Vector3Length(reflection) * Vector3Length(view_vector)), specular);
+        }
+      }
+    }
+  }
+
+  return intensity;
+}
+// #endregion
+
+// #region Canvas
+
+  void canvas_put_pixel(int Cx, int Cy, Color color)
+  {
+    int Sx = GetScreenWidth() / 2 + Cx;
+    int Sy = GetScreenHeight() / 2 - Cy;
+
+    DrawPixel(Sx, Sy, color);
+  }
+
+ 
+  Vector3 canvas_to_viewport(int Cx, int Cy)
+  {
+    float Vw = 1.0f; // the viewport height
+    float Vh = 1.0f; // the viewport width
+    float d = 1.0f; // the distance from the camera to the canvas
+
+    float Vx = Cx * (Vw / GetScreenWidth());
+    float Vy = Cy * (Vh / GetScreenHeight());
+    float Vz = d;
+
+    return (Vector3){ Vx, Vy, Vz };
+  }
+
+// #endregion
+
 // #region Raytracing
 Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_count, Vector3 ro, Vector3 rd, Vector3 cam_pos, float tmin, float tmax)
 {
@@ -236,7 +245,7 @@ Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_coun
     
     Vector3 view_vector = Vector3Subtract(cam_pos, intersection_point);
 
-    float light_intensity = compute_light(lights, light_count, intersection_point, surface_normal, view_vector, closestSphere.specular);
+    float light_intensity = compute_light(spheres, sphere_count, tmax, lights, light_count, intersection_point, surface_normal, view_vector, closestSphere.specular);
 
     Color resulted_color = {
       Clamp((closestSphere.color.r * light_intensity), 0, 255),
