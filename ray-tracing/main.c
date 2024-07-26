@@ -11,6 +11,7 @@ typedef struct
   float radius;
   Color color;
   float specular;
+  float reflective;
 } Sphere;
 // #endregion
 
@@ -139,6 +140,13 @@ typedef struct
 
 // #region LightCalculations
 
+Vector3 ReflectRay(Vector3 ray, Vector3 normal) 
+{
+    Vector3 reflection = Vector3Scale(normal, (Vector3DotProduct(normal, ray) * 2)); 
+    reflection = Vector3Subtract(reflection, ray);
+    return reflection;
+}
+
 float compute_light(const Sphere* spheres, int sphere_count, float tmax, const light* lights, int light_count, Vector3 point, Vector3 normal, Vector3 view_vector, float specular)
 {
   assert(Vector3Length(normal) < 1 + EPSILON);
@@ -186,8 +194,9 @@ float compute_light(const Sphere* spheres, int sphere_count, float tmax, const l
       // specular
       if (specular != -1)
       {
-        Vector3 reflection = Vector3Scale(normal, (Vector3DotProduct(normal, L) * 2)); 
-        reflection = Vector3Subtract(reflection, L);
+        /* Vector3 reflection = Vector3Scale(normal, (Vector3DotProduct(normal, L) * 2)); 
+        reflection = Vector3Subtract(reflection, L); */
+        Vector3 reflection = ReflectRay(L, normal);
         float reflection_dot_view = Vector3DotProduct(reflection, view_vector);
 
         if (reflection_dot_view > 0)
@@ -277,10 +286,10 @@ int main(void)
     SetTargetFPS(30);
 
     Sphere spheres[sphere_count] = {
-      {.center = {0, -1, 3}, .radius = 1, RED, .specular = 500},
-      {.center = {2, 0, 4}, .radius = 1, BLUE, .specular = 500},
-      {.center = {-2, 0, 4}, .radius = 1, GREEN, .specular = 10},
-      {.center = {0, -5001, 0}, .radius = 5000, YELLOW, .specular = 1000}
+      {.center = {0, -1, 3}, .radius = 1, RED, .specular = 500, .reflective = 0.2f},
+      {.center = {2, 0, 4}, .radius = 1, BLUE, .specular = 500, .reflective = 0.3f},
+      {.center = {-2, 0, 4}, .radius = 1, GREEN, .specular = 10, .reflective = 0.4f},
+      {.center = {0, -5001, 0}, .radius = 5000, YELLOW, .specular = 1000, .reflective = 0.5f}
     };
 
     light lights[light_count] = {
