@@ -194,8 +194,6 @@ float compute_light(const Sphere* spheres, int sphere_count, float tmax, const l
       // specular
       if (specular != -1)
       {
-        /* Vector3 reflection = Vector3Scale(normal, (Vector3DotProduct(normal, L) * 2)); 
-        reflection = Vector3Subtract(reflection, L); */
         Vector3 reflection = ReflectRay(L, normal);
         float reflection_dot_view = Vector3DotProduct(reflection, view_vector);
 
@@ -238,7 +236,20 @@ float compute_light(const Sphere* spheres, int sphere_count, float tmax, const l
 // #endregion
 
 // #region Raytracing
-Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_count, Vector3 ro, Vector3 rd, Vector3 cam_pos, float tmin, float tmax)
+
+Color ColorScaleFactor(Color col, float factor)
+{
+  Color result = {
+    Clamp((col.r * factor), 0, 255),
+    Clamp((col.g * factor), 0, 255),
+    Clamp((col.b * factor), 0, 255),
+    255
+  };
+
+  return result;
+}
+
+Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_count, Vector3 ro, Vector3 rd, Vector3 cam_pos, float tmin, float tmax, int recursion_depth)
 {
   ray_closest_intersection_result result = ray_closest_intersection(spheres, sphere_count, tmin, tmax, ro, rd);
 
@@ -260,6 +271,26 @@ Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_coun
       Clamp((closestSphere.color.r * light_intensity), 0, 255),
       Clamp((closestSphere.color.g * light_intensity), 0, 255),
       Clamp((closestSphere.color.b * light_intensity), 0, 255),
+      255
+    };
+
+    // If we hit the recursion limit or the object is not reflective, we're done
+    float reflective = closestSphere.reflective;
+    if (reflective < (0 + EPSILON) || recursion_depth <= 0)
+    {
+    return resulted_color;
+    }
+    
+
+    Vector3 reflection = ReflectRay(Vector3Scale(rd, -1), surface_normal);
+    Color reflected_color = trace_ray(spheres, sphere_count, lights, light_count, intersection_point, reflection, cam_pos, 0.01f, tmax, recursion_depth - 1);
+
+    resulted_color = ColorScaleFactor(resulted_color, (1 - reflective));
+    reflected_color = ColorScaleFactor(reflected_color, reflective);
+    resulted_color = (Color){
+      Clamp((resulted_color.r + reflected_color.r), 0, 255),
+      Clamp((resulted_color.g + reflected_color.g), 0, 255),
+      Clamp((resulted_color.b + reflected_color.b), 0, 255),
       255
     };
 
@@ -316,7 +347,7 @@ int main(void)
         {
           Vector3 rd = canvas_to_viewport(x, y);
           rd = Vector3Subtract(rd, ro);
-          Color color = trace_ray(spheres, sphere_count, lights, light_count, ro, rd, cam_pos, 1, INFINITY);
+          Color color = trace_ray(spheres, sphere_count, lights, light_count, ro, rd, cam_pos, 1, INFINITY, 3);
           canvas_put_pixel(x, y, color);
         }
       }
