@@ -1,6 +1,7 @@
 # Simple Raytracer
-![Alt text](https://github.com/amedduman/raylib-C/blob/amedduman/raylib-C/ray-tracing/screenshot_1.png "a title")
 This project is a simple raytracer implemented in C using the Raylib library. It demonstrates basic ray tracing techniques, including sphere intersection, lighting calculations, shadows, and reflections.
+
+![Alt text](https://github.com/amedduman/raylib-C/blob/amedduman/raylib-C/ray-tracing/screenshot_1.png "a title")
 
 ## Features
 
