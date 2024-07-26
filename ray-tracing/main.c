@@ -164,45 +164,69 @@ typedef struct
 
     return (ray_sphere_intersection_info) {true, (Vector2){t1,t2}};
   }
+
+  typedef struct 
+  {
+    bool has_found;
+    Sphere closest_sphere;
+    float closest_t;
+  } ray_closest_intersection_result;
+
+  ray_closest_intersection_result ray_closest_intersection(Sphere* spheres, int sphere_count, float tmin, float tmax, Vector3 ro, Vector3 rd)
+  {
+    float closest_t = INFINITY;
+    bool haveFoundSphereToDraw = false;
+    Sphere closestSphere;
+
+    for (int i = 0; i < sphere_count; i++)
+    {
+      ray_sphere_intersection_info hit_info = ray_sphere_intersection(spheres[i].center, spheres[i].radius, ro, rd);
+
+      float t1 = hit_info.intersections.x;
+      float t2 = hit_info.intersections.y;
+
+      if (hit_info.is_intersecting)
+      { 
+        if (t1 > tmin && t1 < tmax)
+        {
+          if (t1 < closest_t)
+          {
+            haveFoundSphereToDraw = true;
+            closest_t = t1;
+            closestSphere = spheres[i];
+          }
+        }
+        
+        if (t2 > tmin && t2 < tmax)
+        {
+          if (t2 < closest_t)
+          {
+            haveFoundSphereToDraw = true;
+            closest_t = t2;
+            closestSphere = spheres[i];
+          }
+        }
+      }
+    }
+
+    ray_closest_intersection_result result = {
+      .has_found = haveFoundSphereToDraw,
+      .closest_sphere = closestSphere,
+      .closest_t = closest_t
+    };
+
+    return result;
+  }
 // #endregion
 
 // #region Raytracing
 Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_count, Vector3 ro, Vector3 rd, Vector3 cam_pos, float tmin, float tmax)
 {
-  float closest_t = INFINITY;
-  bool haveFoundSphereToDraw = false;
-  Sphere closestSphere;
+  ray_closest_intersection_result result = ray_closest_intersection(spheres, sphere_count, tmin, tmax, ro, rd);
 
-  for (int i = 0; i < sphere_count; i++)
-  {
-    ray_sphere_intersection_info hit_info = ray_sphere_intersection(spheres[i].center, spheres[i].radius, ro, rd);
-
-    float t1 = hit_info.intersections.x;
-    float t2 = hit_info.intersections.y;
-
-    if (hit_info.is_intersecting)
-    { 
-      if (t1 > tmin && t1 < tmax)
-      {
-        if (t1 < closest_t)
-        {
-          haveFoundSphereToDraw = true;
-          closest_t = t1;
-          closestSphere = spheres[i];
-        }
-      }
-      
-      if (t2 > tmin && t2 < tmax)
-      {
-        if (t2 < closest_t)
-        {
-          haveFoundSphereToDraw = true;
-          closest_t = t2;
-          closestSphere = spheres[i];
-        }
-      }
-    }
-  }
+  float closest_t = result.closest_t;
+  bool haveFoundSphereToDraw = result.has_found;
+  Sphere closestSphere = result.closest_sphere;
 
   if (haveFoundSphereToDraw)
   {
@@ -214,21 +238,11 @@ Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_coun
 
     float light_intensity = compute_light(lights, light_count, intersection_point, surface_normal, view_vector, closestSphere.specular);
 
-    /*
     Color resulted_color = {
-      (unsigned char)Clamp((closestSphere.color.r * light_intensity), 0, 255),
-      (unsigned char)Clamp((closestSphere.color.g * light_intensity), 0, 255),
-      (unsigned char)Clamp((closestSphere.color.b * light_intensity), 0, 255),
+      Clamp((closestSphere.color.r * light_intensity), 0, 255),
+      Clamp((closestSphere.color.g * light_intensity), 0, 255),
+      Clamp((closestSphere.color.b * light_intensity), 0, 255),
       255
-    };
-    */
-
-    Color ambient_color = { 10, 10, 10, 255 }; // Very dark gray for ambient
-    Color resulted_color = {
-        (unsigned char)Clamp(closestSphere.color.r * light_intensity + ambient_color.r * (1 - light_intensity), 0, 255),
-        (unsigned char)Clamp(closestSphere.color.g * light_intensity + ambient_color.g * (1 - light_intensity), 0, 255),
-        (unsigned char)Clamp(closestSphere.color.b * light_intensity + ambient_color.b * (1 - light_intensity), 0, 255),
-        255
     };
 
     return resulted_color;
@@ -242,7 +256,7 @@ Color trace_ray(Sphere* spheres, int sphere_count, light* lights, int light_coun
 
 // #region Main
 
-#define sphere_count 3
+#define sphere_count 4
 #define light_count 3
 
 int main(void)
@@ -251,11 +265,13 @@ int main(void)
     const int screenHeight = 400;
 
     InitWindow(screenWidth, screenHeight, "Game");
-    
+    SetTargetFPS(30);
+
     Sphere spheres[sphere_count] = {
       {.center = {0, -1, 3}, .radius = 1, RED, .specular = 500},
       {.center = {2, 0, 4}, .radius = 1, BLUE, .specular = 500},
       {.center = {-2, 0, 4}, .radius = 1, GREEN, .specular = 10},
+      {.center = {0, -5001, 0}, .radius = 5000, YELLOW, .specular = 1000}
     };
 
     light lights[light_count] = {
@@ -266,7 +282,6 @@ int main(void)
 
 
 
-    SetTargetFPS(60);
     while (!WindowShouldClose())
     {
       BeginDrawing();
