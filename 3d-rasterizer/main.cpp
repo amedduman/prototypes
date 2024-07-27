@@ -104,6 +104,17 @@ void line_draw(Vector2 p0, Vector2 p1, Color color)
 
 #pragma endregion
 
+#pragma region draw triangle
+
+void triangle_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
+{
+  line_draw(p0, p1, color);
+  line_draw(p1, p2, color);
+  line_draw(p2, p0, color);
+}
+
+#pragma endregion
+
 #pragma region interpolation
 
 std::vector<float> interpolate(int i0, int d0, int i1, int d1)
@@ -113,6 +124,8 @@ std::vector<float> interpolate(int i0, int d0, int i1, int d1)
 
 std::vector<float> interpolate(float i0, float d0, float i1, float d1)
 {
+  assert(i0 < i1);
+
   std::vector<float> my_values{};
 
   if (fabsf(i0 - i1) < EPSILON)
@@ -140,30 +153,32 @@ std::vector<float> interpolate(float i0, float d0, float i1, float d1)
 
 int main(void)
 {
-    const int screenWidth = 400;
-    const int screenHeight = 400;
+  const int screenWidth = 400;
+  const int screenHeight = 400;
 
-    InitWindow(screenWidth, screenHeight, "Game");
+  InitWindow(screenWidth, screenHeight, "Game");
 
-    Vector2 right1 = {0, 0};
-    Vector2 right2 = {200, 0};
-    Vector2 up1 = {0,0};
-    Vector2 up2 = {0,200};
+  Vector2 origin = {0,0};
+  Vector2 right1 = {0, 0};
+  Vector2 right2 = {200, 0};
+  Vector2 up1 = {0,0};
+  Vector2 up2 = {0,200};
 
 
-    SetTargetFPS(60);
-    while (!WindowShouldClose())
-    {
-        BeginDrawing();
+  SetTargetFPS(60);
+  while (!WindowShouldClose())
+  {
+      BeginDrawing();
 
-        line_draw(right1, right2, RED);
-        line_draw(up1, up2, GREEN);
-        
-        ClearBackground(RAYWHITE);
-        EndDrawing();
-    }
-    CloseWindow();
-    return 0;
+      //line_draw(right1, right2, RED);
+      //line_draw(up1, up2, GREEN);
+      triangle_draw(origin, right2, up2, BLACK);
+      
+      ClearBackground(RAYWHITE);
+      EndDrawing();
+  }
+  CloseWindow();
+  return 0;
 }
 
 #pragma endregion
