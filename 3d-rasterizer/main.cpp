@@ -2,6 +2,7 @@
 #include "include/raymath.h"
 #include <iostream>
 #include <assert.h>
+#include <vector>
 
 #pragma region print
 
@@ -99,6 +100,38 @@ void line_draw(Vector2 p0, Vector2 p1, Color color)
       x = x + a;
     }
   } 
+}
+
+#pragma endregion
+
+#pragma region interpolation
+
+std::vector<float> interpolate(int i0, int d0, int i1, int d1)
+{
+  return interpolate(static_cast<float>(i0), static_cast<float>(d0), static_cast<float>(i1), static_cast<float>(d1));
+}
+
+std::vector<float> interpolate(float i0, float d0, float i1, float d1)
+{
+  std::vector<float> my_values{};
+
+  if (fabsf(i0 - i1) < EPSILON)
+  {
+    assert(my_values.empty());
+    my_values.push_back(d0);
+    return my_values;
+  }
+
+  float a = (d1 - d0) / (i1 - i0);
+  float d = d0;
+
+  for (int i = static_cast<int>(i0); i < static_cast<int>(i1); i++)
+  {
+    my_values.push_back(d);
+    d = d + a;
+  }
+  
+  return my_values;
 }
 
 #pragma endregion
