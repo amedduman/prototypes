@@ -64,9 +64,6 @@ void line_draw(Vector2 p0, Vector2 p1, Color color)
   float dx = p1.x - p0.x;
   float dy = p1.y - p0.y;
 
-  assert(fabsf(dx) > EPSILON);
-  assert(fabsf(dy) > EPSILON);
-
   if (fabsf(dx) > fabsf(dy)) // Line is horizontal-ish
   {
     // we are gonna draw line starting from smaller x value 
@@ -115,14 +112,20 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Game");
 
-    Vector2 x = {-50,-200};
-    Vector2 y = {60,240};
+    Vector2 right1 = {0, 0};
+    Vector2 right2 = {200, 0};
+    Vector2 up1 = {0,0};
+    Vector2 up2 = {0,200};
+
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
         BeginDrawing();
-        line_draw(x, y, BLACK);
+
+        line_draw(right1, right2, RED);
+        line_draw(up1, up2, GREEN);
+        
         ClearBackground(RAYWHITE);
         EndDrawing();
     }
