@@ -73,15 +73,22 @@ DrawLine(P0, P1, color)
 */
 void line_draw(Vector2 p0, Vector2 p1, Color color)
 {
-  assert(p1.x > p0.x);
+  // make sure the line is not vertical 
+  assert(fabsf(p1.x - p0.x) > EPSILON);
 
-  float a = (float)(p1.y - p0.y) / (float)(p1.x - p0.x);
-  float b = p0.y - a * p0.x;
+  // we are gonna draw line starting from smaller x value 
+  if (p1.x < p0.x)
+  {
+    std::swap(p0, p1);
+  }
+
+  float a = (float)(p1.y - p0.y) / (float)(p1.x - p0.x); // slope
+  float y = p0.y;
 
   for (int x = p0.x; x <= p1.x; x++)
   {
-    float y = a * x + b;
     canvas_put_pixel(x, y, color);
+    y = y + a; // since definition of slope is how much y is going to change for change in x if we change x by 1 y should be increase by slope value
   }
   
 }
@@ -97,8 +104,8 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Game");
 
-    Vector2 x = {0,0};
-    Vector2 y = {50,50};
+    Vector2 x = {-50,-200};
+    Vector2 y = {60,240};
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
