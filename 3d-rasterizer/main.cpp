@@ -59,38 +59,49 @@ Vector3 canvas_to_viewport(int Cx, int Cy)
 
 #pragma region draw line
 
-/*
-DrawLine(P0, P1, color)
-{
-    a = (y1 - y0) / (x1 - x0)
-    b = y0 - a * x0
-    for x = x0 to x1
-    {
-        y = a * x + b
-        canvas.PutPixel(x, y, color)
-    }
-}
-*/
 void line_draw(Vector2 p0, Vector2 p1, Color color)
 {
-  // make sure the line is not vertical 
-  assert(fabsf(p1.x - p0.x) > EPSILON);
+  float dx = p1.x - p0.x;
+  float dy = p1.y - p0.y;
 
-  // we are gonna draw line starting from smaller x value 
-  if (p1.x < p0.x)
+  assert(fabsf(dx) > EPSILON);
+  assert(fabsf(dy) > EPSILON);
+
+  if (fabsf(dx) > fabsf(dy)) // Line is horizontal-ish
   {
-    std::swap(p0, p1);
+    // we are gonna draw line starting from smaller x value 
+    if (p1.x < p0.x)
+    {
+      std::swap(p0, p1);
+    }
+
+    float a = dy / dx; // slope
+    float y = p0.y;
+
+    for (int x = p0.x; x <= p1.x; x++)
+    {
+      canvas_put_pixel(x, y, color);
+      y = y + a;
+    
+    }
   }
-
-  float a = (float)(p1.y - p0.y) / (float)(p1.x - p0.x); // slope
-  float y = p0.y;
-
-  for (int x = p0.x; x <= p1.x; x++)
+  else // Line is vertical-ish
   {
-    canvas_put_pixel(x, y, color);
-    y = y + a; // since definition of slope is how much y is going to change for change in x if we change x by 1 y should be increase by slope value
-  }
-  
+    // we are gonna draw line starting from smaller y value 
+    if (p1.y < p0.y)
+    {
+      std::swap(p0, p1);
+    }
+
+    float a = dx / dy; // slope
+    float x = p0.x;
+
+    for (int y = p0.y; y <= p1.y; y++)
+    {
+      canvas_put_pixel(x, y, color);
+      x = x + a;
+    }
+  } 
 }
 
 #pragma endregion
