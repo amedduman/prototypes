@@ -106,11 +106,59 @@ void line_draw(Vector2 p0, Vector2 p1, Color color)
 
 #pragma region draw triangle
 
-void triangle_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
+void triangle_wireframe_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
 {
   line_draw(p0, p1, color);
   line_draw(p1, p2, color);
   line_draw(p2, p0, color);
+}
+
+typedef struct 
+{
+  int x;
+  int y;
+} vec2i_t;
+
+vec2i_t to_vec2i(Vector2 v)
+{
+  int x = (int)(v.x);
+  int y = (int)(v.y);
+
+  vec2i_t result = {};
+  result.x = x;
+  result.y = y;
+
+  return result;
+}
+
+bool triangle_is_point_inside(vec2i_t p)
+{
+
+}
+
+void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color color)
+{
+  vec2i_t p0 = to_vec2i(vertex0);
+  vec2i_t p1 = to_vec2i(vertex1);
+  vec2i_t p2 = to_vec2i(vertex2);
+
+  int x_min = std::min({p0.x, p1.x, p2.x});
+  int y_min = std::min({p0.y, p1.y, p2.y});
+  int x_max = std::max({p0.x, p1.x, p2.x});
+  int y_max = std::max({p0.y, p1.y, p2.y});
+
+  for (int x = x_min; x <= x_max; x++)
+  {
+    for (int y = y_min; y <= y_max; y++)
+    {
+      if (triangle_is_point_inside((vec2i_t){x, y}))
+      {
+        /* code */
+      }
+      
+      canvas_put_pixel(x, y, color);
+    }
+  }
 }
 
 #pragma endregion
@@ -153,27 +201,26 @@ std::vector<float> interpolate(float i0, float d0, float i1, float d1)
 
 int main(void)
 {
-  const int screenWidth = 400;
-  const int screenHeight = 400;
+  const int screenWidth = 128;
+  const int screenHeight = 128;
 
   InitWindow(screenWidth, screenHeight, "Game");
 
-  Vector2 origin = {0,0};
-  Vector2 right1 = {0, 0};
-  Vector2 right2 = {200, 0};
-  Vector2 up1 = {0,0};
-  Vector2 up2 = {0,200};
-
+  Vector2 vertices[4] = {
+    {-24, 24},
+    {16, 24},
+    {-24, -16},
+    {26, -26}
+  };
 
   SetTargetFPS(60);
   while (!WindowShouldClose())
   {
       BeginDrawing();
 
-      //line_draw(right1, right2, RED);
-      //line_draw(up1, up2, GREEN);
-      triangle_draw(origin, right2, up2, BLACK);
-      
+      triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], BLACK);
+      triangle_draw(vertices[0], vertices[1], vertices[2], BLACK);
+
       ClearBackground(RAYWHITE);
       EndDrawing();
   }
