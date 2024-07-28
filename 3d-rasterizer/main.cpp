@@ -1,8 +1,12 @@
+#pragma region includes
+
 #include "include/raylib.h"
 #include "include/raymath.h"
 #include <iostream>
 #include <assert.h>
 #include <vector>
+
+#pragma endregion 
 
 #pragma region print
 
@@ -32,6 +36,8 @@ std::ostream& operator<<(std::ostream& os, const Vector2& v)
 
 #pragma endregion
 
+#pragma region structs
+
 typedef struct 
 {
   int x;
@@ -40,7 +46,7 @@ typedef struct
 
 typedef struct
 {
-  Vector2 pos;
+  Vector3 pos;
   Color color;
 } vertex_t;
 
@@ -49,17 +55,7 @@ Vector2 to_vec2(Vector3 v)
   return (Vector2){v.x, v.y};
 }
 
-/* vec2i_t to_vec2i(Vector2 v)
-{
-  int x = (int)(v.x);
-  int y = (int)(v.y);
-
-  vec2i_t result = {};
-  result.x = x;
-  result.y = y;
-
-  return result;
-} */
+#pragma endregion
 
 #pragma region canvas
 
@@ -154,6 +150,7 @@ void triangle_wireframe_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
   line_draw(p2, p0, color);
 }
 
+// finds the cross product beween ab and ap vectors
 int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
 {
   vec2i_t ab = {b.x - a.x, b.y - a.y};
@@ -176,13 +173,9 @@ bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
 // provided vertices are expected to be in the canvas space
 void triangle_draw(vertex_t vertex0, vertex_t vertex1, vertex_t vertex2)
 {
-  /* vec2i_t v0 = canvas_to_screen(to_vec2(vertex0.pos));
-  vec2i_t v1 = canvas_to_screen(to_vec2(vertex1.pos));
-  vec2i_t v2 = canvas_to_screen(to_vec2(vertex2.pos)); */
-
-  vec2i_t v0 = canvas_to_screen(vertex0.pos);
-  vec2i_t v1 = canvas_to_screen(vertex1.pos);
-  vec2i_t v2 = canvas_to_screen(vertex2.pos);
+  vec2i_t v0 = canvas_to_screen((Vector2){vertex0.pos.x, vertex0.pos.y});
+  vec2i_t v1 = canvas_to_screen((Vector2){vertex1.pos.x, vertex1.pos.y});
+  vec2i_t v2 = canvas_to_screen((Vector2){vertex2.pos.x, vertex2.pos.y});
 
   int x_min = std::min({v0.x, v1.x, v2.x});
   int y_min = std::min({v0.y, v1.y, v2.y});
@@ -210,7 +203,7 @@ void triangle_draw(vertex_t vertex0, vertex_t vertex1, vertex_t vertex2)
 
       if (is_inside)
       {
-        // find the ratio of the area of each sub triangle to the triangle (Barycentric Coordinates)
+        // barycentric weights
         float a = (float)w0 / area;
         float b = (float)w1 / area;
         float c = (float)w2 / area;
@@ -273,19 +266,11 @@ int main(void)
 
   InitWindow(screenWidth, screenHeight, "Game");
 
-  /*Vector2 vertices[5] = {
-    {-24, 24},
-    {16, 24},
-    {-24, -16},
-    {26, -26},
-    {11, 44}
-  };*/
-
   vertex_t vertices[4] = {
-    {.pos = {-30, -10}, .color = RED},
-    {.pos = {0, 20}, .color = BLUE},
-    {.pos = {20, 0}, .color = GREEN},
-    {.pos = {26, -26}, .color = GOLD},
+    {.pos = {-30, -10, 0}, .color = RED},
+    {.pos = {0, 20, 0}, .color = BLUE},
+    {.pos = {20, 0, 0}, .color = GREEN},
+    {.pos = {26, -26, 0}, .color = GOLD},
   };
 
   SetTargetFPS(60);
@@ -295,7 +280,6 @@ int main(void)
       ClearBackground(RAYWHITE);
 
       triangle_draw(vertices[0], vertices[1], vertices[2]);
-      //triangle_draw(vertices[3], vertices[2], vertices[1]);
 
       EndDrawing();
   }
