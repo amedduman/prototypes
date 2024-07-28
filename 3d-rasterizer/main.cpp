@@ -151,14 +151,12 @@ int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
   return ab.x * ap.y - ab.y * ap.x; 
 }
 
+// provided triangles need to be clock-wise
 void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color color)
 {
   vec2i_t v0 = canvas_to_screen(vertex0);
   vec2i_t v1 = canvas_to_screen(vertex1);
   vec2i_t v2 = canvas_to_screen(vertex2);
-
-  print(v0.x);
-  print(v0.y);
 
   int x_min = std::min({v0.x, v1.x, v2.x});
   int y_min = std::min({v0.y, v1.y, v2.y});
@@ -231,11 +229,12 @@ int main(void)
 
   InitWindow(screenWidth, screenHeight, "Game");
 
-  Vector2 vertices[4] = {
+  Vector2 vertices[5] = {
     {-24, 24},
     {16, 24},
     {-24, -16},
-    {26, -26}
+    {26, -26},
+    {11, 44}
   };
 
   SetTargetFPS(60);
@@ -246,6 +245,12 @@ int main(void)
 
       triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], RED);
       triangle_draw(vertices[0], vertices[1], vertices[2], BLACK);
+      triangle_draw(vertices[3], vertices[2], vertices[1], GREEN);
+      triangle_draw(vertices[4], vertices[1], vertices[0], GOLD);
+
+      triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], RED);
+      triangle_wireframe_draw(vertices[3], vertices[1], vertices[1], PURPLE);
+      triangle_wireframe_draw(vertices[4], vertices[1], vertices[0], GREEN);
 
       EndDrawing();
   }
