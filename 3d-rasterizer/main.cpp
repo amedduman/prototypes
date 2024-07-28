@@ -131,32 +131,67 @@ vec2i_t to_vec2i(Vector2 v)
   return result;
 }
 
-bool triangle_is_point_inside(vec2i_t p)
+int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
 {
+  vec2i_t ab = {b.x - a.x, b.y - a.y};
+  vec2i_t ap = {p.x - a.x, p.y - a.y};
 
+  return ab.x * ap.y - ab.y * ap.x; 
+}
+
+int edge_cross_debug(vec2i_t a, vec2i_t b, vec2i_t p)
+{
+  vec2i_t ab = {b.x - a.x, b.y - a.y};
+  vec2i_t ap = {p.x - a.x, p.y - a.y};
+
+  if (p.x == - 20 && p.y == 20)
+  {
+    print("edge cross");
+    print(ab.x);
+    print(ab.y);
+    print(ap.x);
+    print(ap.y);
+  }
+  return ab.x * ap.y - ab.y * ap.x; 
 }
 
 void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color color)
 {
-  vec2i_t p0 = to_vec2i(vertex0);
-  vec2i_t p1 = to_vec2i(vertex1);
-  vec2i_t p2 = to_vec2i(vertex2);
+  vec2i_t v0 = to_vec2i(vertex0);
+  vec2i_t v1 = to_vec2i(vertex1);
+  vec2i_t v2 = to_vec2i(vertex2);
 
-  int x_min = std::min({p0.x, p1.x, p2.x});
-  int y_min = std::min({p0.y, p1.y, p2.y});
-  int x_max = std::max({p0.x, p1.x, p2.x});
-  int y_max = std::max({p0.y, p1.y, p2.y});
+  int x_min = std::min({v0.x, v1.x, v2.x});
+  int y_min = std::min({v0.y, v1.y, v2.y});
+  int x_max = std::max({v0.x, v1.x, v2.x});
+  int y_max = std::max({v0.y, v1.y, v2.y});
 
   for (int x = x_min; x <= x_max; x++)
   {
     for (int y = y_min; y <= y_max; y++)
     {
-      if (triangle_is_point_inside((vec2i_t){x, y}))
+      vec2i_t p = {x, y};
+
+      int w0 = edge_cross(v1, v2, p);
+      int w1 = edge_cross(v2, v0, p);
+      int w2 = edge_cross(v0, v1, p);
+
+      bool is_inside = w0 >= 0 && w1 >= 0 && w2 >= 0;
+
+      if (is_inside)
       {
-        /* code */
+        canvas_put_pixel(x, y, color);
+      }
+
+      if (x == -20 && y == 20)
+      {
+        print("put pixel");
+        int w0 = edge_cross_debug(v1, v2, p);
+        print(w0);
+        print("--------");
+        canvas_put_pixel(x, y, color);
       }
       
-      canvas_put_pixel(x, y, color);
     }
   }
 }
@@ -218,7 +253,7 @@ int main(void)
   {
       BeginDrawing();
 
-      triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], BLACK);
+      triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], RED);
       triangle_draw(vertices[0], vertices[1], vertices[2], BLACK);
 
       ClearBackground(RAYWHITE);
