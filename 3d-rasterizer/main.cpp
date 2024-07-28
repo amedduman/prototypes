@@ -32,6 +32,24 @@ std::ostream& operator<<(std::ostream& os, const Vector2& v)
 
 #pragma endregion
 
+typedef struct 
+{
+  int x;
+  int y;
+} vec2i_t;
+
+/* vec2i_t to_vec2i(Vector2 v)
+{
+  int x = (int)(v.x);
+  int y = (int)(v.y);
+
+  vec2i_t result = {};
+  result.x = x;
+  result.y = y;
+
+  return result;
+} */
+
 #pragma region canvas
 
 void canvas_put_pixel(int Cx, int Cy, Color color)
@@ -41,7 +59,6 @@ void canvas_put_pixel(int Cx, int Cy, Color color)
 
   DrawPixel(Sx, Sy, color);
 }
-
 
 Vector3 canvas_to_viewport(int Cx, int Cy)
 {
@@ -54,6 +71,19 @@ Vector3 canvas_to_viewport(int Cx, int Cy)
   float Vz = d;
 
   return (Vector3){ Vx, Vy, Vz };
+}
+
+vec2i_t canvas_to_screen(int Cx, int Cy)
+{
+  int screen_x = Cx + (GetScreenWidth() / 2);
+  int screen_y = (GetScreenWidth() / 2) - Cy;
+
+  return (vec2i_t){screen_x, screen_y};
+}
+
+vec2i_t canvas_to_screen(Vector2 v)
+{
+  return canvas_to_screen(v.x, v.y);
 }
 
 #pragma endregion
@@ -113,24 +143,6 @@ void triangle_wireframe_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
   line_draw(p2, p0, color);
 }
 
-typedef struct 
-{
-  int x;
-  int y;
-} vec2i_t;
-
-vec2i_t to_vec2i(Vector2 v)
-{
-  int x = (int)(v.x);
-  int y = (int)(v.y);
-
-  vec2i_t result = {};
-  result.x = x;
-  result.y = y;
-
-  return result;
-}
-
 int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
 {
   vec2i_t ab = {b.x - a.x, b.y - a.y};
@@ -139,27 +151,14 @@ int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
   return ab.x * ap.y - ab.y * ap.x; 
 }
 
-int edge_cross_debug(vec2i_t a, vec2i_t b, vec2i_t p)
-{
-  vec2i_t ab = {b.x - a.x, b.y - a.y};
-  vec2i_t ap = {p.x - a.x, p.y - a.y};
-
-  if (p.x == - 20 && p.y == 20)
-  {
-    print("edge cross");
-    print(ab.x);
-    print(ab.y);
-    print(ap.x);
-    print(ap.y);
-  }
-  return ab.x * ap.y - ab.y * ap.x; 
-}
-
 void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color color)
 {
-  vec2i_t v0 = to_vec2i(vertex0);
-  vec2i_t v1 = to_vec2i(vertex1);
-  vec2i_t v2 = to_vec2i(vertex2);
+  vec2i_t v0 = canvas_to_screen(vertex0);
+  vec2i_t v1 = canvas_to_screen(vertex1);
+  vec2i_t v2 = canvas_to_screen(vertex2);
+
+  print(v0.x);
+  print(v0.y);
 
   int x_min = std::min({v0.x, v1.x, v2.x});
   int y_min = std::min({v0.y, v1.y, v2.y});
@@ -180,18 +179,9 @@ void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color colo
 
       if (is_inside)
       {
-        canvas_put_pixel(x, y, color);
+        //canvas_put_pixel(x, y, color);
+        DrawPixel(x, y, color);
       }
-
-      if (x == -20 && y == 20)
-      {
-        print("put pixel");
-        int w0 = edge_cross_debug(v1, v2, p);
-        print(w0);
-        print("--------");
-        canvas_put_pixel(x, y, color);
-      }
-      
     }
   }
 }
@@ -252,11 +242,11 @@ int main(void)
   while (!WindowShouldClose())
   {
       BeginDrawing();
+      ClearBackground(RAYWHITE);
 
       triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], RED);
       triangle_draw(vertices[0], vertices[1], vertices[2], BLACK);
 
-      ClearBackground(RAYWHITE);
       EndDrawing();
   }
   CloseWindow();
