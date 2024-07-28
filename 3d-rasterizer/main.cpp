@@ -38,6 +38,17 @@ typedef struct
   int y;
 } vec2i_t;
 
+typedef struct
+{
+  Vector2 pos;
+  Color color;
+} vertex_t;
+
+Vector2 to_vec2(Vector3 v)
+{
+  return (Vector2){v.x, v.y};
+}
+
 /* vec2i_t to_vec2i(Vector2 v)
 {
   int x = (int)(v.x);
@@ -162,16 +173,24 @@ bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
 }
 
 // provided triangles need to be clock-wise
-void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color color)
+// provided vertices are expected to be in the canvas space
+void triangle_draw(vertex_t vertex0, vertex_t vertex1, vertex_t vertex2)
 {
-  vec2i_t v0 = canvas_to_screen(vertex0);
-  vec2i_t v1 = canvas_to_screen(vertex1);
-  vec2i_t v2 = canvas_to_screen(vertex2);
+  /* vec2i_t v0 = canvas_to_screen(to_vec2(vertex0.pos));
+  vec2i_t v1 = canvas_to_screen(to_vec2(vertex1.pos));
+  vec2i_t v2 = canvas_to_screen(to_vec2(vertex2.pos)); */
+
+  vec2i_t v0 = canvas_to_screen(vertex0.pos);
+  vec2i_t v1 = canvas_to_screen(vertex1.pos);
+  vec2i_t v2 = canvas_to_screen(vertex2.pos);
 
   int x_min = std::min({v0.x, v1.x, v2.x});
   int y_min = std::min({v0.y, v1.y, v2.y});
   int x_max = std::max({v0.x, v1.x, v2.x});
   int y_max = std::max({v0.y, v1.y, v2.y});
+
+  // find the area of triangle
+  float area = edge_cross(v0, v1, v2);
 
   int bias0 = edge_is_top_or_left(v0, v1) ? 0 : -1;
   int bias1 = edge_is_top_or_left(v1, v2) ? 0 : -1;
@@ -191,7 +210,18 @@ void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color colo
 
       if (is_inside)
       {
-        //canvas_put_pixel(x, y, color);
+        // find the ratio of the area of each sub triangle to the triangle (Barycentric Coordinates)
+        float a = (float)w0 / area;
+        float b = (float)w1 / area;
+        float c = (float)w2 / area;
+
+        Color color = {
+          static_cast<unsigned char>(Clamp(vertex0.color.r * b + vertex1.color.r * c + vertex2.color.r * a, 0, 255)),
+          static_cast<unsigned char>(Clamp(vertex0.color.g * b + vertex1.color.g * c + vertex2.color.g * a, 0, 255)),
+          static_cast<unsigned char>(Clamp(vertex0.color.b * b + vertex1.color.b * c + vertex2.color.b * a, 0, 255)),
+          255
+        };
+
         DrawPixel(x, y, color);
       }
     }
@@ -243,12 +273,19 @@ int main(void)
 
   InitWindow(screenWidth, screenHeight, "Game");
 
-  Vector2 vertices[5] = {
+  /*Vector2 vertices[5] = {
     {-24, 24},
     {16, 24},
     {-24, -16},
     {26, -26},
     {11, 44}
+  };*/
+
+  vertex_t vertices[4] = {
+    {.pos = {-30, -10}, .color = RED},
+    {.pos = {0, 20}, .color = BLUE},
+    {.pos = {20, 0}, .color = GREEN},
+    {.pos = {26, -26}, .color = GOLD},
   };
 
   SetTargetFPS(60);
@@ -257,9 +294,8 @@ int main(void)
       BeginDrawing();
       ClearBackground(RAYWHITE);
 
-      triangle_draw(vertices[0], vertices[1], vertices[2], BLACK);
-      triangle_draw(vertices[3], vertices[2], vertices[1], GREEN);
-      triangle_draw(vertices[4], vertices[1], vertices[0], GOLD);
+      triangle_draw(vertices[0], vertices[1], vertices[2]);
+      //triangle_draw(vertices[3], vertices[2], vertices[1]);
 
       EndDrawing();
   }
