@@ -151,6 +151,16 @@ int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
   return ab.x * ap.y - ab.y * ap.x; 
 }
 
+bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
+{
+  vec2i_t edge = {end.x - start.x, end.y - start.y};
+
+  bool is_top = edge.y == 0 && edge.x > 0;
+  bool is_left = edge.y < 0;
+
+  return is_top || is_left;
+}
+
 // provided triangles need to be clock-wise
 void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color color)
 {
@@ -163,15 +173,19 @@ void triangle_draw(Vector2 vertex0, Vector2 vertex1, Vector2 vertex2, Color colo
   int x_max = std::max({v0.x, v1.x, v2.x});
   int y_max = std::max({v0.y, v1.y, v2.y});
 
+  int bias0 = edge_is_top_or_left(v0, v1) ? 0 : -1;
+  int bias1 = edge_is_top_or_left(v1, v2) ? 0 : -1;
+  int bias2 = edge_is_top_or_left(v2, v0) ? 0 : -1;
+
   for (int x = x_min; x <= x_max; x++)
   {
     for (int y = y_min; y <= y_max; y++)
     {
       vec2i_t p = {x, y};
 
-      int w0 = edge_cross(v1, v2, p);
-      int w1 = edge_cross(v2, v0, p);
-      int w2 = edge_cross(v0, v1, p);
+      int w0 = edge_cross(v0, v1, p) + bias0;
+      int w1 = edge_cross(v1, v2, p) + bias1;
+      int w2 = edge_cross(v2, v0, p) + bias2;
 
       bool is_inside = w0 >= 0 && w1 >= 0 && w2 >= 0;
 
@@ -243,14 +257,9 @@ int main(void)
       BeginDrawing();
       ClearBackground(RAYWHITE);
 
-      triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], RED);
       triangle_draw(vertices[0], vertices[1], vertices[2], BLACK);
       triangle_draw(vertices[3], vertices[2], vertices[1], GREEN);
       triangle_draw(vertices[4], vertices[1], vertices[0], GOLD);
-
-      triangle_wireframe_draw(vertices[0], vertices[1], vertices[2], RED);
-      triangle_wireframe_draw(vertices[3], vertices[1], vertices[1], PURPLE);
-      triangle_wireframe_draw(vertices[4], vertices[1], vertices[0], GREEN);
 
       EndDrawing();
   }
