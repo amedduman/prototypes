@@ -61,20 +61,6 @@ Vector2 to_vec2(Vector3 v)
   return (Vector2){v.x, v.y};
 }
 
-typedef struct
-{
-  int tri_indices[3];
-  Color color;
-} triangle_t;
-
-
-typedef struct
-{
-  std::vector<Vector3> vertices;
-  std::vector<triangle_t> indices;
-} model_t;
-
-
 #pragma endregion
 
 #pragma region canvas - viewport
@@ -129,7 +115,7 @@ Vector2 viewport_to_canvas(float x, float y)
 
 #pragma region projection
 
-Vector2 ProjectVertex(Vector3 v)
+Vector2 project_vertex(Vector3 v)
 { 
   float d = VIEWPORT_DISTANCE_TO_CAMERA;
   
@@ -301,6 +287,49 @@ std::vector<float> interpolate(float i0, float d0, float i1, float d1)
 
 #pragma endregion
 
+#pragma region model
+typedef struct
+{
+  int tri_indices[3];
+  Color color;
+} triangle_t;
+
+
+typedef struct
+{
+  std::vector<Vector3> vertices;
+  std::vector<triangle_t> triangles;
+} model_t;
+#pragma endregion
+
+#pragma region rendering
+
+void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices)
+{
+  triangle_wireframe_draw(
+      projected_vertices[triangle.tri_indices[0]],
+      projected_vertices[triangle.tri_indices[1]],
+      projected_vertices[triangle.tri_indices[2]],
+      triangle.color
+    );
+}
+
+void render_model(const model_t& m)
+{
+  std::vector<Vector2> protected_vertices = {};
+  for (size_t i = 0; i < m.vertices.size(); i++)
+  {
+    protected_vertices.push_back(project_vertex(m.vertices[i]));
+  }
+
+  for (size_t i = 0; i < m.triangles.size(); i++)
+  {
+    render_triangle(m.triangles[i], protected_vertices);
+  }
+}
+
+#pragma endregion
+
 #pragma region main
 
 int main(void)
@@ -313,7 +342,7 @@ int main(void)
   model_t cube = {
     
       .vertices = {
-      (Vector3){1,  1,  1},
+      (Vector3){ 1,  1,  1},
       (Vector3){-1,  1,  1},
       (Vector3){-1, -1,  1},
       (Vector3){ 1, -1,  1},
@@ -322,15 +351,15 @@ int main(void)
       (Vector3){-1, -1, -1},
       (Vector3){ 1, -1, -1},
     },
-    .indices = {
+    .triangles = {
       {.tri_indices = {0, 1, 2}, .color = RED},
       {.tri_indices = {0, 2, 3}, .color = RED},
       {.tri_indices = {4, 0, 3}, .color = GREEN},
       {.tri_indices = {4, 3, 7}, .color = GREEN},
       {.tri_indices = {5, 4, 7}, .color = BLUE},
       {.tri_indices = {5, 7, 6}, .color = BLUE},
-      {.tri_indices = {1, 5, 6}, .color = YELLOW},
-      {.tri_indices = {1, 6, 2}, .color = YELLOW},
+      {.tri_indices = {1, 5, 6}, .color = GOLD},
+      {.tri_indices = {1, 6, 2}, .color = GOLD},
       {.tri_indices = {4, 5, 1}, .color = PURPLE},
       {.tri_indices = {4, 1, 0}, .color = PURPLE},
       {.tri_indices = { 2, 6, 7},.color = BLACK},
@@ -339,12 +368,21 @@ int main(void)
 
   };
 
+  Vector3 t = {-1.5f, 0, 7};
+  // traslate cube
+  for (size_t i = 0; i < cube.vertices.size(); i++)
+  {
+    cube.vertices[i] = Vector3Add(cube.vertices[i], t);
+  }
+
   SetTargetFPS(60);
   while (!WindowShouldClose())
   {
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
+    render_model(cube);
+
     EndDrawing();
   }
 
