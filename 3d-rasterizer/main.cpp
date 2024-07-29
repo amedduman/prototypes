@@ -8,9 +8,11 @@
 
 #pragma endregion 
 
+#pragma region defines
 #define VIEWPORT_HEIGHT 1.0f
 #define VIEWPORT_WIDTH 1.0f
 #define VIEWPORT_DISTANCE_TO_CAMERA 1.0f
+#pragma endregion
 
 #pragma region print
 
@@ -58,6 +60,20 @@ Vector2 to_vec2(Vector3 v)
 {
   return (Vector2){v.x, v.y};
 }
+
+typedef struct
+{
+  int tri_indices[3];
+  Color color;
+} triangle_t;
+
+
+typedef struct
+{
+  std::vector<Vector3> vertices;
+  std::vector<triangle_t> indices;
+} model_t;
+
 
 #pragma endregion
 
@@ -294,17 +310,34 @@ int main(void)
 
   InitWindow(screenWidth, screenHeight, "Game");
 
-  // The four "front" vertices
-  Vector3 vAf = {-2, -0.5, 5};
-  Vector3 vBf = {-2,  0.5, 5};
-  Vector3 vCf = {-1,  0.5, 5};
-  Vector3 vDf = {-1, -0.5, 5};
+  model_t cube = {
+    
+      .vertices = {
+      (Vector3){1,  1,  1},
+      (Vector3){-1,  1,  1},
+      (Vector3){-1, -1,  1},
+      (Vector3){ 1, -1,  1},
+      (Vector3){ 1,  1, -1},
+      (Vector3){-1,  1, -1},
+      (Vector3){-1, -1, -1},
+      (Vector3){ 1, -1, -1},
+    },
+    .indices = {
+      {.tri_indices = {0, 1, 2}, .color = RED},
+      {.tri_indices = {0, 2, 3}, .color = RED},
+      {.tri_indices = {4, 0, 3}, .color = GREEN},
+      {.tri_indices = {4, 3, 7}, .color = GREEN},
+      {.tri_indices = {5, 4, 7}, .color = BLUE},
+      {.tri_indices = {5, 7, 6}, .color = BLUE},
+      {.tri_indices = {1, 5, 6}, .color = YELLOW},
+      {.tri_indices = {1, 6, 2}, .color = YELLOW},
+      {.tri_indices = {4, 5, 1}, .color = PURPLE},
+      {.tri_indices = {4, 1, 0}, .color = PURPLE},
+      {.tri_indices = { 2, 6, 7},.color = BLACK},
+      {.tri_indices = { 2, 7, 3},.color = BLACK},
+    }
 
-  // The four "back" vertices
-  Vector3 vAb = {-2, -0.5, 6};
-  Vector3 vBb = {-2,  0.5, 6};
-  Vector3 vCb = {-1,  0.5, 6};
-  Vector3 vDb = {-1, -0.5, 6};
+  };
 
   SetTargetFPS(60);
   while (!WindowShouldClose())
@@ -312,24 +345,6 @@ int main(void)
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
-    // The front face
-    line_draw(ProjectVertex(vAf), ProjectVertex(vBf), BLUE);
-    line_draw(ProjectVertex(vBf), ProjectVertex(vCf), BLUE);
-    line_draw(ProjectVertex(vCf), ProjectVertex(vDf), BLUE);
-    line_draw(ProjectVertex(vDf), ProjectVertex(vAf), BLUE);
-
-    // The back face
-    line_draw(ProjectVertex(vAb), ProjectVertex(vBb), RED);
-    line_draw(ProjectVertex(vBb), ProjectVertex(vCb), RED);
-    line_draw(ProjectVertex(vCb), ProjectVertex(vDb), RED);
-    line_draw(ProjectVertex(vDb), ProjectVertex(vAb), RED);
-
-    // The front-to-back edges
-    line_draw(ProjectVertex(vAf), ProjectVertex(vAb), GREEN);
-    line_draw(ProjectVertex(vBf), ProjectVertex(vBb), GREEN);
-    line_draw(ProjectVertex(vCf), ProjectVertex(vCb), GREEN);
-    line_draw(ProjectVertex(vDf), ProjectVertex(vDb), GREEN);
-
     EndDrawing();
   }
 
