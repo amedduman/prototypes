@@ -8,6 +8,10 @@
 
 #pragma endregion 
 
+#define VIEWPORT_HEIGHT 1.0f
+#define VIEWPORT_WIDTH 1.0f
+#define VIEWPORT_DISTANCE_TO_CAMERA 1.0f
+
 #pragma region print
 
 template <typename T>
@@ -69,9 +73,9 @@ void canvas_put_pixel(int Cx, int Cy, Color color)
 
 Vector3 canvas_to_viewport(int Cx, int Cy)
 {
-  float Vw = 1.0f; // the viewport height
-  float Vh = 1.0f; // the viewport width
-  float d = 1.0f; // the distance from the camera to the canvas
+  float Vw = VIEWPORT_WIDTH;
+  float Vh = VIEWPORT_HEIGHT;
+  float d = VIEWPORT_DISTANCE_TO_CAMERA;
 
   float Vx = Cx * (Vw / GetScreenWidth());
   float Vy = Cy * (Vh / GetScreenHeight());
@@ -98,9 +102,9 @@ Vector2 viewport_to_canvas(float x, float y)
   int Cw = GetScreenWidth();
   int Ch = GetScreenHeight();
 
-  float Vw = 1.0f; // the viewport height
-  float Vh = 1.0f; // the viewport width
-  float d = 1.0f; // the distance from the camera to the canvas
+  float Vw = VIEWPORT_WIDTH;
+  float Vh = VIEWPORT_HEIGHT;
+  float d = VIEWPORT_DISTANCE_TO_CAMERA;
 
   return (Vector2){x * (Cw / Vw), y * (Ch / Vh)};
 }
@@ -111,14 +115,14 @@ Vector2 viewport_to_canvas(float x, float y)
 
 Vector2 ProjectVertex(Vector3 v)
 { 
-  float d = 1.0f; // the distance from the camera to the canvas
+  float d = VIEWPORT_DISTANCE_TO_CAMERA;
   
   return viewport_to_canvas(v.x * d / v.z, v.y * d / v.z);
 }
 
 #pragma endregion
 
-#pragma region draw line
+#pragma region line drawing
 
 // p0 and p1 expected to be in canvas space
 void line_draw(Vector2 p0, Vector2 p1, Color color)
@@ -305,31 +309,31 @@ int main(void)
   SetTargetFPS(60);
   while (!WindowShouldClose())
   {
-      BeginDrawing();
-      ClearBackground(RAYWHITE);
-      
-      // The front face
-      line_draw(ProjectVertex(vAf), ProjectVertex(vBf), BLUE);
-      line_draw(ProjectVertex(vBf), ProjectVertex(vCf), BLUE);
-      line_draw(ProjectVertex(vCf), ProjectVertex(vDf), BLUE);
-      line_draw(ProjectVertex(vDf), ProjectVertex(vAf), BLUE);
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+    
+    // The front face
+    line_draw(ProjectVertex(vAf), ProjectVertex(vBf), BLUE);
+    line_draw(ProjectVertex(vBf), ProjectVertex(vCf), BLUE);
+    line_draw(ProjectVertex(vCf), ProjectVertex(vDf), BLUE);
+    line_draw(ProjectVertex(vDf), ProjectVertex(vAf), BLUE);
 
-      // The back face
-      line_draw(ProjectVertex(vAb), ProjectVertex(vBb), RED);
-      line_draw(ProjectVertex(vBb), ProjectVertex(vCb), RED);
-      line_draw(ProjectVertex(vCb), ProjectVertex(vDb), RED);
-      line_draw(ProjectVertex(vDb), ProjectVertex(vAb), RED);
+    // The back face
+    line_draw(ProjectVertex(vAb), ProjectVertex(vBb), RED);
+    line_draw(ProjectVertex(vBb), ProjectVertex(vCb), RED);
+    line_draw(ProjectVertex(vCb), ProjectVertex(vDb), RED);
+    line_draw(ProjectVertex(vDb), ProjectVertex(vAb), RED);
 
-      // The front-to-back edges
-      line_draw(ProjectVertex(vAf), ProjectVertex(vAb), GREEN);
-      line_draw(ProjectVertex(vBf), ProjectVertex(vBb), GREEN);
-      line_draw(ProjectVertex(vCf), ProjectVertex(vCb), GREEN);
-      line_draw(ProjectVertex(vDf), ProjectVertex(vDb), GREEN);
+    // The front-to-back edges
+    line_draw(ProjectVertex(vAf), ProjectVertex(vAb), GREEN);
+    line_draw(ProjectVertex(vBf), ProjectVertex(vBb), GREEN);
+    line_draw(ProjectVertex(vCf), ProjectVertex(vCb), GREEN);
+    line_draw(ProjectVertex(vDf), ProjectVertex(vDb), GREEN);
 
-      EndDrawing();
+    EndDrawing();
   }
+
   CloseWindow();
-  return 0;
 }
 
 #pragma endregion
