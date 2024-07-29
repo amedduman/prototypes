@@ -288,6 +288,7 @@ std::vector<float> interpolate(float i0, float d0, float i1, float d1)
 #pragma endregion
 
 #pragma region model
+
 typedef struct
 {
   int tri_indices[3];
@@ -300,6 +301,14 @@ typedef struct
   std::vector<Vector3> vertices;
   std::vector<triangle_t> triangles;
 } model_t;
+
+typedef struct
+{
+  model_t model;
+  Vector3 position;
+} instance_t;
+
+
 #pragma endregion
 
 #pragma region rendering
@@ -325,6 +334,29 @@ void render_model(const model_t& m)
   for (size_t i = 0; i < m.triangles.size(); i++)
   {
     render_triangle(m.triangles[i], protected_vertices);
+  }
+}
+
+void render_model_instance(const instance_t& instance)
+{
+  std::vector<Vector2> protected_vertices = {};
+  for (size_t i = 0; i < instance.model.vertices.size(); i++)
+  {
+    Vector3 translated = Vector3Add(instance.model.vertices[i], instance.position);
+    protected_vertices.push_back(project_vertex(translated));
+  }
+
+  for (size_t i = 0; i < instance.model.triangles.size(); i++)
+  {
+    render_triangle(instance.model.triangles[i], protected_vertices);
+  }
+}
+
+void render_scene(std::vector<instance_t> scene)
+{
+  for (int i = 0; i < scene.size(); i++)
+  {
+    render_model_instance(scene[i]);
   }
 }
 
@@ -368,12 +400,15 @@ int main(void)
 
   };
 
-  Vector3 t = {-1.5f, 0, 7};
-  // traslate cube
-  for (size_t i = 0; i < cube.vertices.size(); i++)
-  {
-    cube.vertices[i] = Vector3Add(cube.vertices[i], t);
-  }
+  instance_t cube_a = {
+    .model = cube,
+    .position = (Vector3){-1.5, 0, 7}
+  };
+
+  instance_t cube_b = {
+    .model = cube,
+    .position = (Vector3){1.25, 2, 7.5}
+  };
 
   SetTargetFPS(60);
   while (!WindowShouldClose())
@@ -381,7 +416,7 @@ int main(void)
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
-    render_model(cube);
+    render_scene(std::vector<instance_t>{cube_a, cube_b});
 
     EndDrawing();
   }
