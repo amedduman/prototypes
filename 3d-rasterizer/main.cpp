@@ -57,7 +57,7 @@ Vector2 to_vec2(Vector3 v)
 
 #pragma endregion
 
-#pragma region canvas
+#pragma region canvas - viewport
 
 void canvas_put_pixel(int Cx, int Cy, Color color)
 {
@@ -93,10 +93,34 @@ vec2i_t canvas_to_screen(Vector2 v)
   return canvas_to_screen(v.x, v.y);
 }
 
+Vector2 viewport_to_canvas(float x, float y)
+{
+  int Cw = GetScreenWidth();
+  int Ch = GetScreenHeight();
+
+  float Vw = 1.0f; // the viewport height
+  float Vh = 1.0f; // the viewport width
+  float d = 1.0f; // the distance from the camera to the canvas
+
+  return (Vector2){x * (Cw / Vw), y * (Ch / Vh)};
+}
+
+#pragma endregion
+
+#pragma region projection
+
+Vector2 ProjectVertex(Vector3 v)
+{ 
+  float d = 1.0f; // the distance from the camera to the canvas
+  
+  return viewport_to_canvas(v.x * d / v.z, v.y * d / v.z);
+}
+
 #pragma endregion
 
 #pragma region draw line
 
+// p0 and p1 expected to be in canvas space
 void line_draw(Vector2 p0, Vector2 p1, Color color)
 {
   float dx = p1.x - p0.x;
@@ -261,25 +285,46 @@ std::vector<float> interpolate(float i0, float d0, float i1, float d1)
 
 int main(void)
 {
-  const int screenWidth = 128;
-  const int screenHeight = 128;
+  const int screenWidth = 400;
+  const int screenHeight = 400;
 
   InitWindow(screenWidth, screenHeight, "Game");
 
-  vertex_t vertices[4] = {
-    {.pos = {-30, -10, 0}, .color = RED},
-    {.pos = {0, 20, 0}, .color = BLUE},
-    {.pos = {20, 0, 0}, .color = GREEN},
-    {.pos = {26, -26, 0}, .color = GOLD},
-  };
+  // The four "front" vertices
+  Vector3 vAf = {-2, -0.5, 5};
+  Vector3 vBf = {-2,  0.5, 5};
+  Vector3 vCf = {-1,  0.5, 5};
+  Vector3 vDf = {-1, -0.5, 5};
+
+  // The four "back" vertices
+  Vector3 vAb = {-2, -0.5, 6};
+  Vector3 vBb = {-2,  0.5, 6};
+  Vector3 vCb = {-1,  0.5, 6};
+  Vector3 vDb = {-1, -0.5, 6};
 
   SetTargetFPS(60);
   while (!WindowShouldClose())
   {
       BeginDrawing();
       ClearBackground(RAYWHITE);
+      
+      // The front face
+      line_draw(ProjectVertex(vAf), ProjectVertex(vBf), BLUE);
+      line_draw(ProjectVertex(vBf), ProjectVertex(vCf), BLUE);
+      line_draw(ProjectVertex(vCf), ProjectVertex(vDf), BLUE);
+      line_draw(ProjectVertex(vDf), ProjectVertex(vAf), BLUE);
 
-      triangle_draw(vertices[0], vertices[1], vertices[2]);
+      // The back face
+      line_draw(ProjectVertex(vAb), ProjectVertex(vBb), RED);
+      line_draw(ProjectVertex(vBb), ProjectVertex(vCb), RED);
+      line_draw(ProjectVertex(vCb), ProjectVertex(vDb), RED);
+      line_draw(ProjectVertex(vDb), ProjectVertex(vAb), RED);
+
+      // The front-to-back edges
+      line_draw(ProjectVertex(vAf), ProjectVertex(vAb), GREEN);
+      line_draw(ProjectVertex(vBf), ProjectVertex(vBb), GREEN);
+      line_draw(ProjectVertex(vCf), ProjectVertex(vCb), GREEN);
+      line_draw(ProjectVertex(vDf), ProjectVertex(vDb), GREEN);
 
       EndDrawing();
   }
