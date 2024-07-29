@@ -304,10 +304,44 @@ typedef struct
 
 typedef struct
 {
-  model_t model;
   Vector3 position;
+  Vector3 rotation;
+  Vector3 scale;
+} transform_t;
+
+
+typedef struct
+{
+  model_t model;
+  transform_t transform;
+
 } instance_t;
 
+instance_t model_init_instance(const model_t& model, Vector3 pos, Vector3 rot_in_rad, Vector3 my_scale)
+{
+  instance_t instance = {
+    .model = model,
+    .transform = {
+      .position = pos,
+      .rotation = rot_in_rad,
+      .scale = my_scale
+    }
+  };
+
+  return instance;
+}
+
+#pragma endregion
+
+#pragma region rotation
+
+Vector3 rotate_y(Vector3 v, float angle_in_rad)
+{
+  float x = v.x * std::cos(angle_in_rad) + v.z * std::sin(angle_in_rad);
+  float z = -v.x * std::sin(angle_in_rad) + v.z * std::cos(angle_in_rad);
+
+  return (Vector3){x, v.y, z}; 
+}
 
 #pragma endregion
 
@@ -337,12 +371,30 @@ void render_model(const model_t& m)
   }
 }
 
+Vector3 apply_transform(Vector3 v, const transform_t& tr)
+{
+  Vector3 result = {0,0,0};
+
+  result = (Vector3){
+      v.x * tr.scale.x, 
+      v.y * tr.scale.y, 
+      v.z * tr.scale.z
+    };
+  
+  result = rotate_y(result, tr.rotation.y);
+
+  result = Vector3Add(result, tr.position);
+
+  return result;
+}
+
 void render_model_instance(const instance_t& instance)
 {
   std::vector<Vector2> protected_vertices = {};
   for (size_t i = 0; i < instance.model.vertices.size(); i++)
   {
-    Vector3 translated = Vector3Add(instance.model.vertices[i], instance.position);
+    //Vector3 translated = Vector3Add(instance.model.vertices[i], instance.position);
+    Vector3 translated = apply_transform(instance.model.vertices[i], instance.transform);
     protected_vertices.push_back(project_vertex(translated));
   }
 
@@ -400,15 +452,8 @@ int main(void)
 
   };
 
-  instance_t cube_a = {
-    .model = cube,
-    .position = (Vector3){-1.5, 0, 7}
-  };
-
-  instance_t cube_b = {
-    .model = cube,
-    .position = (Vector3){1.25, 2, 7.5}
-  };
+  instance_t cube_a = model_init_instance(cube, (Vector3){-1.5, 0, 7}, (Vector3){0, RAD2DEG * 45, 0}, (Vector3){1,1,1});
+  instance_t cube_b = model_init_instance(cube, (Vector3){1.25, 2, 7.5}, (Vector3){0, RAD2DEG * 30, 0}, (Vector3){1,1,1});
 
   SetTargetFPS(60);
   while (!WindowShouldClose())
