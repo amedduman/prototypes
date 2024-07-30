@@ -38,12 +38,12 @@ Vector2 viewport_to_canvas(float x, float y)
 // first function will transform vertex from camera space to viewport space 
 // second functio will transform vertex form viewport to canvas
 // project vertex in camera space to the viewport and then to the canvs
-Vector2 project_vertex(Vector3 v)
+/* Vector2 project_vertex(Vector3 v)
 { 
   float d = VIEWPORT_DISTANCE_TO_CAMERA;
   
   return viewport_to_canvas(v.x * d / v.z, v.y * d / v.z);
-}
+} */
 
 // transform from model space to world space
 Vector3 apply_transform(Vector3 v, const transform_t& tr)
@@ -67,4 +67,16 @@ Vector3 apply_camera_transform(Vector3 v_world, const camera_t& cam)
   Vector3 v_camera = Vector3Transform(v_translated, MatrixInvert(MatrixRotateZYX(cam.rot_in_rad)));
 
   return v_camera;
+}
+
+Vector3 apply_perspective(Vector3 v_cam_space)
+{
+  float d = VIEWPORT_DISTANCE_TO_CAMERA;
+  Vector3 v = v_cam_space;
+  
+  return (Vector3){
+      v.x * d / v.z, 
+      v.y * d / v.z,
+      v.z
+    };
 }
