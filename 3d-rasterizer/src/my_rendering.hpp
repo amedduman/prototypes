@@ -15,20 +15,6 @@ void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& pro
     );
 }
 
-/* void render_model(const model_t& m)
-{
-  std::vector<Vector2> protected_vertices = {};
-  for (size_t i = 0; i < m.vertices.size(); i++)
-  {
-    protected_vertices.push_back(project_vertex(m.vertices[i]));
-  }
-
-  for (size_t i = 0; i < m.triangles.size(); i++)
-  {
-    render_triangle(m.triangles[i], protected_vertices);
-  }
-} */
-
 void render_model_instance(const instance_t& instance, const camera_t& cam)
 {
   std::vector<Vector2> protected_vertices = {};
@@ -36,6 +22,7 @@ void render_model_instance(const instance_t& instance, const camera_t& cam)
   {
     // transform from model space to world space
     Vector3 v_world = apply_transform(instance.model.vertices[i], instance.transform);
+   
     // transform form world space to camera space
     Vector3 v_camera = apply_camera_transform(v_world, cam);
 
@@ -45,7 +32,6 @@ void render_model_instance(const instance_t& instance, const camera_t& cam)
     //map the viewport coordinates to canvas coordinates
     Vector2 v_canvas = viewport_to_canvas(v_viewport.x, v_viewport.y);
     
-    //protected_vertices.push_back(project_vertex(v_camera));
     protected_vertices.push_back(v_canvas);
   }
 
