@@ -49,7 +49,7 @@ int main(void)
 
   };
 
-  instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 12}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){2,1,1});
+  instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 12}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
 
   camera_t camera = {
     .position = {0,0,1},
@@ -60,6 +60,7 @@ int main(void)
   while (!WindowShouldClose())
   {
     camera_move(camera);
+    camera_rotate(camera);
 
 
     BeginDrawing();
