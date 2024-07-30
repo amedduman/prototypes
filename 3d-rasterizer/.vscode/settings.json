@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "ostream": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "my_transformations.hpp": "c"
   }
 }

@@ -1,0 +1,5 @@
+#pragma once
+
+#define VIEWPORT_HEIGHT 1.0f
+#define VIEWPORT_WIDTH 1.0f
+#define VIEWPORT_DISTANCE_TO_CAMERA 1.0f
