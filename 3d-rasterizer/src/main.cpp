@@ -59,6 +59,9 @@ int main(void)
   SetTargetFPS(60);
   while (!WindowShouldClose())
   {
+    camera_move(camera);
+
+
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
