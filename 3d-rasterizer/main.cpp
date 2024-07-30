@@ -33,6 +33,11 @@ Vector2 operator+(const Vector2& v1, const Vector2& v2)
     return Vector2Add(v1, v2);
 }
 
+Matrix operator *(const Matrix& m1, const Matrix& m2)
+{
+  return MatrixMultiply(m1, m2);
+}
+
 // Operator overloading for Vector2 output
 std::ostream& operator<<(std::ostream& os, const Vector2& v)
 {
@@ -374,18 +379,14 @@ void render_model(const model_t& m)
 Vector3 apply_transform(Vector3 v, const transform_t& tr)
 {
   Vector3 result = {0,0,0};
-
-  result = (Vector3){
-      v.x * tr.scale.x, 
-      v.y * tr.scale.y, 
-      v.z * tr.scale.z
-    };
   
-  result = rotate_y(result, tr.rotation.y);
+  Matrix s = MatrixScale(tr.scale.x, tr.scale.y, tr.scale.z);
+  Matrix r = MatrixRotateZYX(tr.rotation);
+  Matrix t = MatrixTranslate(tr.position.x, tr.position.y, tr.position.z);
+  
+  Matrix transform_matrix =   s * r * t;
 
-  result = Vector3Add(result, tr.position);
-
-  return result;
+  return Vector3Transform(v, transform_matrix);
 }
 
 void render_model_instance(const instance_t& instance)
