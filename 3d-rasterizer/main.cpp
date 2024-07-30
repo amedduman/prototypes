@@ -25,7 +25,7 @@ void print(const T& msg)
 
 #pragma endregion
 
-#pragma region vector operator overloading
+#pragma region vector-matrix operator overloading
 
 // Operator overloading for Vector2 addition
 Vector2 operator+(const Vector2& v1, const Vector2& v2)
@@ -384,7 +384,7 @@ Vector3 apply_transform(Vector3 v, const transform_t& tr)
   Matrix r = MatrixRotateZYX(tr.rotation);
   Matrix t = MatrixTranslate(tr.position.x, tr.position.y, tr.position.z);
   
-  Matrix transform_matrix =   s * r * t;
+  Matrix transform_matrix = MatrixMultiply(MatrixMultiply(s, r), t);
 
   return Vector3Transform(v, transform_matrix);
 }
@@ -453,8 +453,7 @@ int main(void)
 
   };
 
-  instance_t cube_a = model_init_instance(cube, (Vector3){-1.5, 0, 7}, (Vector3){0, RAD2DEG * 45, 0}, (Vector3){1,1,1});
-  instance_t cube_b = model_init_instance(cube, (Vector3){1.25, 2, 7.5}, (Vector3){0, RAD2DEG * 30, 0}, (Vector3){1,1,1});
+  instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 12}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){2,1,1});
 
   SetTargetFPS(60);
   while (!WindowShouldClose())
@@ -462,7 +461,7 @@ int main(void)
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
-    render_scene(std::vector<instance_t>{cube_a, cube_b});
+    render_scene(std::vector<instance_t>{cube_a});
 
     EndDrawing();
   }
