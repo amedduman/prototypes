@@ -1,3 +1,5 @@
+// https://stackoverflow.com/questions/7897429/ignore-all-warnings-in-a-specific-file-using-llvm-clang
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
 /**********************************************************************************************
 *
 *   raymath v1.5 - Math functions to work with Vector2, Vector3, Matrix and Quaternions

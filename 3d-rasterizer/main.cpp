@@ -1,7 +1,7 @@
 #pragma region includes
 
-#include "include/raylib.h"
-#include "include/raymath.h"
+#include "../include/raylib.h"
+#include "../include/raymath.h"
 #include <iostream>
 #include <assert.h>
 #include <vector>
@@ -118,7 +118,7 @@ Vector2 viewport_to_canvas(float x, float y)
 
   float Vw = VIEWPORT_WIDTH;
   float Vh = VIEWPORT_HEIGHT;
-  float d = VIEWPORT_DISTANCE_TO_CAMERA;
+  //float d = VIEWPORT_DISTANCE_TO_CAMERA;
 
   return (Vector2){x * (Cw / Vw), y * (Ch / Vh)};
 }
@@ -267,10 +267,13 @@ void triangle_draw(vertex_t vertex0, vertex_t vertex1, vertex_t vertex2)
 
 #pragma region interpolation
 
+/*
 std::vector<float> interpolate(int i0, int d0, int i1, int d1)
 {
+  // infinite recursion?
   return interpolate(static_cast<float>(i0), static_cast<float>(d0), static_cast<float>(i1), static_cast<float>(d1));
 }
+*/
 
 std::vector<float> interpolate(float i0, float d0, float i1, float d1)
 {
@@ -386,7 +389,7 @@ void render_model(const model_t& m)
 // transform from model space to world space
 Vector3 apply_transform(Vector3 v, const transform_t& tr)
 {
-  Vector3 result = {0,0,0};
+  //Vector3 result = {0,0,0};
   
   Matrix s = MatrixScale(tr.scale.x, tr.scale.y, tr.scale.z);
   Matrix r = MatrixRotateZYX(tr.rotation);
@@ -428,7 +431,7 @@ void render_model_instance(const instance_t& instance, const camera_t& cam)
 
 void render_scene(std::vector<instance_t> scene, camera_t cam)
 {
-  for (int i = 0; i < scene.size(); i++)
+  for (size_t i = 0; i < scene.size(); i++)
   {
     render_model_instance(scene[i], cam);
   }
@@ -442,6 +445,8 @@ int main(void)
 {
   const int screenWidth = 400;
   const int screenHeight = 400;
+
+  SetTraceLogLevel(LOG_WARNING); 
 
   InitWindow(screenWidth, screenHeight, "Game");
 

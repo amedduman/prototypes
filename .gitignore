@@ -38,7 +38,8 @@
 *.x86_64
 *.hex
 # ignore game executable of projects
-*/game 
+*/demo
+*/game
 
 # Debug files
 *.dSYM/

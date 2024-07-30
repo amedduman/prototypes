@@ -5,7 +5,7 @@
       {
           "label": "Run",
           "type": "shell",
-          "command": "clear && make clean && make && ./game.out"
+          "command": "clear && make clean && make build && make run"
       }
   ]
 }
