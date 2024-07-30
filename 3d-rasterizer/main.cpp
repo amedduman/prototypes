@@ -61,6 +61,13 @@ typedef struct
   Color color;
 } vertex_t;
 
+typedef struct
+{
+  Vector3 position;
+  Vector3 rot_in_rad;
+} camera_t;
+
+
 Vector2 to_vec2(Vector3 v)
 {
   return (Vector2){v.x, v.y};
@@ -376,6 +383,7 @@ void render_model(const model_t& m)
   }
 }
 
+// transform from model space to world space
 Vector3 apply_transform(Vector3 v, const transform_t& tr)
 {
   Vector3 result = {0,0,0};
@@ -389,14 +397,27 @@ Vector3 apply_transform(Vector3 v, const transform_t& tr)
   return Vector3Transform(v, transform_matrix);
 }
 
-void render_model_instance(const instance_t& instance)
+Vector3 apply_camera_transform(Vector3 v_world, const camera_t& cam)
+{
+  Vector3 v_translated = Vector3Subtract(v_world, cam.position);
+
+  Vector3 v_camera = Vector3Transform(v_translated, MatrixInvert(MatrixRotateZYX(cam.rot_in_rad)));
+
+  return v_camera;
+}
+
+void render_model_instance(const instance_t& instance, const camera_t& cam)
 {
   std::vector<Vector2> protected_vertices = {};
   for (size_t i = 0; i < instance.model.vertices.size(); i++)
   {
-    //Vector3 translated = Vector3Add(instance.model.vertices[i], instance.position);
-    Vector3 translated = apply_transform(instance.model.vertices[i], instance.transform);
-    protected_vertices.push_back(project_vertex(translated));
+    // transform from model space to world space
+    Vector3 v_world = apply_transform(instance.model.vertices[i], instance.transform);
+    // transform form world space to camera space
+    Vector3 v_camera = apply_camera_transform(v_world, cam);
+
+    
+    protected_vertices.push_back(project_vertex(v_camera));
   }
 
   for (size_t i = 0; i < instance.model.triangles.size(); i++)
@@ -405,11 +426,11 @@ void render_model_instance(const instance_t& instance)
   }
 }
 
-void render_scene(std::vector<instance_t> scene)
+void render_scene(std::vector<instance_t> scene, camera_t cam)
 {
   for (int i = 0; i < scene.size(); i++)
   {
-    render_model_instance(scene[i]);
+    render_model_instance(scene[i], cam);
   }
 }
 
@@ -455,13 +476,18 @@ int main(void)
 
   instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 12}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){2,1,1});
 
+  camera_t camera = {
+    .position = {0,0,1},
+    .rot_in_rad = (Vector3){0, DEG2RAD * 30, 0}
+  };
+
   SetTargetFPS(60);
   while (!WindowShouldClose())
   {
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
-    render_scene(std::vector<instance_t>{cube_a});
+    render_scene(std::vector<instance_t>{cube_a}, camera);
 
     EndDrawing();
   }
