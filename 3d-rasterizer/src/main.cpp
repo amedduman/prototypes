@@ -1,79 +1,15 @@
-#pragma region includes
-
 #include "../include/raylib.h"
 #include "../include/raymath.h"
+#include "my_utils.hpp"
+#include "my_model.hpp"
+#include "my_camera.hpp"
 #include <iostream>
 #include <assert.h>
 #include <vector>
 
-#pragma endregion 
-
-#pragma region defines
 #define VIEWPORT_HEIGHT 1.0f
 #define VIEWPORT_WIDTH 1.0f
 #define VIEWPORT_DISTANCE_TO_CAMERA 1.0f
-#pragma endregion
-
-#pragma region print
-
-template <typename T>
-void print(const T& msg)
-{
-  using namespace std;
-  cout << msg << endl;
-}
-
-#pragma endregion
-
-#pragma region vector-matrix operator overloading
-
-// Operator overloading for Vector2 addition
-Vector2 operator+(const Vector2& v1, const Vector2& v2)
-{
-    return Vector2Add(v1, v2);
-}
-
-Matrix operator *(const Matrix& m1, const Matrix& m2)
-{
-  return MatrixMultiply(m1, m2);
-}
-
-// Operator overloading for Vector2 output
-std::ostream& operator<<(std::ostream& os, const Vector2& v)
-{
-    os << "(" << v.x << ", " << v.y << ")";
-    return os;
-}
-
-#pragma endregion
-
-#pragma region structs
-
-typedef struct 
-{
-  int x;
-  int y;
-} vec2i_t;
-
-typedef struct
-{
-  Vector3 pos;
-  Color color;
-} vertex_t;
-
-typedef struct
-{
-  Vector3 position;
-  Vector3 rot_in_rad;
-} camera_t;
-
-
-Vector2 to_vec2(Vector3 v)
-{
-  return (Vector2){v.x, v.y};
-}
-
-#pragma endregion
 
 #pragma region canvas - viewport
 
@@ -298,52 +234,6 @@ std::vector<float> interpolate(float i0, float d0, float i1, float d1)
   }
   
   return my_values;
-}
-
-#pragma endregion
-
-#pragma region model
-
-typedef struct
-{
-  int tri_indices[3];
-  Color color;
-} triangle_t;
-
-
-typedef struct
-{
-  std::vector<Vector3> vertices;
-  std::vector<triangle_t> triangles;
-} model_t;
-
-typedef struct
-{
-  Vector3 position;
-  Vector3 rotation;
-  Vector3 scale;
-} transform_t;
-
-
-typedef struct
-{
-  model_t model;
-  transform_t transform;
-
-} instance_t;
-
-instance_t model_init_instance(const model_t& model, Vector3 pos, Vector3 rot_in_rad, Vector3 my_scale)
-{
-  instance_t instance = {
-    .model = model,
-    .transform = {
-      .position = pos,
-      .rotation = rot_in_rad,
-      .scale = my_scale
-    }
-  };
-
-  return instance;
 }
 
 #pragma endregion
