@@ -201,43 +201,6 @@ void triangle_draw(vertex_t vertex0, vertex_t vertex1, vertex_t vertex2)
 
 #pragma endregion
 
-#pragma region interpolation
-
-/*
-std::vector<float> interpolate(int i0, int d0, int i1, int d1)
-{
-  // infinite recursion?
-  return interpolate(static_cast<float>(i0), static_cast<float>(d0), static_cast<float>(i1), static_cast<float>(d1));
-}
-*/
-
-std::vector<float> interpolate(float i0, float d0, float i1, float d1)
-{
-  assert(i0 < i1);
-
-  std::vector<float> my_values{};
-
-  if (fabsf(i0 - i1) < EPSILON)
-  {
-    assert(my_values.empty());
-    my_values.push_back(d0);
-    return my_values;
-  }
-
-  float a = (d1 - d0) / (i1 - i0);
-  float d = d0;
-
-  for (int i = static_cast<int>(i0); i < static_cast<int>(i1); i++)
-  {
-    my_values.push_back(d);
-    d = d + a;
-  }
-  
-  return my_values;
-}
-
-#pragma endregion
-
 #pragma region rotation
 
 Vector3 rotate_y(Vector3 v, float angle_in_rad)
