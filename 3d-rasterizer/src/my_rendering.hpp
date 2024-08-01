@@ -24,8 +24,41 @@ void triangle_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
   );
 }
 
+bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_space_verts)
+{
+  Vector3 triangle_position = Vector3Scale(Vector3Add(Vector3Add(
+      cam_space_verts[triangle.tri_indices[0]],
+      cam_space_verts[triangle.tri_indices[1]]),
+      cam_space_verts[triangle.tri_indices[2]]),
+      1.0f / 3.0f
+  );
+
+  // get point_to_cam vector
+  Vector3 v = Vector3Negate(triangle_position); // in the cam space cam is in origin, no need to substract cam's position to get the vector.
+
+  // clock wise order
+  Vector3 a = cam_space_verts[triangle.tri_indices[0]];
+  Vector3 b = cam_space_verts[triangle.tri_indices[1]];
+  Vector3 c = cam_space_verts[triangle.tri_indices[2]];
+
+  // get normal
+  Vector3 ab = Vector3Subtract(b, a);
+  Vector3 ac = Vector3Subtract(c, a);
+  Vector3 n = Vector3CrossProduct(ab, ac);
+
+  float bf = Vector3DotProduct(v, n);
+
+  // if dot product is negetive between normal of the surface and vector to camera then don't draw it because it is a back-face triangle
+  if (bf <= 0)
+  {
+    return true;
+  }
+  return false;
+}
+
 void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices, const std::vector<Vector3>& cam_space_verts)
 {
+  /*
   Vector3 triangle_position = Vector3Scale(Vector3Add(Vector3Add(
       cam_space_verts[triangle.tri_indices[0]],
       cam_space_verts[triangle.tri_indices[1]]),
@@ -53,6 +86,9 @@ void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& pro
   {
     return;
   }
+  */
+
+  if(is_back_face(triangle, cam_space_verts)) return;
 
   triangle_draw(
     projected_vertices[triangle.tri_indices[0]],
@@ -60,15 +96,6 @@ void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& pro
     projected_vertices[triangle.tri_indices[2]],
     triangle.color
   );
-  
-  /* 
-  triangle_wireframe_draw(
-      projected_vertices[triangle.tri_indices[0]],
-      projected_vertices[triangle.tri_indices[1]],
-      projected_vertices[triangle.tri_indices[2]],
-      triangle.color
-    );
-  */
 }
 
 void render_model_instance(const instance_t& instance, const camera_t& cam)
