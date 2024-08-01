@@ -6,6 +6,86 @@
 #include <vector>
 #include <iostream>
 
+typedef struct
+{
+  int x;
+  int y;
+} vec2i_t;
+
+// finds the cross product beween ab and ap vectors
+int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
+{
+  vec2i_t ab = {b.x - a.x, b.y - a.y};
+  vec2i_t ap = {p.x - a.x, p.y - a.y};
+
+  return ab.x * ap.y - ab.y * ap.x; 
+}
+
+bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
+{
+  vec2i_t edge = {end.x - start.x, end.y - start.y};
+
+  bool is_top = edge.y == 0 && edge.x > 0;
+  bool is_left = edge.y < 0;
+
+  return is_top || is_left;
+}
+
+// provided triangles need to be clock-wise
+// provided vertices are expected to be in the canvas space
+void triangle_draw2(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices)
+{
+  vec2i_t v0 = {(int)projected_vertices[triangle.tri_indices[0]].x, (int)projected_vertices[triangle.tri_indices[0]].y};
+  vec2i_t v1 = {(int)projected_vertices[triangle.tri_indices[1]].x, (int)projected_vertices[triangle.tri_indices[1]].y};
+  vec2i_t v2 = {(int)projected_vertices[triangle.tri_indices[2]].x, (int)projected_vertices[triangle.tri_indices[2]].y};
+
+  int x_min = std::min({v0.x, v1.x, v2.x});
+  int y_min = std::min({v0.y, v1.y, v2.y});
+  int x_max = std::max({v0.x, v1.x, v2.x});
+  int y_max = std::max({v0.y, v1.y, v2.y});
+
+  // find the area of triangle
+  float area = edge_cross(v0, v1, v2);
+
+  int bias0 = edge_is_top_or_left(v0, v1) ? 0 : -1;
+  int bias1 = edge_is_top_or_left(v1, v2) ? 0 : -1;
+  int bias2 = edge_is_top_or_left(v2, v0) ? 0 : -1;
+
+  for (int x = x_min; x <= x_max; x++)
+  {
+    for (int y = y_min; y <= y_max; y++)
+    {
+      vec2i_t p = {x, y};
+
+      int w0 = edge_cross(v0, v1, p) + bias0;
+      int w1 = edge_cross(v1, v2, p) + bias1;
+      int w2 = edge_cross(v2, v0, p) + bias2;
+
+      bool is_inside = w0 >= 0 && w1 >= 0 && w2 >= 0;
+
+      if (is_inside)
+      {
+        // barycentric weights
+        float a = (float)w0 / area;
+        float b = (float)w1 / area;
+        float c = (float)w2 / area;
+        
+        /*
+        Color color = {
+          static_cast<unsigned char>(Clamp(vertex0.color.r * b + vertex1.color.r * c + vertex2.color.r * a, 0, 255)),
+          static_cast<unsigned char>(Clamp(vertex0.color.g * b + vertex1.color.g * c + vertex2.color.g * a, 0, 255)),
+          static_cast<unsigned char>(Clamp(vertex0.color.b * b + vertex1.color.b * c + vertex2.color.b * a, 0, 255)),
+          255
+        };
+        */
+
+        DrawPixel(x, y, triangle.color);
+      }
+    }
+  }
+}
+
+
 void triangle_wireframe_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
 {
   DrawLineV(p0,p1, color);
@@ -58,44 +138,18 @@ bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_sp
 
 void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices, const std::vector<Vector3>& cam_space_verts)
 {
-  /*
-  Vector3 triangle_position = Vector3Scale(Vector3Add(Vector3Add(
-      cam_space_verts[triangle.tri_indices[0]],
-      cam_space_verts[triangle.tri_indices[1]]),
-      cam_space_verts[triangle.tri_indices[2]]),
-      1.0f / 3.0f
-  );
-
-  // get point_to_cam vector
-  Vector3 v = Vector3Negate(triangle_position); // in the cam space cam is in origin, no need to substract cam's position to get the vector.
-
-  // clock wise order
-  Vector3 a = cam_space_verts[triangle.tri_indices[0]];
-  Vector3 b = cam_space_verts[triangle.tri_indices[1]];
-  Vector3 c = cam_space_verts[triangle.tri_indices[2]];
-
-  // get normal
-  Vector3 ab = Vector3Subtract(b, a);
-  Vector3 ac = Vector3Subtract(c, a);
-  Vector3 n = Vector3CrossProduct(ab, ac);
-
-  float bf = Vector3DotProduct(v, n);
-
-  // if dot product is negetive between normal of the surface and vector to camera then don't draw it because it is a back-face triangle
-  if (bf <= 0)
-  {
-    return;
-  }
-  */
-
   if(is_back_face(triangle, cam_space_verts)) return;
-
+  
+  /*
   triangle_draw(
     projected_vertices[triangle.tri_indices[0]],
     projected_vertices[triangle.tri_indices[1]],
     projected_vertices[triangle.tri_indices[2]],
     triangle.color
   );
+  */
+
+  triangle_draw2(triangle, projected_vertices);
 }
 
 void render_model_instance(const instance_t& instance, const camera_t& cam)
