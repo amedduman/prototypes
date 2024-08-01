@@ -18,7 +18,7 @@ int edge_cross(vec2i_t a, vec2i_t b, vec2i_t p)
   vec2i_t ab = {b.x - a.x, b.y - a.y};
   vec2i_t ap = {p.x - a.x, p.y - a.y};
 
-  return ab.x * ap.y - ab.y * ap.x; 
+  return ab.x * ap.y - ab.y * ap.x;
 }
 
 bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
@@ -32,7 +32,6 @@ bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
 }
 
 // provided triangles need to be clock-wise
-// provided vertices are expected to be in the canvas space
 void triangle_draw2(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices)
 {
   vec2i_t v0 = {(int)projected_vertices[triangle.tri_indices[0]].x, (int)projected_vertices[triangle.tri_indices[0]].y};
@@ -117,13 +116,6 @@ bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_sp
   return false;
 }
 
-/* void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices, const std::vector<Vector3>& cam_space_verts)
-{
-  if(is_back_face(triangle, cam_space_verts)) return;
-  
-  triangle_draw2(triangle, projected_vertices);
-} */
-
 void render_model_instance(const instance_t& instance, const camera_t& cam)
 {
   std::vector<Vector2> protected_vertices = {};
@@ -146,7 +138,6 @@ void render_model_instance(const instance_t& instance, const camera_t& cam)
 
   for (size_t i = 0; i < instance.model.triangles.size(); i++)
   {
-    //render_triangle(instance.model.triangles[i], protected_vertices, camera_space_vertices);
     if(is_back_face(instance.model.triangles[i], camera_space_vertices)) continue;
   
     triangle_draw2(instance.model.triangles[i], protected_vertices);
