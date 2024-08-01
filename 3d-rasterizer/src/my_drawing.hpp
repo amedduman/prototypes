@@ -19,6 +19,7 @@ void canvas_put_pixel(int Cx, int Cy, Color color)
 
 #pragma region line drawing
 
+/*
 // p0 and p1 expected to be in canvas space
 void line_draw(Vector2 p0, Vector2 p1, Color color)
 {
@@ -61,16 +62,21 @@ void line_draw(Vector2 p0, Vector2 p1, Color color)
     }
   } 
 }
-
+*/
 #pragma endregion
 
 #pragma region draw triangle
 
 void triangle_wireframe_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
 {
+  DrawLineV(p0,p1, color);
+  DrawLineV(p1, p2, color);
+  DrawLineV(p2, p0, color);
+  /*
   line_draw(p0, p1, color);
   line_draw(p1, p2, color);
   line_draw(p2, p0, color);
+  */
 }
 
 // finds the cross product beween ab and ap vectors

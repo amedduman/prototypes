@@ -52,9 +52,9 @@ int main(void)
   instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 12}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
 
   camera_t camera = {
-    .position = {0,0,1},
+    .position = {0,0,0},
     .rot_in_rad = (Vector3){0, DEG2RAD * 0, 0},
-    .fov = 90,
+    .fov = 110,
     .z_near = 0.1f,
     .z_far = 300.0f
   };

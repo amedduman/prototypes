@@ -3,6 +3,7 @@
 #include "../include/raylib.h"
 #include "my_utils.hpp"
 #include "my_globals.hpp"
+#include <iostream>
 
 #pragma region canvas
 
@@ -64,19 +65,26 @@ Vector3 apply_perspective(Vector3 v_cam_space)
     };
 }
 
-Matrix get_projection_matrix(float aspect_ratio, float fov, float z_near, float z_far)
+Matrix get_projection_matrix(const camera_t& cam)
 {
-  float a = aspect_ratio;
-  float f = 1 / (tanf(fov / 2));
-  float z1 = z_far / (z_far - z_near);
-  float z2 = -(z_far / (z_far - z_near)) * z_near;
+  float a = (float)GetScreenHeight() / (float)GetScreenWidth();;
+  float fov = cam.fov * DEG2RAD;
+  float f = 1.0f / (tanf(fov / 2.0f));
+  float z1 = cam.z_far / (cam.z_far - cam.z_near);
+  float z2 = -(cam.z_far / (cam.z_far - cam.z_near)) * cam.z_near;
   
   Matrix proj = {
-    a*f, 0, 0,  0,
-    0,   f, 0,  0,
-    0,   0, z1, z2,
-    0,   0, 1,  0
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
   };
+
+  proj.m0 = a*f;
+  proj.m5 = f;
+  proj.m10 = z1;
+  proj.m14 = z2;
+  proj.m11 = 1;
 
   return proj;
 }
@@ -92,18 +100,30 @@ Vector3 apply_perspective_division(Vector4 v)
   return result;
 }
 
+Vector2 map_ndc_to_screen(Vector3 v_ndc)
+{
+  //Scale from [-1, 1] to [0, 1];
+  float screen_x = (v_ndc.x + 1) / 2;
+  float screen_y = (1 - v_ndc.y) / 2; // Flip Y-axis
+  
+  // Scale to screen dimensions
+  screen_x *= GetScreenWidth();
+  screen_y *= GetScreenHeight();
+
+  return {screen_x, screen_y};
+}
 
 Vector4 multiply_vector3_with_projection_matrix(Vector3 v, Matrix proj)
 {
   // Convert Vector3 to Vector4
   Vector4 v4 = { v.x, v.y, v.z, 1.0f };
-  
-  // Perform matrix multiplication
+
+  // Perform matrix multiplication (column-major order)
   Vector4 result;
-  result.x = v4.x * proj.m0 + v4.y * proj.m4 + v4.z * proj.m8 + v4.w * proj.m12;
-  result.y = v4.x * proj.m1 + v4.y * proj.m5 + v4.z * proj.m9 + v4.w * proj.m13;
+  result.x = v4.x * proj.m0 + v4.y * proj.m4 + v4.z * proj.m8  + v4.w * proj.m12;
+  result.y = v4.x * proj.m1 + v4.y * proj.m5 + v4.z * proj.m9  + v4.w * proj.m13;
   result.z = v4.x * proj.m2 + v4.y * proj.m6 + v4.z * proj.m10 + v4.w * proj.m14;
   result.w = v4.x * proj.m3 + v4.y * proj.m7 + v4.z * proj.m11 + v4.w * proj.m15;
-  
+
   return result;
 }
