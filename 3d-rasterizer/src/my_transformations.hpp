@@ -63,3 +63,47 @@ Vector3 apply_perspective(Vector3 v_cam_space)
       v.z
     };
 }
+
+Matrix get_projection_matrix(float aspect_ratio, float fov, float z_near, float z_far)
+{
+  float a = aspect_ratio;
+  float f = 1 / (tanf(fov / 2));
+  float z1 = z_far / (z_far - z_near);
+  float z2 = -(z_far / (z_far - z_near)) * z_near;
+  
+  Matrix proj = {
+    a*f, 0, 0,  0,
+    0,   f, 0,  0,
+    0,   0, z1, z2,
+    0,   0, 1,  0
+  };
+
+  return proj;
+}
+
+Vector3 apply_perspective_division(Vector4 v)
+{
+  Vector3 result = {0};
+
+  result.x = v.x / v.w; 
+  result.y = v.y / v.w; 
+  result.z = v.z / v.w; 
+
+  return result;
+}
+
+
+Vector4 multiply_vector3_with_projection_matrix(Vector3 v, Matrix proj)
+{
+  // Convert Vector3 to Vector4
+  Vector4 v4 = { v.x, v.y, v.z, 1.0f };
+  
+  // Perform matrix multiplication
+  Vector4 result;
+  result.x = v4.x * proj.m0 + v4.y * proj.m4 + v4.z * proj.m8 + v4.w * proj.m12;
+  result.y = v4.x * proj.m1 + v4.y * proj.m5 + v4.z * proj.m9 + v4.w * proj.m13;
+  result.z = v4.x * proj.m2 + v4.y * proj.m6 + v4.z * proj.m10 + v4.w * proj.m14;
+  result.w = v4.x * proj.m3 + v4.y * proj.m7 + v4.z * proj.m11 + v4.w * proj.m15;
+  
+  return result;
+}

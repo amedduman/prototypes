@@ -9,6 +9,9 @@ typedef struct
 {
   Vector3 position;
   Vector3 rot_in_rad;
+  float fov;
+  float z_near;
+  float z_far;
 } camera_t;
 
 void camera_move(camera_t& cam)

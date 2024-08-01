@@ -53,7 +53,10 @@ int main(void)
 
   camera_t camera = {
     .position = {0,0,1},
-    .rot_in_rad = (Vector3){0, DEG2RAD * 0, 0}
+    .rot_in_rad = (Vector3){0, DEG2RAD * 0, 0},
+    .fov = 90,
+    .z_near = 0.1f,
+    .z_far = 300.0f
   };
 
   SetTargetFPS(60);
