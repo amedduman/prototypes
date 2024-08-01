@@ -1,11 +1,7 @@
 #include "../include/raylib.h"
 #include "../include/raymath.h"
-#include "my_utils.hpp"
 #include "my_model.hpp"
 #include "my_camera.hpp"
-#include "my_globals.hpp"
-#include "my_transformations.hpp"
-#include "my_drawing.hpp"
 #include "my_rendering.hpp"
 #include <iostream>
 #include <assert.h>
@@ -49,12 +45,12 @@ int main(void)
 
   };
 
-  instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 12}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
+  instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 5}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
 
   camera_t camera = {
     .position = {0,0,0},
     .rot_in_rad = (Vector3){0, DEG2RAD * 0, 0},
-    .fov = 110,
+    .fov = 90,
     .z_near = 0.1f,
     .z_far = 300.0f
   };
