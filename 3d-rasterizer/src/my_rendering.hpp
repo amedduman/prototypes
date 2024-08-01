@@ -85,25 +85,6 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector2>& proj
   }
 }
 
-
-void triangle_wireframe_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
-{
-  DrawLineV(p0,p1, color);
-  DrawLineV(p1, p2, color);
-  DrawLineV(p2, p0, color);
-}
-
-void triangle_draw(Vector2 p0, Vector2 p1, Vector2 p2, Color color)
-{
-  // my rendering system is draw's triangles clock-wise and this function expects them in counter-clock-wise so I enter the points in reversed order.
-  DrawTriangle(
-    p2,
-    p1,
-    p0,
-    color
-  );
-}
-
 bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_space_verts)
 {
   Vector3 triangle_position = Vector3Scale(Vector3Add(Vector3Add(
@@ -136,21 +117,12 @@ bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_sp
   return false;
 }
 
-void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices, const std::vector<Vector3>& cam_space_verts)
+/* void render_triangle(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices, const std::vector<Vector3>& cam_space_verts)
 {
   if(is_back_face(triangle, cam_space_verts)) return;
   
-  /*
-  triangle_draw(
-    projected_vertices[triangle.tri_indices[0]],
-    projected_vertices[triangle.tri_indices[1]],
-    projected_vertices[triangle.tri_indices[2]],
-    triangle.color
-  );
-  */
-
   triangle_draw2(triangle, projected_vertices);
-}
+} */
 
 void render_model_instance(const instance_t& instance, const camera_t& cam)
 {
@@ -174,7 +146,10 @@ void render_model_instance(const instance_t& instance, const camera_t& cam)
 
   for (size_t i = 0; i < instance.model.triangles.size(); i++)
   {
-    render_triangle(instance.model.triangles[i], protected_vertices, camera_space_vertices);
+    //render_triangle(instance.model.triangles[i], protected_vertices, camera_space_vertices);
+    if(is_back_face(instance.model.triangles[i], camera_space_vertices)) continue;
+  
+    triangle_draw2(instance.model.triangles[i], protected_vertices);
   }
 }
 
