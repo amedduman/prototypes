@@ -5,12 +5,6 @@
 
 typedef struct
 {
-  Vector3 pos;
-  Color color;
-} vertex_t;
-
-typedef struct
-{
   int tri_indices[3];
   Color color;
 } triangle_t;
@@ -20,6 +14,7 @@ typedef struct
 {
   std::vector<Vector3> vertices;
   std::vector<triangle_t> triangles;
+  std::vector<Vector2> uv_of_each_vertex;
 } model_t;
 
 typedef struct

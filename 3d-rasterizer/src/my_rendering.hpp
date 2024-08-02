@@ -31,8 +31,11 @@ bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
   return is_top || is_left;
 }
 
+Image crateTexture = LoadImage("/Users/amedduman/Documents/projects/raylib-C/3d-rasterizer/crate.png");
+Color* crateColors = LoadImageColors(crateTexture);
+
 // provided triangles need to be clock-wise
-void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2>& screen_vertices, std::vector<float>& z_buffer)
+void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2>& screen_vertices, std::vector<float>& z_buffer, const instance_t& model)
 {
   vec2i_t v0 = {(int)screen_vertices[triangle.tri_indices[0]].x, (int)screen_vertices[triangle.tri_indices[0]].y};
   vec2i_t v1 = {(int)screen_vertices[triangle.tri_indices[1]].x, (int)screen_vertices[triangle.tri_indices[1]].y};
@@ -71,10 +74,36 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
 
         float depth = camera_space_vertices[0].z * b + camera_space_vertices[1].z * c + camera_space_vertices[2].z * a;
 
+
+        Color texelColor = BLUE;
+
+        if (triangle.color.r == BLUE.r && triangle.color.g == BLUE.g && triangle.color.b == BLUE.b && triangle.color.a == BLUE.a)
+        {
+          float t_u = model.model.uv_of_each_vertex[0].x * b
+                  + model.model.uv_of_each_vertex[1].x * c 
+                  + model.model.uv_of_each_vertex[2].x * a;
+
+          float t_v = model.model.uv_of_each_vertex[0].y * b
+                  + model.model.uv_of_each_vertex[1].y * c 
+                  + model.model.uv_of_each_vertex[2].y * a;
+          
+          t_u = Clamp(t_u, 0, 1);
+          t_v = Clamp(t_v, 0, 1);
+
+
+          int tex_x = (int)(t_u * (crateTexture.width - 1));
+          int tex_y = (int)(t_v * (crateTexture.height - 1));
+
+          // Sample the texture
+          int index = tex_y * crateTexture.width + tex_x;
+          texelColor = crateColors[index];
+        }
+        
+
         if (depth < z_buffer[y * GetScreenWidth() + x])
         {
           z_buffer[y * GetScreenWidth() + x] = depth;
-          DrawPixel(x, y, triangle.color);
+          DrawPixel(x, y, texelColor);
         }
       }
     }
@@ -138,7 +167,7 @@ void render_model_instance(const instance_t& instance, const camera_t& cam, std:
   {
     if(is_back_face(instance.model.triangles[i], camera_space_vertices)) continue;
   
-    triangle_draw2(instance.model.triangles[i], camera_space_vertices, protected_vertices, z_buffer);
+    triangle_draw2(instance.model.triangles[i], camera_space_vertices, protected_vertices, z_buffer, instance);
   }
 }
 

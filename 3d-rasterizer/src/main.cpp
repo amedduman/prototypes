@@ -19,14 +19,14 @@ int main(void)
   model_t cube = {
     
       .vertices = {
-      (Vector3){ 1,  1,  1},
-      (Vector3){-1,  1,  1},
-      (Vector3){-1, -1,  1},
-      (Vector3){ 1, -1,  1},
-      (Vector3){ 1,  1, -1},
-      (Vector3){-1,  1, -1},
-      (Vector3){-1, -1, -1},
-      (Vector3){ 1, -1, -1},
+      (Vector3){ 1,  1,  1}, // 0
+      (Vector3){-1,  1,  1}, // 1
+      (Vector3){-1, -1,  1}, // 2
+      (Vector3){ 1, -1,  1}, // 3
+      (Vector3){ 1,  1, -1}, // 4
+      (Vector3){-1,  1, -1}, // 5
+      (Vector3){-1, -1, -1}, // 6
+      (Vector3){ 1, -1, -1}, // 7
     },
     .triangles = {
       {.tri_indices = {0, 1, 2}, .color = RED},
@@ -41,6 +41,16 @@ int main(void)
       {.tri_indices = {4, 1, 0}, .color = PURPLE},
       {.tri_indices = { 2, 6, 7},.color = BLACK},
       {.tri_indices = { 2, 7, 3},.color = BLACK},
+    },
+    .uv_of_each_vertex = {
+      (Vector2){ 0, 0 }, // 0
+      (Vector2){ 1, 0 }, // 1
+      (Vector2){ 1, 1 }, // 2
+      (Vector2){ 0, 1 }, // 3
+      (Vector2){ 0, 0 }, // 4
+      (Vector2){ 1, 0 }, // 5
+      (Vector2){ 1, 1 }, // 6
+      (Vector2){ 0, 1 }, // 7
     }
 
   };
@@ -57,6 +67,7 @@ int main(void)
   };
 
   SetTargetFPS(60);
+
   while (!WindowShouldClose())
   {
     camera_move(camera);
