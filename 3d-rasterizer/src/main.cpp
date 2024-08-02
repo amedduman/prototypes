@@ -45,7 +45,8 @@ int main(void)
 
   };
 
-  instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 5}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
+  instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 7}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
+  instance_t cube_b = model_init_instance(cube, (Vector3){0, 0, 3}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
 
   camera_t camera = {
     .position = {0,0,0},
@@ -65,7 +66,7 @@ int main(void)
     BeginDrawing();
     ClearBackground(RAYWHITE);
     
-    render_scene(std::vector<instance_t>{cube_a}, camera);
+    render_scene(std::vector<instance_t>{cube_b, cube_a}, camera);
 
     EndDrawing();
   }

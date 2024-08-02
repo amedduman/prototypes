@@ -71,25 +71,11 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
 
         float depth = camera_space_vertices[0].z * b + camera_space_vertices[1].z * c + camera_space_vertices[2].z * a;
 
-        //depth = Clamp(depth * 40, 0, 255);
         if (depth < z_buffer[y * GetScreenWidth() + x])
         {
           z_buffer[y * GetScreenWidth() + x] = depth;
           DrawPixel(x, y, triangle.color);
         }
-        //Color col = {(unsigned char)depth, (unsigned char)depth, (unsigned char)depth, 255};
-
-        
-        /*
-        Color color = {
-          static_cast<unsigned char>(Clamp(vertex0.color.r * b + vertex1.color.r * c + vertex2.color.r * a, 0, 255)),
-          static_cast<unsigned char>(Clamp(vertex0.color.g * b + vertex1.color.g * c + vertex2.color.g * a, 0, 255)),
-          static_cast<unsigned char>(Clamp(vertex0.color.b * b + vertex1.color.b * c + vertex2.color.b * a, 0, 255)),
-          255
-        };
-        */
-
-        //DrawPixel(x, y, col);
       }
     }
   }
