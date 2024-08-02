@@ -32,11 +32,11 @@ bool edge_is_top_or_left(vec2i_t start, vec2i_t end)
 }
 
 // provided triangles need to be clock-wise
-void triangle_draw2(const triangle_t& triangle, const std::vector<Vector2>& projected_vertices)
+void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2>& screen_vertices, std::vector<float>& z_buffer)
 {
-  vec2i_t v0 = {(int)projected_vertices[triangle.tri_indices[0]].x, (int)projected_vertices[triangle.tri_indices[0]].y};
-  vec2i_t v1 = {(int)projected_vertices[triangle.tri_indices[1]].x, (int)projected_vertices[triangle.tri_indices[1]].y};
-  vec2i_t v2 = {(int)projected_vertices[triangle.tri_indices[2]].x, (int)projected_vertices[triangle.tri_indices[2]].y};
+  vec2i_t v0 = {(int)screen_vertices[triangle.tri_indices[0]].x, (int)screen_vertices[triangle.tri_indices[0]].y};
+  vec2i_t v1 = {(int)screen_vertices[triangle.tri_indices[1]].x, (int)screen_vertices[triangle.tri_indices[1]].y};
+  vec2i_t v2 = {(int)screen_vertices[triangle.tri_indices[2]].x, (int)screen_vertices[triangle.tri_indices[2]].y};
 
   int x_min = std::min({v0.x, v1.x, v2.x});
   int y_min = std::min({v0.y, v1.y, v2.y});
@@ -68,6 +68,17 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector2>& proj
         float a = (float)w0 / area;
         float b = (float)w1 / area;
         float c = (float)w2 / area;
+
+        float depth = camera_space_vertices[0].z * b + camera_space_vertices[1].z * c + camera_space_vertices[2].z * a;
+
+        //depth = Clamp(depth * 40, 0, 255);
+        if (depth < z_buffer[y * GetScreenWidth() + x])
+        {
+          z_buffer[y * GetScreenWidth() + x] = depth;
+          DrawPixel(x, y, triangle.color);
+        }
+        //Color col = {(unsigned char)depth, (unsigned char)depth, (unsigned char)depth, 255};
+
         
         /*
         Color color = {
@@ -78,7 +89,7 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector2>& proj
         };
         */
 
-        DrawPixel(x, y, triangle.color);
+        //DrawPixel(x, y, col);
       }
     }
   }
@@ -116,10 +127,11 @@ bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_sp
   return false;
 }
 
-void render_model_instance(const instance_t& instance, const camera_t& cam)
+void render_model_instance(const instance_t& instance, const camera_t& cam, std::vector<float>& z_buffer)
 {
-  std::vector<Vector2> protected_vertices = {};
-  std::vector<Vector3> camera_space_vertices = {};
+  using namespace std;
+  vector<Vector2> protected_vertices = {};
+  vector<Vector3> camera_space_vertices = {};
   for (size_t i = 0; i < instance.model.vertices.size(); i++)
   {
     Vector3 v_world = transform_to_world_space(instance.model.vertices[i], instance.transform);
@@ -140,14 +152,23 @@ void render_model_instance(const instance_t& instance, const camera_t& cam)
   {
     if(is_back_face(instance.model.triangles[i], camera_space_vertices)) continue;
   
-    triangle_draw2(instance.model.triangles[i], protected_vertices);
+    triangle_draw2(instance.model.triangles[i], camera_space_vertices, protected_vertices, z_buffer);
   }
 }
 
 void render_scene(std::vector<instance_t> scene, camera_t cam)
 {
+  using namespace std;
+  vector<float> z_buffer;
+  int size = GetScreenWidth() * GetScreenHeight();
+  for (int i = 0; i < size; i++)
+  {
+    z_buffer.push_back(INFINITY);
+  }
+  
+
   for (size_t i = 0; i < scene.size(); i++)
   {
-    render_model_instance(scene[i], cam);
+    render_model_instance(scene[i], cam, z_buffer);
   }
 }
