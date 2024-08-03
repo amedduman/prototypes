@@ -75,21 +75,30 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
 
         Color texelColor = MAGENTA;
 
-        // calculate depth for z depth test
+        // calculate depth for z depth test (in camera space)
         float z0 = camera_space_vertices[triangle.tri_indices[0]].z;
         float z1 = camera_space_vertices[triangle.tri_indices[1]].z;
         float z2 = camera_space_vertices[triangle.tri_indices[2]].z;
-
+        
+        // interpolated 1/z value (in camera space)
         float depth = 1 / (z0 * v0_f + z1 * v1_f + z2 * v2_f);
 
         // perspective-correct texture mapping
+        // by dividing z(z value comes from camera space btw) we are essentially applying perspective division
+        // to the uv coordinates. this way we count for perspective when we are doing our texture mapping.
         float u0 = model.model.uv_of_each_vertex[triangle.tri_indices[0]].x / z0;
         float v0 = model.model.uv_of_each_vertex[triangle.tri_indices[0]].y / z0;
         float u1 = model.model.uv_of_each_vertex[triangle.tri_indices[1]].x / z1;
         float v1 = model.model.uv_of_each_vertex[triangle.tri_indices[1]].y / z1;
         float u2 = model.model.uv_of_each_vertex[triangle.tri_indices[2]].x / z2;
         float v2 = model.model.uv_of_each_vertex[triangle.tri_indices[2]].y / z2;
-
+        
+        // we are interpolate this perspective divided uv values by barycentric weights. 
+        // this makes sense because when we apply perspective division to the uv coordinates 
+        // we basically project them onto screen.
+        // so we can interpolate them by barycentric weights which also comes from rectangle that is porjected onto screen.
+        // we are interpolating in the same space.
+        // after we are done with interpolation we are reverse the perspective effect by dividing depth which itself is 1/z
         float u = (u0 * v0_f + u1 * v1_f + u2 * v2_f) / depth;
         float v = (v0 * v0_f + v1 * v1_f + v2 * v2_f) / depth;
 
