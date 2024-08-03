@@ -66,7 +66,7 @@ int main(void)
   };
 
   instance_t cube_a = model_init_instance(cube, (Vector3){0, 0, 7}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
-  instance_t cube_b = model_init_instance(cube, (Vector3){0, 0, 3}, (Vector3){0, DEG2RAD * 0, 0}, (Vector3){1,1,1});
+  instance_t cube_b = model_init_instance(cube, (Vector3){0, 0, 3}, (Vector3){0, DEG2RAD * 30, 0}, (Vector3){1,1,1});
 
   camera_t camera = {
     .position = {0,0,0},
@@ -94,3 +94,24 @@ int main(void)
 
   CloseWindow();
 }
+
+
+        /*
+        // calculate depth for z depth test
+        float depth = 1 / (   camera_space_vertices[triangle.tri_indices[0]].z * v0_f
+                            + camera_space_vertices[triangle.tri_indices[1]].z * v1_f
+                            + camera_space_vertices[triangle.tri_indices[2]].z * v2_f );
+        */
+
+
+               /*
+        // apply texture mapping
+        Color texelColor = MAGENTA;
+        float u =   model.model.uv_of_each_vertex[triangle.tri_indices[0]].x * v0_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].x * v1_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].x * v2_f;
+
+        float v =   model.model.uv_of_each_vertex[triangle.tri_indices[0]].y * v0_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].y * v1_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].y * v2_f;
+        */

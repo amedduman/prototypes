@@ -73,20 +73,25 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
         float v1_f = (float)w2 / area;
         float v2_f = (float)w0 / area;
 
-        // calculate depth for z depth test
-        float depth = 1 / (   camera_space_vertices[0].z * v0_f
-                            + camera_space_vertices[1].z * v1_f
-                            + camera_space_vertices[2].z * v2_f );
-
-        // apply texture mapping
         Color texelColor = MAGENTA;
-        float u =   model.model.uv_of_each_vertex[triangle.tri_indices[0]].x * v0_f
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].x * v1_f
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].x * v2_f;
 
-        float v =   model.model.uv_of_each_vertex[triangle.tri_indices[0]].y * v0_f
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].y * v1_f
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].y * v2_f;
+        // calculate depth for z depth test
+        float z0 = camera_space_vertices[triangle.tri_indices[0]].z;
+        float z1 = camera_space_vertices[triangle.tri_indices[1]].z;
+        float z2 = camera_space_vertices[triangle.tri_indices[2]].z;
+
+        float depth = 1 / (z0 * v0_f + z1 * v1_f + z2 * v2_f);
+
+        // perspective-correct texture mapping
+        float u0 = model.model.uv_of_each_vertex[triangle.tri_indices[0]].x / z0;
+        float v0 = model.model.uv_of_each_vertex[triangle.tri_indices[0]].y / z0;
+        float u1 = model.model.uv_of_each_vertex[triangle.tri_indices[1]].x / z1;
+        float v1 = model.model.uv_of_each_vertex[triangle.tri_indices[1]].y / z1;
+        float u2 = model.model.uv_of_each_vertex[triangle.tri_indices[2]].x / z2;
+        float v2 = model.model.uv_of_each_vertex[triangle.tri_indices[2]].y / z2;
+
+        float u = (u0 * v0_f + u1 * v1_f + u2 * v2_f) / depth;
+        float v = (v0 * v0_f + v1 * v1_f + v2 * v2_f) / depth;
 
         u = Clamp(u, 0, 1);
         v = Clamp(v, 0, 1);
