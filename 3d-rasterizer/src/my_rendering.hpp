@@ -35,7 +35,7 @@ Image crateTexture = LoadImage("/Users/amedduman/Documents/projects/raylib-C/3d-
 Color* crateColors = LoadImageColors(crateTexture);
 
 // provided triangles need to be clock-wise
-void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2>& screen_vertices, std::vector<float>& z_buffer, const instance_t& model)
+void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2>& screen_vertices, std::vector<float>& inv_z_buffer, const instance_t& model)
 {
   vec2i_t v0 = {(int)screen_vertices[triangle.tri_indices[0]].x, (int)screen_vertices[triangle.tri_indices[0]].y};
   vec2i_t v1 = {(int)screen_vertices[triangle.tri_indices[1]].x, (int)screen_vertices[triangle.tri_indices[1]].y};
@@ -68,45 +68,15 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
 
       if (is_inside)
       {
-        /*
-        old barycentric weights and depth calcs
-        // barycentric weights
-        float a = (float)w0 / area;
-        float b = (float)w1 / area;
-        float c = (float)w2 / area;
-
-        // calculate depth for z buffer
-        float depth = camera_space_vertices[0].z * b + camera_space_vertices[1].z * c + camera_space_vertices[2].z * a;
-        */
-        
-        /*
-        // apply texture mapping
-        Color texelColor = MAGENTA;
-        float u = depth * ( model.model.uv_of_each_vertex[triangle.tri_indices[0]].x * b / z1
-                          + model.model.uv_of_each_vertex[triangle.tri_indices[1]].x * c / z2
-                          + model.model.uv_of_each_vertex[triangle.tri_indices[2]].x * a / z0 );
-
-        float v = depth * ( model.model.uv_of_each_vertex[triangle.tri_indices[0]].y * b / z1
-                            + model.model.uv_of_each_vertex[triangle.tri_indices[1]].y * c / z2
-                            + model.model.uv_of_each_vertex[triangle.tri_indices[2]].y * a / z0 );
-
-        u = Clamp(u, 0, 1);
-        v = Clamp(v, 0, 1);
-
-        int tex_x = (int)(u * (crateTexture.width - 1));
-        int tex_y = (int)(v * (crateTexture.height - 1));
-
-        int index = tex_y * crateTexture.width + tex_x;
-        texelColor = crateColors[index];
-        */
-
+        // calculate barycentric weight of each vertex for the point
         float v0_f = (float)w1 / area;
         float v1_f = (float)w2 / area;
         float v2_f = (float)w0 / area;
 
-        float depth =   camera_space_vertices[0].z * v0_f
-                      + camera_space_vertices[1].z * v1_f
-                      + camera_space_vertices[2].z * v2_f;
+        // calculate depth for z depth test
+        float depth = 1 / (   camera_space_vertices[0].z * v0_f
+                            + camera_space_vertices[1].z * v1_f
+                            + camera_space_vertices[2].z * v2_f );
 
         // apply texture mapping
         Color texelColor = MAGENTA;
@@ -127,28 +97,10 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
         int index = tex_y * crateTexture.width + tex_x;
         texelColor = crateColors[index];
 
-        /*
-        // vertex color
-        Color v0col = model.model.colors[triangle.tri_indices[0]];
-        Color v1col = model.model.colors[triangle.tri_indices[1]];
-        Color v2col = model.model.colors[triangle.tri_indices[2]];
-
-        float r_color_channel = v0col.r * v0_f + v1col.r * v1_f + v2col.r * v2_f;
-        float g_color_channel = v0col.g * v0_f + v1col.g * v1_f + v2col.g * v2_f;
-        float b_color_channel = v0col.b * v0_f + v1col.b * v1_f + v2col.b * v2_f;
-
-        Color color = {
-          static_cast<unsigned char>(Clamp(r_color_channel, 0, 255)),
-          static_cast<unsigned char>(Clamp(g_color_channel, 0, 255)),
-          static_cast<unsigned char>(Clamp(b_color_channel, 0, 255)),
-          255
-        };
-        */
-
-
-        if (depth < z_buffer[y * GetScreenWidth() + x])
+        // check depth and draw pixel
+        if (depth > inv_z_buffer[y * GetScreenWidth() + x])
         {
-          z_buffer[y * GetScreenWidth() + x] = depth;
+          inv_z_buffer[y * GetScreenWidth() + x] = depth;
           DrawPixel(x, y, texelColor);
         }
       }
@@ -189,7 +141,7 @@ bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_sp
   return false;
 }
 
-void render_model_instance(const instance_t& instance, const camera_t& cam, std::vector<float>& z_buffer)
+void render_model_instance(const instance_t& instance, const camera_t& cam, std::vector<float>& inv_z_buffer)
 {
   using namespace std;
   vector<Vector2> protected_vertices = {};
@@ -214,23 +166,23 @@ void render_model_instance(const instance_t& instance, const camera_t& cam, std:
   {
     if(is_back_face(instance.model.triangles[i], camera_space_vertices)) continue;
   
-    triangle_draw2(instance.model.triangles[i], camera_space_vertices, protected_vertices, z_buffer, instance);
+    triangle_draw2(instance.model.triangles[i], camera_space_vertices, protected_vertices, inv_z_buffer, instance);
   }
 }
 
 void render_scene(std::vector<instance_t> scene, camera_t cam)
 {
   using namespace std;
-  vector<float> z_buffer;
+  vector<float> inv_z_buffer;
   int size = GetScreenWidth() * GetScreenHeight();
   for (int i = 0; i < size; i++)
   {
-    z_buffer.push_back(INFINITY);
+    inv_z_buffer.push_back(0);
   }
   
 
   for (size_t i = 0; i < scene.size(); i++)
   {
-    render_model_instance(scene[i], cam, z_buffer);
+    render_model_instance(scene[i], cam, inv_z_buffer);
   }
 }

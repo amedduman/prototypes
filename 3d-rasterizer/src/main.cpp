@@ -43,9 +43,9 @@ int main(void)
       {.tri_indices = { 2, 7, 3},.color = BLACK},
     },
     .uv_of_each_vertex = {
-      (Vector2){ 0, 0 }, // 0
-      (Vector2){ 1, 0 }, // 1
-      (Vector2){ 1, 1 }, // 2
+      (Vector2){ 1, 0 }, // 0
+      (Vector2){ 0, 0 }, // 1
+      (Vector2){ 0, 1 }, // 2
       (Vector2){ 0, 1 }, // 3
       (Vector2){ 1, 1 }, // 4
       (Vector2){ 0, 1 }, // 5
