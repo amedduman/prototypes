@@ -74,31 +74,35 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
 
         float depth = camera_space_vertices[0].z * b + camera_space_vertices[1].z * c + camera_space_vertices[2].z * a;
 
-
         Color texelColor = BLUE;
 
         if (triangle.color.r == BLUE.r && triangle.color.g == BLUE.g && triangle.color.b == BLUE.b && triangle.color.a == BLUE.a)
         {
-          float t_u = model.model.uv_of_each_vertex[0].x * b
-                  + model.model.uv_of_each_vertex[1].x * c 
-                  + model.model.uv_of_each_vertex[2].x * a;
+          float u = model.model.uv_of_each_vertex[triangle.tri_indices[0]].x * b
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].x * c 
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].x * a;
 
-          float t_v = model.model.uv_of_each_vertex[0].y * b
-                  + model.model.uv_of_each_vertex[1].y * c 
-                  + model.model.uv_of_each_vertex[2].y * a;
+          float v = model.model.uv_of_each_vertex[triangle.tri_indices[0]].y * b
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].y * c 
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].y * a;
           
-          t_u = Clamp(t_u, 0, 1);
-          t_v = Clamp(t_v, 0, 1);
+          u = Clamp(u, 0, 1);
+          v = Clamp(v, 0, 1);
 
-
-          int tex_x = (int)(t_u * (crateTexture.width - 1));
-          int tex_y = (int)(t_v * (crateTexture.height - 1));
+          int tex_x = (int)(u * (crateTexture.width - 1));
+          int tex_y = (int)(v * (crateTexture.height - 1));
 
           // Sample the texture
           int index = tex_y * crateTexture.width + tex_x;
           texelColor = crateColors[index];
         }
-        
+
+       Color color = {
+          static_cast<unsigned char>(Clamp(model.model.colors[triangle.tri_indices[0]].r * b + model.model.colors[triangle.tri_indices[1]].r * c + model.model.colors[triangle.tri_indices[2]].r * a, 0, 255)),
+          static_cast<unsigned char>(Clamp(model.model.colors[triangle.tri_indices[0]].g * b + model.model.colors[triangle.tri_indices[1]].g * c + model.model.colors[triangle.tri_indices[2]].g * a, 0, 255)),
+          static_cast<unsigned char>(Clamp(model.model.colors[triangle.tri_indices[0]].b * b + model.model.colors[triangle.tri_indices[1]].b * c + model.model.colors[triangle.tri_indices[2]].b * a, 0, 255)),
+          255
+        };
 
         if (depth < z_buffer[y * GetScreenWidth() + x])
         {
@@ -109,6 +113,7 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
     }
   }
 }
+
 
 bool is_back_face(const triangle_t& triangle, const std::vector<Vector3>& cam_space_verts)
 {

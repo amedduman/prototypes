@@ -15,6 +15,7 @@ typedef struct
   std::vector<Vector3> vertices;
   std::vector<triangle_t> triangles;
   std::vector<Vector2> uv_of_each_vertex;
+  std::vector<Color> colors;
 } model_t;
 
 typedef struct

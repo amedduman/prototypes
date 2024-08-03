@@ -47,10 +47,20 @@ int main(void)
       (Vector2){ 1, 0 }, // 1
       (Vector2){ 1, 1 }, // 2
       (Vector2){ 0, 1 }, // 3
-      (Vector2){ 0, 0 }, // 4
-      (Vector2){ 1, 0 }, // 5
-      (Vector2){ 1, 1 }, // 6
-      (Vector2){ 0, 1 }, // 7
+      (Vector2){ 1, 1 }, // 4
+      (Vector2){ 0, 1 }, // 5
+      (Vector2){ 0, 0 }, // 6
+      (Vector2){ 1, 0 }, // 7
+    },
+    .colors = {
+      BLACK,
+      BLACK,
+      BLACK,
+      BLACK,
+      RED,
+      GREEN,
+      PURPLE,
+      BLACK,
     }
 
   };
