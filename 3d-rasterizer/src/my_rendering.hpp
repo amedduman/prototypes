@@ -59,6 +59,7 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
     {
       vec2i_t p = {x, y};
 
+      // areas
       int w0 = edge_cross(v0, v1, p) + bias0;
       int w1 = edge_cross(v1, v2, p) + bias1;
       int w2 = edge_cross(v2, v0, p) + bias2;
@@ -67,42 +68,83 @@ void triangle_draw2(const triangle_t& triangle, const std::vector<Vector3> camer
 
       if (is_inside)
       {
+        /*
+        old barycentric weights and depth calcs
         // barycentric weights
         float a = (float)w0 / area;
         float b = (float)w1 / area;
         float c = (float)w2 / area;
 
+        // calculate depth for z buffer
         float depth = camera_space_vertices[0].z * b + camera_space_vertices[1].z * c + camera_space_vertices[2].z * a;
+        */
+        
+        /*
+        // apply texture mapping
+        Color texelColor = MAGENTA;
+        float u = depth * ( model.model.uv_of_each_vertex[triangle.tri_indices[0]].x * b / z1
+                          + model.model.uv_of_each_vertex[triangle.tri_indices[1]].x * c / z2
+                          + model.model.uv_of_each_vertex[triangle.tri_indices[2]].x * a / z0 );
 
-        Color texelColor = BLUE;
+        float v = depth * ( model.model.uv_of_each_vertex[triangle.tri_indices[0]].y * b / z1
+                            + model.model.uv_of_each_vertex[triangle.tri_indices[1]].y * c / z2
+                            + model.model.uv_of_each_vertex[triangle.tri_indices[2]].y * a / z0 );
 
-        if (triangle.color.r == BLUE.r && triangle.color.g == BLUE.g && triangle.color.b == BLUE.b && triangle.color.a == BLUE.a)
-        {
-          float u = model.model.uv_of_each_vertex[triangle.tri_indices[0]].x * b
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].x * c 
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].x * a;
+        u = Clamp(u, 0, 1);
+        v = Clamp(v, 0, 1);
 
-          float v = model.model.uv_of_each_vertex[triangle.tri_indices[0]].y * b
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].y * c 
-                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].y * a;
-          
-          u = Clamp(u, 0, 1);
-          v = Clamp(v, 0, 1);
+        int tex_x = (int)(u * (crateTexture.width - 1));
+        int tex_y = (int)(v * (crateTexture.height - 1));
 
-          int tex_x = (int)(u * (crateTexture.width - 1));
-          int tex_y = (int)(v * (crateTexture.height - 1));
+        int index = tex_y * crateTexture.width + tex_x;
+        texelColor = crateColors[index];
+        */
 
-          // Sample the texture
-          int index = tex_y * crateTexture.width + tex_x;
-          texelColor = crateColors[index];
-        }
+        float v0_f = (float)w1 / area;
+        float v1_f = (float)w2 / area;
+        float v2_f = (float)w0 / area;
 
-       Color color = {
-          static_cast<unsigned char>(Clamp(model.model.colors[triangle.tri_indices[0]].r * b + model.model.colors[triangle.tri_indices[1]].r * c + model.model.colors[triangle.tri_indices[2]].r * a, 0, 255)),
-          static_cast<unsigned char>(Clamp(model.model.colors[triangle.tri_indices[0]].g * b + model.model.colors[triangle.tri_indices[1]].g * c + model.model.colors[triangle.tri_indices[2]].g * a, 0, 255)),
-          static_cast<unsigned char>(Clamp(model.model.colors[triangle.tri_indices[0]].b * b + model.model.colors[triangle.tri_indices[1]].b * c + model.model.colors[triangle.tri_indices[2]].b * a, 0, 255)),
+        float depth =   camera_space_vertices[0].z * v0_f
+                      + camera_space_vertices[1].z * v1_f
+                      + camera_space_vertices[2].z * v2_f;
+
+        // apply texture mapping
+        Color texelColor = MAGENTA;
+        float u =   model.model.uv_of_each_vertex[triangle.tri_indices[0]].x * v0_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].x * v1_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].x * v2_f;
+
+        float v =   model.model.uv_of_each_vertex[triangle.tri_indices[0]].y * v0_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[1]].y * v1_f
+                  + model.model.uv_of_each_vertex[triangle.tri_indices[2]].y * v2_f;
+
+        u = Clamp(u, 0, 1);
+        v = Clamp(v, 0, 1);
+
+        int tex_x = (int)(u * (crateTexture.width - 1));
+        int tex_y = (int)(v * (crateTexture.height - 1));
+
+        int index = tex_y * crateTexture.width + tex_x;
+        texelColor = crateColors[index];
+
+        /*
+        // vertex color
+        Color v0col = model.model.colors[triangle.tri_indices[0]];
+        Color v1col = model.model.colors[triangle.tri_indices[1]];
+        Color v2col = model.model.colors[triangle.tri_indices[2]];
+
+        float r_color_channel = v0col.r * v0_f + v1col.r * v1_f + v2col.r * v2_f;
+        float g_color_channel = v0col.g * v0_f + v1col.g * v1_f + v2col.g * v2_f;
+        float b_color_channel = v0col.b * v0_f + v1col.b * v1_f + v2col.b * v2_f;
+
+        Color color = {
+          static_cast<unsigned char>(Clamp(r_color_channel, 0, 255)),
+          static_cast<unsigned char>(Clamp(g_color_channel, 0, 255)),
+          static_cast<unsigned char>(Clamp(b_color_channel, 0, 255)),
           255
         };
+        */
+
 
         if (depth < z_buffer[y * GetScreenWidth() + x])
         {
