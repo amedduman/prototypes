@@ -4,11 +4,38 @@
 #include "../include/raymath.h"
 #include "rendering.h"
 #include <iostream>
+#include <string>
 #include <vector>
+
+std::vector<std::string> string_split(std::string str, std::string delimeter)
+{
+    using namespace std;
+
+    vector<string> result;
+    size_t pos = 0;
+
+    while (pos != string::npos)
+    {
+        pos = str.find(delimeter);
+
+        result.push_back(str.substr(0, pos));
+        str.erase(0, pos + delimeter.length());
+    }
+
+    return result;
+}
 
 int main(void)
 {
     using namespace ssr;
+
+    std::string line = "This is a line. ";
+    std::cout << line << std::endl;
+
+    for (std::string word : string_split(line, " "))
+    {
+        std::cout << word << std::endl;
+    }
 
     const int screenWidth = 400;
     const int screenHeight = 400;
