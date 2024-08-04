@@ -3,6 +3,7 @@
 #include "../include/raylib.h"
 #include "../include/raymath.h"
 #include "rendering.h"
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -25,17 +26,70 @@ std::vector<std::string> string_split(std::string str, std::string delimeter)
     return result;
 }
 
+std::string get_full_path(const std::string &relative_path_str)
+{
+    namespace fs = std::filesystem;
+
+    fs::path current_path = fs::current_path();
+    fs::path relative_path = relative_path_str;
+    fs::path full_path = current_path / relative_path;
+
+    return full_path.string();
+}
+
+Vector3 read_vec3(std::vector<std::string> words)
+{
+    return (Vector3){std::stof(words[1]), std::stof(words[2]), std::stof(words[3])};
+}
+
+Vector2 read_vec2(std::vector<std::string> words)
+{
+    return (Vector2){std::stof(words[1]), std::stof(words[2])};
+}
+
+void load_obj_data(const std::string &path, std::vector<Vector3> v, std::vector<Vector2> vt, std::vector<Vector3> vn)
+{
+    std::string line;
+    std::vector<std::string> words;
+
+    std::ifstream file;
+
+    file.open(path);
+    while (std::getline(file, line))
+    {
+        words = string_split(line, " ");
+
+        if (!words[0].compare("v"))
+        {
+            v.push_back(read_vec3(words));
+        }
+
+        else if (!words[0].compare("vt"))
+        {
+            vt.push_back(read_vec2(words));
+        }
+
+        else if (!words[0].compare("vn"))
+        {
+            vn.push_back(read_vec3(words));
+        }
+    }
+    file.close();
+
+    std::cout << "loaded some data" << std::endl;
+    std::cout << "\tvertices: " << v.size() << std::endl;
+    std::cout << "\ttex coords: " << vt.size() << std::endl;
+    std::cout << "\tnormals: " << vn.size() << std::endl;
+}
+
 int main(void)
 {
+    std::vector<Vector3> v;
+    std::vector<Vector2> vt;
+    std::vector<Vector3> vn;
+    load_obj_data(get_full_path("res/cube.obj"), v, vt, vn);
+
     using namespace ssr;
-
-    std::string line = "This is a line. ";
-    std::cout << line << std::endl;
-
-    for (std::string word : string_split(line, " "))
-    {
-        std::cout << word << std::endl;
-    }
 
     const int screenWidth = 400;
     const int screenHeight = 400;

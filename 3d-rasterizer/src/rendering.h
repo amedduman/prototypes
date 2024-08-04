@@ -208,14 +208,20 @@ namespace ssr
         Color *crateColors = {};
 
     public:
-        Renderer()
+        std::string get_full_path(const std::string &relative_path_str)
         {
             namespace fs = std::filesystem;
-            fs::path current_path = fs::current_path();
-            fs::path relative_path = "res/crate.png";
-            fs::path full_path = current_path / relative_path;
 
-            crateTexture = LoadImage(full_path.c_str());
+            fs::path current_path = fs::current_path();
+            fs::path relative_path = relative_path_str;
+            fs::path full_path = current_path / relative_path;
+            
+            return full_path.string();
+        }
+
+        Renderer()
+        {
+            crateTexture = LoadImage(get_full_path("res/crate.png").c_str());
             crateColors = LoadImageColors(crateTexture);
         }
         ~Renderer()
