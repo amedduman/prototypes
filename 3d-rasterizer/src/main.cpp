@@ -101,25 +101,20 @@ void load_obj_data(const string& path, vector<Vector3>& v, vector<Vector2>& vt, 
     }
     file.close();
 
-    std::cout << "loaded some data" << std::endl;
-    std::cout << "\tvertices: " << v.size() << std::endl;
-    std::cout << "\ttex coords: " << vt.size() << std::endl;
-    std::cout << "\tnormals: " << vn.size() << std::endl;
+    cout << "loaded some data" << endl;
+    cout << "\tvertices: " << v.size() << endl;
+    cout << "\ttex coords: " << vt.size() << endl;
+    cout << "\tnormals: " << vn.size() << endl;
+    cout << "\tfaces: " << f.size() << endl;
 }
 
 int main(void)
 {
-    // vector<Vector3> v;
-    // vector<Vector2> vt;
-    // vector<Vector3> vn;
-    // vector<int> f;
-
-    // load_obj_data(get_full_path("res/cube.obj"), v, vt, vn, f);
-
-    for (auto& s : string_split("1/1/1", "/"))
-    {
-        cout << s << endl;
-    }
+    vector<Vector3> v;
+    vector<Vector2> vt;
+    vector<Vector3> vn;
+    vector<int> f;
+    load_obj_data(get_full_path("res/cube.obj"), v, vt, vn, f);
 
     const int screenWidth = 400;
     const int screenHeight = 400;
