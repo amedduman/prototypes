@@ -1,5 +1,3 @@
-#include <assert.h>
-
 #include "../include/raylib.h"
 #include "../include/raymath.h"
 #include "rendering.h"
@@ -17,10 +15,8 @@ namespace fs = std::filesystem;
 vector<string> string_split(const string& str, const string& delimeter)
 {
     vector<string> result;
-    // size_t pos = 0;
     size_t previos_index = 0;
 
-    // TODO: replace this.
     for (size_t i = 0; i < str.length(); i++)
     {
         if (str[i] == delimeter[0])
@@ -28,20 +24,12 @@ vector<string> string_split(const string& str, const string& delimeter)
             result.push_back(str.substr(previos_index, i - previos_index));
             previos_index = i + 1;
         }
+        if (i == (str.length() - 1))
+        {
+            result.push_back(str.substr(previos_index, i - previos_index + 1));
+        }
     }
     return result;
-    /*
-    while (pos != string::npos)
-    {
-        pos = str.find(delimeter);
-
-
-        result.push_back(str.substr(0, pos));
-        str.erase(0, pos + delimeter.length());
-    }
-
-    return result;
-    */
 }
 
 string get_full_path(const string& relative_path_str)
@@ -121,12 +109,17 @@ void load_obj_data(const string& path, vector<Vector3>& v, vector<Vector2>& vt, 
 
 int main(void)
 {
-    vector<Vector3> v;
-    vector<Vector2> vt;
-    vector<Vector3> vn;
-    vector<int> f;
+    // vector<Vector3> v;
+    // vector<Vector2> vt;
+    // vector<Vector3> vn;
+    // vector<int> f;
 
-    load_obj_data(get_full_path("res/cube.obj"), v, vt, vn, f);
+    // load_obj_data(get_full_path("res/cube.obj"), v, vt, vn, f);
+
+    for (auto& s : string_split("1/1/1", "/"))
+    {
+        cout << s << endl;
+    }
 
     const int screenWidth = 400;
     const int screenHeight = 400;
