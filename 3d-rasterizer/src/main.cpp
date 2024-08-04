@@ -8,28 +8,44 @@
 #include <string>
 #include <vector>
 
-std::vector<std::string> string_split(std::string str, std::string delimeter)
+using std::cout;
+using std::endl;
+using std::string;
+using std::vector;
+namespace fs = std::filesystem;
+
+vector<string> string_split(const string& str, const string& delimeter)
 {
-    using namespace std;
-
     vector<string> result;
-    size_t pos = 0;
+    // size_t pos = 0;
+    size_t previos_index = 0;
 
+    // TODO: replace this.
+    for (size_t i = 0; i < str.length(); i++)
+    {
+        if (str[i] == delimeter[0])
+        {
+            result.push_back(str.substr(previos_index, i - previos_index));
+            previos_index = i + 1;
+        }
+    }
+    return result;
+    /*
     while (pos != string::npos)
     {
         pos = str.find(delimeter);
+
 
         result.push_back(str.substr(0, pos));
         str.erase(0, pos + delimeter.length());
     }
 
     return result;
+    */
 }
 
-std::string get_full_path(const std::string &relative_path_str)
+string get_full_path(const string& relative_path_str)
 {
-    namespace fs = std::filesystem;
-
     fs::path current_path = fs::current_path();
     fs::path relative_path = relative_path_str;
     fs::path full_path = current_path / relative_path;
@@ -37,20 +53,35 @@ std::string get_full_path(const std::string &relative_path_str)
     return full_path.string();
 }
 
-Vector3 read_vec3(std::vector<std::string> words)
+Vector3 read_vec3(const vector<string>& words)
 {
     return (Vector3){std::stof(words[1]), std::stof(words[2]), std::stof(words[3])};
 }
 
-Vector2 read_vec2(std::vector<std::string> words)
+Vector2 read_vec2(const vector<string>& words)
 {
     return (Vector2){std::stof(words[1]), std::stof(words[2])};
 }
 
-void load_obj_data(const std::string &path, std::vector<Vector3> v, std::vector<Vector2> vt, std::vector<Vector3> vn)
+int read_face(const vector<string>& words)
 {
-    std::string line;
-    std::vector<std::string> words;
+    for (size_t i = 1; i < words.size(); i++)
+    {
+        cout << words[i] << endl;
+
+        for (auto& s : string_split(words[i], "/"))
+        {
+            cout << s << endl;
+        }
+    }
+    // TODO: implement
+    return 1;
+}
+
+void load_obj_data(const string& path, vector<Vector3>& v, vector<Vector2>& vt, vector<Vector3>& vn, vector<int>& f)
+{
+    string line;
+    vector<string> words;
 
     std::ifstream file;
 
@@ -73,6 +104,12 @@ void load_obj_data(const std::string &path, std::vector<Vector3> v, std::vector<
         {
             vn.push_back(read_vec3(words));
         }
+
+        else if (!words[0].compare("f"))
+        {
+            cout << "reading faces" << endl;
+            f.push_back(read_face(words));
+        }
     }
     file.close();
 
@@ -84,12 +121,12 @@ void load_obj_data(const std::string &path, std::vector<Vector3> v, std::vector<
 
 int main(void)
 {
-    std::vector<Vector3> v;
-    std::vector<Vector2> vt;
-    std::vector<Vector3> vn;
-    load_obj_data(get_full_path("res/cube.obj"), v, vt, vn);
+    vector<Vector3> v;
+    vector<Vector2> vt;
+    vector<Vector3> vn;
+    vector<int> f;
 
-    using namespace ssr;
+    load_obj_data(get_full_path("res/cube.obj"), v, vt, vn, f);
 
     const int screenWidth = 400;
     const int screenHeight = 400;
@@ -98,7 +135,7 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Game");
 
-    model_t cube = {
+    ssr::model_t cube = {
 
         .vertices =
             {
@@ -151,22 +188,22 @@ int main(void)
 
     };
 
-    instance_t cube_a = model_init_instance(cube,
-                                            (Vector3){0, 0, 7},
-                                            (Vector3){0, DEG2RAD * 0, 0},
-                                            (Vector3){1, 1, 1});
-    instance_t cube_b = model_init_instance(cube,
-                                            (Vector3){0, 0, 3},
-                                            (Vector3){0, DEG2RAD * 30, 0},
-                                            (Vector3){1, 1, 1});
+    ssr::instance_t cube_a = ssr::model_init_instance(cube,
+                                                      (Vector3){0, 0, 7},
+                                                      (Vector3){0, DEG2RAD * 0, 0},
+                                                      (Vector3){1, 1, 1});
+    ssr::instance_t cube_b = model_init_instance(cube,
+                                                 (Vector3){0, 0, 3},
+                                                 (Vector3){0, DEG2RAD * 30, 0},
+                                                 (Vector3){1, 1, 1});
 
-    camera_t camera = camera_t({0, 0, 0},
-                               (Vector3){0, DEG2RAD * 0, 0},
-                               90,
-                               0.1f,
-                               300.0f);
+    ssr::camera_t camera = ssr::camera_t({0, 0, 0},
+                                         (Vector3){0, DEG2RAD * 0, 0},
+                                         90,
+                                         0.1f,
+                                         300.0f);
 
-    Renderer renderer = Renderer();
+    ssr::Renderer renderer = ssr::Renderer();
 
     SetTargetFPS(60);
 
@@ -178,7 +215,7 @@ int main(void)
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        renderer.render_scene(std::vector<instance_t>{cube_b, cube_a}, camera);
+        renderer.render_scene(vector<ssr::instance_t>{cube_b, cube_a}, camera);
 
         EndDrawing();
     }
