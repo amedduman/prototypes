@@ -2,6 +2,7 @@
 
 #include "../include/raylib.h"
 #include "../include/raymath.h"
+#include <filesystem>
 #include <iostream>
 #include <vector>
 
@@ -209,7 +210,12 @@ namespace ssr
     public:
         Renderer()
         {
-            crateTexture = LoadImage("/Users/amedduman/Documents/projects/raylib-C/3d-rasterizer/crate.png");
+            namespace fs = std::filesystem;
+            fs::path current_path = fs::current_path();
+            fs::path relative_path = "res/crate.png";
+            fs::path full_path = current_path / relative_path;
+
+            crateTexture = LoadImage(full_path.c_str());
             crateColors = LoadImageColors(crateTexture);
         }
         ~Renderer()

@@ -1,5 +1,5 @@
 build:
-	clang++ -Wall -Wextra -std=c++11 ./src/*.cpp -I ./include -L ./lib -lraylib -lm -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -o demo
+	clang++ -Wall -Wextra -std=c++17 ./src/*.cpp -I ./include -L ./lib -lraylib -lm -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -o demo
 run:
 	./demo
 clean:
