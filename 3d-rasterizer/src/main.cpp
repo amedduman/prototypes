@@ -85,6 +85,8 @@ int main(void)
                                0.1f,
                                300.0f);
 
+    Renderer renderer = Renderer();
+
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
@@ -95,7 +97,7 @@ int main(void)
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        render_scene(std::vector<instance_t>{cube_b, cube_a}, camera);
+        renderer.render_scene(std::vector<instance_t>{cube_b, cube_a}, camera);
 
         EndDrawing();
     }
