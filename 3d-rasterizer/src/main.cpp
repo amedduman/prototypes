@@ -6,6 +6,165 @@
 #include <string>
 #include <vector>
 
+/*
+
+// Place your key bindings in this file to override the defaultsauto[]
+[
+    // run task
+    {
+        "key": "[IntlBackslash]",
+        "command": "workbench.action.tasks.runTask",
+        "args": "Run"
+    },
+    // left
+    {
+        "key": "cmd+l",
+        "command": "cursorRight",
+        "when": "textInputFocus"
+    },
+    // right
+    {
+        "key": "cmd+h",
+        "command": "cursorLeft",
+        "when": "textInputFocus"
+    },
+    // down
+    {
+        "key": "cmd+j",
+        "command": "cursorDown",
+        "when": "textInputFocus && !suggestWidgetVisible"
+    },
+    // down (suggestionWidget)
+    {
+        "key": "cmd+j",
+        "command": "selectNextSuggestion",
+        "when": "suggestWidgetVisible"
+    },
+    // up
+    {
+        "key": "cmd+k",
+        "command": "cursorUp",
+        "when": "textInputFocus && !suggestWidgetVisible"
+    },
+    // up (suggestionWidget)
+    {
+        "key": "cmd+k",
+        "command": "selectPrevSuggestion",
+        "when": "suggestWidgetVisible"
+    },
+    // put line below
+    {
+        "key": "cmd+o",
+        "command": "editor.action.insertLineAfter",
+        "when": "textInputFocus && !suggestWidgetVisible"
+    },
+    // insert suggestion (auto-complete)
+    {
+        "key": "cmd+o",
+        "command": "acceptSelectedSuggestion",
+        "when": "suggestWidgetVisible"
+    },
+    // set capslock to control key
+    {
+        "key": "Capslock",
+        "command": "",
+        "when": "editorFocus"
+    },
+    // cut
+    {
+        "key": "ctrl+i",
+        "command": "execCut",
+        "when": "editorFocus"
+    },
+    // paste
+    {
+        "key": "ctrl+u",
+        "command": "execPaste",
+        "when": "editorFocus"
+    },
+    // backspace
+    {
+        "key": "cmd+i",
+        "command": "deleteLeft",
+        "when": "editorFocus"
+    },
+    // move end of line
+    {
+        "key": "alt+l",
+        "command": "cursorEnd",
+        "when": "editorFocus"
+    },
+    // move start of line
+    {
+        "key": "alt+h",
+        "command": "cursorLineStart",
+        "when": "editorFocus"
+    },
+    // page down
+    {
+        "key": "alt+j",
+        "command": "cursorPageDown",
+        "when": "editorFocus"
+    },
+    // page up
+    {
+        "key": "alt+k",
+        "command": "cursorPageUp",
+        "when": "editorFocus"
+    },
+    // select down
+    {
+        "key": "ctrl+j",
+        "command": "cursorDownSelect",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+    // select up
+    {
+        "key": "ctrl+k",
+        "command": "cursorUpSelect",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+    // select left
+    {
+        "key": "ctrl+l",
+        "command": "cursorRightSelect",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+    // select right
+    {
+        "key": "ctrl+h",
+        "command": "cursorLeftSelect",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+    // left by work
+    {
+        "key": "cmd+d",
+        "command": "cursorWordEndLeft",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+    // right by word
+    {
+        "key": "cmd+f",
+        "command": "cursorWordEndRight",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+    // left by word (selected)
+    {
+        "key": "ctrl+d",
+        "command": "cursorWordEndLeftSelect",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+    // right by word (selected)
+    {
+        "key": "ctrl+f",
+        "command": "cursorWordEndRightSelect",
+        "when": "editorFocus && !suggestWidgetVisible"
+    },
+]
+
+*/
+
+// using String = std::string; you can use this too.
 using std::cout;
 using std::endl;
 using std::string;
