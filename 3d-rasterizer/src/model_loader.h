@@ -57,15 +57,14 @@ private:
     {
         // data looks like this 1/2/3
 
-        for (auto& i : string_split(data, "/"))
-        {
-            v.postion = vertices[std::stoi(i)];
-        }
-
+        // cout<< data<< endl;
         vector<string> splited = string_split(data, "/");
-        v.postion = vertices[std::stoi(splited[0])];
-        v.uv = uvs[std::stoi(splited[1])];
-        v.normal = normals[std::stoi(splited[2])];
+        // -1 because the data in .obj file is 1 indexed
+        v.postion = vertices[std::stoi(splited[0]) - 1];
+        v.uv = uvs[std::stoi(splited[1]) - 1];
+        v.normal = normals[std::stoi(splited[2]) - 1];
+
+        // cout << "pos" << v.postion.x << ", " << v.postion.y << ", " << v.postion.z << endl;
     }
 
 public:
@@ -121,23 +120,13 @@ public:
 
             faces.push_back(t1);
             faces.push_back(t2);
-
-            // cout << face_serialized_data[i] << endl;
-            // cout << face_serialized_data[i + 1] << endl;
-            // cout << face_serialized_data[i + 2] << endl;
-            // cout << face_serialized_data[i + 3] << endl;
-            // cout << "--------" << endl;
         }
 
         for (auto& f : faces)
         {
-            cout << "pos" << f.v1.postion.x << ", " << f.v1.postion.y << ", " << f.v1.postion.z << endl;
+            cout << "pos " << f.v1.postion.x << ", " << f.v1.postion.y << ", " << f.v1.postion.z << endl;
+            cout << "pos " << f.v2.postion.x << ", " << f.v2.postion.y << ", " << f.v2.postion.z << endl;
+            cout << "pos " << f.v3.postion.x << ", " << f.v3.postion.y << ", " << f.v3.postion.z << endl;
         }
-
-        // cout << "loaded some data" << endl;
-        // cout << "\tvertices: " << v.size() << endl;
-        // cout << "\ttex coords: " << vt.size() << endl;
-        // cout << "\tnormals: " << vn.size() << endl;
-        // cout << "\tfaces: " << faces.size() << endl;
     }
 };
