@@ -75,6 +75,20 @@ namespace ssr
         Color color;
     };
 
+    struct vertex_new_t
+    {
+        Vector3 postion;
+        Vector2 uv;
+        Vector3 normal;
+    };
+
+    struct triangle_new_t
+    {
+        vertex_new_t v1;
+        vertex_new_t v2;
+        vertex_new_t v3;
+    };
+
     struct model_t
     {
         std::vector<Vector3> vertices;
