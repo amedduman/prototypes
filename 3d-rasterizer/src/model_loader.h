@@ -53,7 +53,7 @@ private:
         return (Vector2){std::stof(words[1]), std::stof(words[2])};
     }
 
-    void read_vertex(ssr::vertex_new_t& v, const string& data)
+    void read_vertex( ssr::vertex_new_t& v, const string& data)
     {
         // data looks like this 1/2/3
 
@@ -63,12 +63,19 @@ private:
         v.postion = vertices[std::stoi(splited[0]) - 1];
         v.uv = uvs[std::stoi(splited[1]) - 1];
         v.normal = normals[std::stoi(splited[2]) - 1];
-
         // cout << "pos" << v.postion.x << ", " << v.postion.y << ", " << v.postion.z << endl;
     }
 
+    void read_vertex2(ssr::tri_indicies& t, const string& data)
+    {
+        vector<string> splited = string_split(data, "/");
+        t.p = std::stoi(splited[0]) - 1;
+        t.uv = std::stoi(splited[1]) - 1;
+        t.n = std::stoi(splited[2]) - 1;
+    }
+
 public:
-    void load_obj_data(const string& path)
+    ssr::model_new load_obj_data(const string& path)
     {
         string line;
         vector<string> words;
@@ -111,22 +118,49 @@ public:
         {
             ssr::triangle_new_t t1;
             ssr::triangle_new_t t2;
-            read_vertex(t1.v1, face_serialized_data[i]);     // read first  vertex of first  triangle
-            read_vertex(t1.v2, face_serialized_data[i + 1]); // read second vertex of first  triangle
-            read_vertex(t1.v3, face_serialized_data[i + 2]); // read third  vertex of first  triangle
-            read_vertex(t2.v1, face_serialized_data[i + 2]); // read first  vertex of second triangle
-            read_vertex(t2.v2, face_serialized_data[i + 3]); // read second vertex of second triangle
-            read_vertex(t2.v3, face_serialized_data[i]);     // read third  vertex of second triangle
+            // read_vertex(t1.v1, face_serialized_data[i]);     // read first  vertex of first  triangle
+            // read_vertex(t1.v2, face_serialized_data[i + 1]); // read second vertex of first  triangle
+            // read_vertex(t1.v3, face_serialized_data[i + 2]); // read third  vertex of first  triangle
+            // read_vertex(t2.v1, face_serialized_data[i + 2]); // read first  vertex of second triangle
+            // read_vertex(t2.v2, face_serialized_data[i + 3]); // read second vertex of second triangle
+            // read_vertex(t2.v3, face_serialized_data[i]);     // read third  vertex of second triangle
+
+            read_vertex2(t1.v1, face_serialized_data[i]);     // read first  vertex of first  triangle
+            read_vertex2(t1.v2, face_serialized_data[i + 1]); // read second vertex of first  triangle
+            read_vertex2(t1.v3, face_serialized_data[i + 2]); // read third  vertex of first  triangle
+            read_vertex2(t2.v1, face_serialized_data[i + 2]); // read first  vertex of second triangle
+            read_vertex2(t2.v2, face_serialized_data[i + 3]); // read second vertex of second triangle
+            read_vertex2(t2.v3, face_serialized_data[i]);     // read third  vertex of second triangle
 
             faces.push_back(t1);
             faces.push_back(t2);
         }
 
-        for (auto& f : faces)
-        {
-            cout << "pos " << f.v1.postion.x << ", " << f.v1.postion.y << ", " << f.v1.postion.z << endl;
-            cout << "pos " << f.v2.postion.x << ", " << f.v2.postion.y << ", " << f.v2.postion.z << endl;
-            cout << "pos " << f.v3.postion.x << ", " << f.v3.postion.y << ", " << f.v3.postion.z << endl;
-        }
+        ssr::mesh_t model_mesh = {
+            .vertices = vertices,
+            .uvs = uvs,
+            .normals = normals,
+            .faces = faces
+        };
+
+        ssr::transform_t t = {
+            .position = (Vector3){0, 0, 7},
+            .rotation = (Vector3){0, DEG2RAD * 0, 0},
+            .scale = (Vector3){1, 1, 1}
+        };
+
+        ssr::model_new model = {
+            .mesh = model_mesh,
+            .transform = t
+        };
+
+        return model;
+
+        // for (auto& f : faces)
+        // {
+        //     cout << "pos " << f.v1.postion.x << ", " << f.v1.postion.y << ", " << f.v1.postion.z << endl;
+        //     cout << "pos " << f.v2.postion.x << ", " << f.v2.postion.y << ", " << f.v2.postion.z << endl;
+        //     cout << "pos " << f.v3.postion.x << ", " << f.v3.postion.y << ", " << f.v3.postion.z << endl;
+        // }
     }
 };
