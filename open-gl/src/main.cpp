@@ -1,6 +1,6 @@
 #include "../include/GL/glew.h"
 #define GL_SILENCE_DEPRECATION
-#include "../include/glfw3.h"
+#include "../include/GLFW/glfw3.h"
 #include <iostream>
 
 int main()
