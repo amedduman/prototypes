@@ -42,12 +42,20 @@ int main(void)
     ssr::model_loader m;
     ssr::model_t model = m.load_obj_data(get_full_path("res/crate2.obj"));
 
+    model.transform.position = (Vector3){0, 0, 12};
+
     SetTargetFPS(60);
 
+    float angle_in_deg = 0;
+    
     while (!WindowShouldClose())
     {
         camera.move();
         camera.rotate();
+        
+        angle_in_deg += 2;
+        //model.transform.rotation = Vector3Add(model.transform.rotation, (Vector3){0, DEG2RAD * angle_in_deg, 0});
+        model.transform.rotation = (Vector3){DEG2RAD * angle_in_deg, DEG2RAD * angle_in_deg, 0};
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
