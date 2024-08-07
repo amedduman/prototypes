@@ -1,5 +1,13 @@
 # Software Renderer Prototype
 
+
+https://github.com/user-attachments/assets/99a9456f-f47a-4436-84f1-8272fb16bba4
+
+
+
+https://github.com/user-attachments/assets/1d0cf451-5b5b-4bb6-8676-5596f9c406ce
+
+
 This project is a software renderer prototype developed as a learning exercise. It implements basic 3D rendering techniques without relying on hardware acceleration, providing insights into the fundamentals of computer graphics.
 
 ## Features
