@@ -1,3 +1,4 @@
+#include "../include/GL/glew.h"
 #define GL_SILENCE_DEPRECATION
 #include "../include/glfw3.h"
 #include <iostream>
@@ -19,6 +20,12 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
+
+    if (glewInit() != GLEW_OK)
+    {
+        std::cerr << "Failed to initialize GLEW" << std::endl;
+        return -1;
+    }
 
     while (!glfwWindowShouldClose(window))
     {
