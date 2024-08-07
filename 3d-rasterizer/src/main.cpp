@@ -40,7 +40,7 @@ int main(void)
     ssr::Renderer renderer = ssr::Renderer();
 
     ssr::model_loader m;
-    ssr::model_t model = m.load_obj_data(get_full_path("res/cube.obj"));
+    ssr::model_t model = m.load_obj_data(get_full_path("res/crate2.obj"));
 
     SetTargetFPS(60);
 

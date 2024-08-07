@@ -129,7 +129,7 @@ namespace ssr
             transform_t t = {
                 .position = (Vector3){0, 0, 7},
                 .rotation = (Vector3){0, DEG2RAD * 0, 0},
-                .scale = (Vector3){1, 1, 1}};
+                .scale = (Vector3){2, 2, 2}};
 
             model_t model = {
                 .mesh = model_mesh,
