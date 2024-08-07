@@ -3,6 +3,14 @@
 #include "../include/GLFW/glfw3.h"
 #include <iostream>
 
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+}
+
 int main()
 {
     if (!glfwInit())
@@ -27,8 +35,12 @@ int main()
         return -1;
     }
 
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
     while (!glfwWindowShouldClose(window))
     {
+        processInput(window);
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Your OpenGL rendering code goes here
