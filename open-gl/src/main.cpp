@@ -3,6 +3,15 @@
 #include "../include/GLFW/glfw3.h"
 #include <iostream>
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -13,13 +22,21 @@ void processInput(GLFWwindow* window)
 
 int main()
 {
+    int width = 800;
+    int height = 600;
+
     if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Window", NULL, NULL);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
     if (!window)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -34,6 +51,10 @@ int main()
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return -1;
     }
+
+    glViewport(0, 0, width, height);
+
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
