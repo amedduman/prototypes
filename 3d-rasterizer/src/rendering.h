@@ -213,8 +213,8 @@ namespace ssr
     class Renderer
     {
     private:
-        Image crateTexture = {};
-        Color *crateColors = {};
+        Image model_texture = {};
+        Color *model_tex_colors = {};
 
     public:
         std::string get_full_path(const std::string &relative_path_str)
@@ -228,15 +228,15 @@ namespace ssr
             return full_path.string();
         }
 
-        Renderer()
+        Renderer(std::string path_to_texture)
         {
-            crateTexture = LoadImage(get_full_path("res/crate.png").c_str());
-            crateColors = LoadImageColors(crateTexture);
+            model_texture = LoadImage(get_full_path(path_to_texture).c_str());
+            model_tex_colors = LoadImageColors(model_texture);
         }
         ~Renderer()
         {
-            UnloadImage(crateTexture);
-            UnloadImageColors(crateColors);
+            UnloadImage(model_texture);
+            UnloadImageColors(model_tex_colors);
         }
 
         // finds the cross product between ab and ap vectors
@@ -361,13 +361,13 @@ namespace ssr
                         u = Clamp(u, 0, 1);
                         v = Clamp(v, 0, 1);
 
-                        int tex_x = (int)(u * (crateTexture.width - 1));
-                        int tex_y = (int)(v * (crateTexture.height - 1));
+                        int tex_x = (int)(u * (model_texture.width - 1));
+                        int tex_y = (int)(v * (model_texture.height - 1));
 
-                        int index = tex_y * crateTexture.width + tex_x;
-                        texelColor = crateColors[index];
+                        int index = tex_y * model_texture.width + tex_x;
+                        texelColor = model_tex_colors[index];
 
-                        // check depth and draw pixel
+                        //check depth and draw pixel
                         if (depth > inv_z_buffer[y * GetScreenWidth() + x])
                         {
                             inv_z_buffer[y * GetScreenWidth() + x] = depth;

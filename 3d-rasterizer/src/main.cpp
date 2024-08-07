@@ -24,8 +24,8 @@ string get_full_path(const string& relative_path_str)
 
 int main(void)
 {
-    const int screenWidth = 400;
-    const int screenHeight = 400;
+    const int screenWidth = 720;
+    const int screenHeight = 720;
 
     SetTraceLogLevel(LOG_WARNING);
 
@@ -37,10 +37,10 @@ int main(void)
                                          0.1f,
                                          300.0f);
 
-    ssr::Renderer renderer = ssr::Renderer();
+    ssr::Renderer renderer = ssr::Renderer("res/monkey.png");
 
     ssr::model_loader m;
-    ssr::model_t model = m.load_obj_data(get_full_path("res/crate2.obj"));
+    ssr::model_t model = m.load_obj_data(get_full_path("res/monkey.obj"));
 
     model.transform.position = (Vector3){0, 0, 12};
 
@@ -54,8 +54,7 @@ int main(void)
         camera.rotate();
         
         angle_in_deg += 2;
-        //model.transform.rotation = Vector3Add(model.transform.rotation, (Vector3){0, DEG2RAD * angle_in_deg, 0});
-        model.transform.rotation = (Vector3){DEG2RAD * angle_in_deg, DEG2RAD * angle_in_deg, 0};
+        model.transform.rotation = (Vector3){0, DEG2RAD * angle_in_deg, 0};
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
