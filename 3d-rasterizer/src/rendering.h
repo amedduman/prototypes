@@ -73,13 +73,8 @@ namespace ssr
     };
 
 #pragma region model
-    struct triangle_t
-    {
-        int tri_indices[3];
-        Color color;
-    };
 
-    struct vertex_new_t
+    struct vertex_t
     {
         Vector3 postion;
         Vector2 uv;
@@ -93,14 +88,11 @@ namespace ssr
         int n; // normals
     };
 
-    struct triangle_new_t
+    struct triangle_t
     {
         tri_indicies v1;
         tri_indicies v2;
         tri_indicies v3;
-        // vertex_new_t v1;
-        // vertex_new_t v2;
-        // vertex_new_t v3;
     };
 
     struct mesh_t
@@ -108,7 +100,7 @@ namespace ssr
         vector<Vector3> vertices;
         vector<Vector2> uvs;
         vector<Vector3> normals;
-        vector<ssr::triangle_new_t> faces;
+        vector<ssr::triangle_t> faces;
     };
 
     struct transform_t
@@ -118,44 +110,12 @@ namespace ssr
         Vector3 scale;
     };
 
-    struct model_new
+    struct model_t
     {
         mesh_t mesh;
         transform_t transform;
     };
 
-    struct model_t
-    {
-        std::vector<Vector3> vertices;
-        std::vector<triangle_t> triangles;
-        std::vector<Vector2> uv_of_each_vertex;
-        std::vector<Color> colors;
-    };
-
-    // struct transform_t
-    // {
-    //     Vector3 position;
-    //     Vector3 rotation;
-    //     Vector3 scale;
-    // };
-
-    struct instance_t
-    {
-        model_t model;
-        transform_t transform;
-    };
-
-    instance_t model_init_instance(const model_t &model, Vector3 pos, Vector3 rot_in_rad, Vector3 my_scale)
-    {
-        instance_t instance = {
-            .model = model,
-            .transform = {
-                .position = pos,
-                .rotation = rot_in_rad,
-                .scale = my_scale}};
-
-        return instance;
-    }
 #pragma endregion
 
 #pragma region transformations
@@ -298,126 +258,7 @@ namespace ssr
             return is_top || is_left;
         }
 
-        // provided triangles need to be clock-wise
-        // void triangle_draw(const triangle_t &triangle, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2> &screen_vertices, std::vector<float> &inv_z_buffer, const instance_t &model)
-        // {
-        //     vec2i_t v0 = {(int)screen_vertices[triangle.tri_indices[0]].x, (int)screen_vertices[triangle.tri_indices[0]].y};
-        //     vec2i_t v1 = {(int)screen_vertices[triangle.tri_indices[1]].x, (int)screen_vertices[triangle.tri_indices[1]].y};
-        //     vec2i_t v2 = {(int)screen_vertices[triangle.tri_indices[2]].x, (int)screen_vertices[triangle.tri_indices[2]].y};
-
-        //     int x_min = std::min({v0.x, v1.x, v2.x});
-        //     int y_min = std::min({v0.y, v1.y, v2.y});
-        //     int x_max = std::max({v0.x, v1.x, v2.x});
-        //     int y_max = std::max({v0.y, v1.y, v2.y});
-
-        //     // find the area of triangle
-        //     float area = edge_cross(v0, v1, v2);
-
-        //     int bias0 = edge_is_top_or_left(v0, v1) ? 0 : -1;
-        //     int bias1 = edge_is_top_or_left(v1, v2) ? 0 : -1;
-        //     int bias2 = edge_is_top_or_left(v2, v0) ? 0 : -1;
-
-        //     for (int x = x_min; x <= x_max; x++)
-        //     {
-        //         for (int y = y_min; y <= y_max; y++)
-        //         {
-        //             vec2i_t p = {x, y};
-
-        //             // areas
-        //             int w0 = edge_cross(v0, v1, p) + bias0;
-        //             int w1 = edge_cross(v1, v2, p) + bias1;
-        //             int w2 = edge_cross(v2, v0, p) + bias2;
-
-        //             bool is_inside = w0 >= 0 && w1 >= 0 && w2 >= 0;
-
-        //             if (is_inside)
-        //             {
-        //                 // calculate barycentric weight of each vertex for the point
-        //                 float v0_f = (float)w1 / area;
-        //                 float v1_f = (float)w2 / area;
-        //                 float v2_f = (float)w0 / area;
-
-        //                 Color texelColor = MAGENTA;
-
-        //                 // calculate depth for z depth test (in camera space)
-        //                 float z0 = camera_space_vertices[triangle.tri_indices[0]].z;
-        //                 float z1 = camera_space_vertices[triangle.tri_indices[1]].z;
-        //                 float z2 = camera_space_vertices[triangle.tri_indices[2]].z;
-
-        //                 // interpolated 1/z value (in camera space)
-        //                 float depth = 1 / (z0 * v0_f + z1 * v1_f + z2 * v2_f);
-
-        //                 // perspective-correct texture mapping
-        //                 // by dividing z(z value comes from camera space btw) we are essentially applying perspective division
-        //                 // to the uv coordinates. this way we count for perspective when we are doing our texture mapping.
-        //                 float u0 = model.model.uv_of_each_vertex[triangle.tri_indices[0]].x / z0;
-        //                 float v0 = model.model.uv_of_each_vertex[triangle.tri_indices[0]].y / z0;
-        //                 float u1 = model.model.uv_of_each_vertex[triangle.tri_indices[1]].x / z1;
-        //                 float v1 = model.model.uv_of_each_vertex[triangle.tri_indices[1]].y / z1;
-        //                 float u2 = model.model.uv_of_each_vertex[triangle.tri_indices[2]].x / z2;
-        //                 float v2 = model.model.uv_of_each_vertex[triangle.tri_indices[2]].y / z2;
-
-        //                 // we are interpolate this perspective divided uv values by barycentric weights.
-        //                 // this makes sense because when we apply perspective division to the uv coordinates
-        //                 // we basically project them onto screen.
-        //                 // so we can interpolate them by barycentric weights which also comes from rectangle that is porjected onto screen.
-        //                 // we are interpolating in the same space.
-        //                 // after we are done with interpolation we are reverse the perspective effect by dividing depth which itself is 1/z
-        //                 float u = (u0 * v0_f + u1 * v1_f + u2 * v2_f) / depth;
-        //                 float v = (v0 * v0_f + v1 * v1_f + v2 * v2_f) / depth;
-
-        //                 u = Clamp(u, 0, 1);
-        //                 v = Clamp(v, 0, 1);
-
-        //                 int tex_x = (int)(u * (crateTexture.width - 1));
-        //                 int tex_y = (int)(v * (crateTexture.height - 1));
-
-        //                 int index = tex_y * crateTexture.width + tex_x;
-        //                 texelColor = crateColors[index];
-
-        //                 // check depth and draw pixel
-        //                 if (depth > inv_z_buffer[y * GetScreenWidth() + x])
-        //                 {
-        //                     inv_z_buffer[y * GetScreenWidth() + x] = depth;
-        //                     DrawPixel(x, y, texelColor);
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        // void render_model_instance(const instance_t &instance, const camera_t &cam, std::vector<float> &inv_z_buffer)
-        // {
-        //     std::vector<Vector2> protected_vertices = {};
-        //     std::vector<Vector3> camera_space_vertices = {};
-        //     for (size_t i = 0; i < instance.model.vertices.size(); i++)
-        //     {
-        //         Vector3 v_world = transform_to_world_space(instance.model.vertices[i], instance.transform);
-
-        //         Vector3 v_camera = transform_to_camera_space(v_world, cam);
-        //         camera_space_vertices.push_back(v_camera);
-
-        //         Vector4 v_proj_applied = apply_projection_matrix(v_camera, cam);
-
-        //         Vector3 v_perspective_applied = apply_perspective_division(v_proj_applied);
-
-        //         Vector2 v_screen = map_ndc_to_screen(v_perspective_applied);
-
-        //         protected_vertices.push_back(v_screen);
-        //     }
-
-        //     for (size_t i = 0; i < instance.model.triangles.size(); i++)
-        //     {
-        //         if (is_back_face(instance.model.triangles[i], camera_space_vertices))
-        //             continue;
-
-        //         triangle_draw(instance.model.triangles[i], camera_space_vertices, protected_vertices, inv_z_buffer, instance);
-        //     }
-        // }
-
-        
-
-        bool is_back_face(const triangle_new_t& t, const std::vector<Vector3>& cam_space_verts)
+        bool is_back_face(const triangle_t& t, const std::vector<Vector3>& cam_space_verts)
         {
             Vector3 triangle_position = Vector3Scale(
                 Vector3Add(
@@ -450,7 +291,7 @@ namespace ssr
             return false;
         }
 
-        void draw_triangle2(const triangle_new_t& t, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2>& screen_vertices, std::vector<float>& inv_z_buffer, const model_new& model)
+        void draw_triangle2(const triangle_t& t, const std::vector<Vector3> camera_space_vertices, const std::vector<Vector2>& screen_vertices, std::vector<float>& inv_z_buffer, const model_t& model)
         {
             vec2i_t v0 = {(int)screen_vertices[t.v1.p].x, (int)screen_vertices[t.v1.p].y};
             vec2i_t v1 = {(int)screen_vertices[t.v2.p].x, (int)screen_vertices[t.v2.p].y};
@@ -537,7 +378,7 @@ namespace ssr
             }
         }
 
-        void render2(const model_new& model, const camera_t& cam, vector<float>& inv_z_buffer)
+        void render2(const model_t& model, const camera_t& cam, vector<float>& inv_z_buffer)
         {
             vector<Vector2> protected_vertices = {};
             vector<Vector3> camera_space_vertices = {};
@@ -567,7 +408,7 @@ namespace ssr
             }
         }
 
-        void render_scene(const vector<model_new> scene, const camera_t cam)
+        void render_scene(const vector<model_t> scene, const camera_t cam)
         {
             std::vector<float> inv_z_buffer;
             int size = GetScreenWidth() * GetScreenHeight();
