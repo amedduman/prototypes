@@ -79,6 +79,7 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_B), indices_B, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // https://chatgpt.com/c/a550bdd5-110d-43e2-a38a-fb3f5e7ab695
     glEnableVertexAttribArray(0);
 
     // unbind buffer (optional)
