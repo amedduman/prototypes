@@ -33,6 +33,12 @@ int main()
     unsigned int shaderProgram;
     create_shader_program(shaderProgram, {vertexShader, fragmentShader});
 
+    unsigned int yellow_fragment_shader;
+    create_shader(yellow_fragment_shader, GL_FRAGMENT_SHADER, "src/yellow.frag");
+
+    unsigned int yellow_shader_program;
+    create_shader_program(yellow_shader_program, {vertexShader, yellow_fragment_shader});
+
     float vertices_A[] = {
         0.5f, 0.5f, 0.0f,   // top right
         0.5f, -0.5f, 0.0f,  // bottom right
@@ -79,7 +85,6 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_B), indices_B, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    // https://chatgpt.com/c/a550bdd5-110d-43e2-a38a-fb3f5e7ab695
     glEnableVertexAttribArray(0);
 
     // unbind buffer (optional)
@@ -97,7 +102,7 @@ int main()
         glBindVertexArray(VAO_A);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        glUseProgram(shaderProgram);
+        glUseProgram(yellow_shader_program);
         glBindVertexArray(VAO_B);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
