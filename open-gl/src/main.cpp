@@ -16,22 +16,27 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 std::string loadShaderSource(const std::string& relativePath);
 
-#pragma region shaders
-//     const char* vertexShaderSource = "#version 330 core\n"
-//                                      "layout (location = 0) in vec3 aPos;\n"
-//                                      "void main()\n"
-//                                      "{\n"
-//                                      "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-//                                      "}\0";
+void create_shader(unsigned int& shader_id, GLenum shader_type, std::string relative_path_to_shader_source)
+{
+    shader_id = glCreateShader(shader_type);
+    std::string shader_source = loadShaderSource(relative_path_to_shader_source);
+    const char* source_ptr = shader_source.c_str();
+    glShaderSource(shader_id, 1, &source_ptr, NULL);
+    glCompileShader(shader_id);
 
-// const char* fragmentShaderSource = "#version 330 core\n"
-//                                    "out vec4 FragColor;\n"
-//                                    "void main()\n"
-//                                    "{\n"
-//                                    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-//                                    "}\n";
+    { // error handling code
+        int success;
+        char infoLog[512];
+        glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
 
-#pragma endregion
+        if (!success)
+        {
+            glGetShaderInfoLog(shader_id, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+                      << infoLog << std::endl;
+        }
+    }
+}
 
 int main()
 {
@@ -75,44 +80,46 @@ int main()
 #pragma endregion
 
     unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    std::string shader_source_v = loadShaderSource("src/my_first.vert");
-    const char* source_ptr_v = shader_source_v.c_str();
-    glShaderSource(vertexShader, 1, &source_ptr_v, NULL);
-    glCompileShader(vertexShader);
+    create_shader(vertexShader, GL_VERTEX_SHADER, "src/my_first.vert");
+    // vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    // std::string shader_source_v = loadShaderSource("src/my_first.vert");
+    // const char* source_ptr_v = shader_source_v.c_str();
+    // glShaderSource(vertexShader, 1, &source_ptr_v, NULL);
+    // glCompileShader(vertexShader);
 
-    { // error handling code
-        int success;
-        char infoLog[512];
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    // { // error handling code
+    //     int success;
+    //     char infoLog[512];
+    //     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 
-        if (!success)
-        {
-            glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                      << infoLog << std::endl;
-        }
-    }
+    //     if (!success)
+    //     {
+    //         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+    //         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+    //                   << infoLog << std::endl;
+    //     }
+    // }
 
     unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    std::string shader_source_f = loadShaderSource("src/my_first.frag");
-    const char* source_ptr_f = shader_source_f.c_str();
-    glShaderSource(fragmentShader, 1, &source_ptr_f, NULL);
-    glCompileShader(fragmentShader);
+    create_shader(fragmentShader, GL_FRAGMENT_SHADER, "src/my_first.frag");
+    // fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    // std::string shader_source_f = loadShaderSource("src/my_first.frag");
+    // const char* source_ptr_f = shader_source_f.c_str();
+    // glShaderSource(fragmentShader, 1, &source_ptr_f, NULL);
+    // glCompileShader(fragmentShader);
 
-    { // error handling code
-        int success;
-        char infoLog[512];
-        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    // { // error handling code
+    //     int success;
+    //     char infoLog[512];
+    //     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 
-        if (!success)
-        {
-            glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
-                      << infoLog << std::endl;
-        }
-    }
+    //     if (!success)
+    //     {
+    //         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+    //         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
+    //                   << infoLog << std::endl;
+    //     }
+    // }
 
 #pragma region shader program
     unsigned int shaderProgram;
