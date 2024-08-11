@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+//https://chatgpt.com/c/a550bdd5-110d-43e2-a38a-fb3f5e7ab695
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -37,7 +39,10 @@ int main()
         0.5f, 0.5f, 0.0f,   // top right
         0.5f, -0.5f, 0.0f,  // bottom right
         -0.5f, -0.5f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f   // top left
+        // second tri
+        -0.9f, -0.4f, 0.0f, // bottom left
+        -0.4f, 0.4f, 0.0f,  // top left
+        0.1f, 0.4f, 0.0f, // top right
     };
     unsigned int indices[] = {
         // note that we start from 0!
@@ -95,7 +100,7 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -117,7 +122,19 @@ int main()
         */
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        /*
+        glDrawElements draws primitives using an index array, allowing you to reuse vertices.
+        Instead of assuming that vertices are in sequential order, glDrawElements uses the indices to reference vertices in the vertex array, which can reduce the amount of data you need to send to the GPU.
+        Parameters:
+
+        mode: Specifies the type of primitive to draw (e.g., GL_TRIANGLES, GL_LINES, GL_POINTS).
+        count: Specifies the number of elements (indices) to be rendered.
+        type: Specifies the data type of the indices (e.g., GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT).
+        indices: Specifies an offset into the index buffer, or a pointer to the location where the indices are stored.
+        */
+        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
@@ -280,3 +297,84 @@ void create_shader_program(unsigned int& shader_prog_id, std::vector<unsigned in
         glDeleteShader(s);
     }
 }
+
+// what is the difference between glDrawArrays and glDrawElements
+/*
+glDrawArrays and glDrawElements are both functions used to draw primitives (like triangles, lines, or points) in OpenGL, but they differ in how they use the vertex data.
+1. glDrawArrays
+
+    Function Signature:
+
+    cpp
+
+    void glDrawArrays(GLenum mode, GLint first, GLsizei count);
+
+Description:
+
+    glDrawArrays draws primitives using the vertex data directly from the vertex array.
+    It assumes that the vertex data is stored sequentially in the array, meaning that each vertex is used in the order it appears in the vertex buffer.
+    Parameters:
+        mode: Specifies the type of primitive to draw (e.g., GL_TRIANGLES, GL_LINES, GL_POINTS).
+        first: Specifies the starting index in the array of vertices.
+        count: Specifies the number of vertices to be rendered.
+
+When to Use:
+
+    Use glDrawArrays when you don’t need to reuse vertices and when the order of vertex processing is straightforward.
+    This is typically used for simple shapes or when you don’t need to reduce the amount of vertex data.
+
+Example:
+
+    cpp
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        This would draw two triangles (6 vertices) from the vertex array, starting from the first vertex.
+
+2. glDrawElements
+
+    Function Signature:
+
+    cpp
+
+void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
+
+Description:
+
+    glDrawElements draws primitives using an index array, allowing you to reuse vertices.
+    Instead of assuming that vertices are in sequential order, glDrawElements uses the indices to reference vertices in the vertex array, which can reduce the amount of data you need to send to the GPU.
+    Parameters:
+        mode: Specifies the type of primitive to draw (e.g., GL_TRIANGLES, GL_LINES, GL_POINTS).
+        count: Specifies the number of elements (indices) to be rendered.
+        type: Specifies the data type of the indices (e.g., GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT).
+        indices: Specifies an offset into the index buffer, or a pointer to the location where the indices are stored.
+
+When to Use:
+
+    Use glDrawElements when you have shared vertices between primitives, such as when drawing complex shapes like cubes or other meshes where vertices are reused.
+    It is more memory-efficient and can lead to better performance, especially with complex models.
+
+Example:
+
+cpp
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        This would draw two triangles using the 6 indices from the index buffer.
+
+Key Differences:
+
+    Data Usage:
+        glDrawArrays: Uses vertices in the order they appear in the vertex buffer.
+        glDrawElements: Uses an index array to specify the order of vertices, which allows for vertex reuse.
+
+    Efficiency:
+        glDrawArrays: Can be less efficient for complex shapes as it might require duplicating vertex data.
+        glDrawElements: More efficient for complex shapes due to vertex reuse, reducing the amount of vertex data needed.
+
+    Flexibility:
+        glDrawArrays: Simpler to use for basic shapes where vertices are not shared.
+        glDrawElements: More flexible and powerful for complex shapes and meshes with shared vertices.
+
+In summary, glDrawArrays is straightforward but can be less efficient for complex models, while glDrawElements is more flexible and efficient when vertices are shared across multiple primitives.
+*/
