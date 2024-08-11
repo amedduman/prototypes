@@ -17,49 +17,34 @@ GLFWwindow* init_window(int width, int height);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 std::string loadShaderSource(const std::string& relativePath);
-void create_shader(unsigned int& shader_id, GLenum shader_type, std::string relative_path_to_shader_source);
-void create_shader_program(unsigned int& shader_prog_id, std::vector<unsigned int> shaders);
+unsigned int create_shader(GLenum shader_type, std::string relative_path_to_shader_source);
+unsigned int create_shader_program(std::vector<unsigned int> shaders);
+unsigned int create_model(const float* vertices, size_t vertices_size, const unsigned int* indices, size_t indices_size);
 
 int main()
 {
     GLFWwindow* window = init_window(800, 600);
 
-    unsigned int vertexShader;
-    create_shader(vertexShader, GL_VERTEX_SHADER, "src/my_first.vert");
-
-    unsigned int fragmentShader;
-    create_shader(fragmentShader, GL_FRAGMENT_SHADER, "src/my_first.frag");
-
-    unsigned int shaderProgram;
-    create_shader_program(shaderProgram, {vertexShader, fragmentShader});
+    unsigned int vertexShader = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
+    unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
+    unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
 
     float vertices[] = {
         0.5f, 0.5f, 0.0f,   // top right
         0.5f, -0.5f, 0.0f,  // bottom right
         -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f   // top left
     };
-    unsigned int indices[] = { 0, 1, 2 };
+    unsigned int indices[] = {
+        // note that we start from 0!
+        0, 1, 3, // first Triangle
+        1, 2, 3  // second Triangle
+    };
 
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    unsigned int VAO = create_model(vertices, sizeof(vertices), indices, sizeof(indices));
 
     // unbind buffer (optional)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
@@ -178,9 +163,9 @@ std::string loadShaderSource(const std::string& relativePath)
     return shaderCode;
 }
 
-void create_shader(unsigned int& shader_id, GLenum shader_type, std::string relative_path_to_shader_source)
+unsigned int create_shader(GLenum shader_type, std::string relative_path_to_shader_source)
 {
-    shader_id = glCreateShader(shader_type);
+    unsigned int shader_id = glCreateShader(shader_type);
     std::string shader_source = loadShaderSource(relative_path_to_shader_source);
     const char* source_ptr = shader_source.c_str();
     /*
@@ -205,11 +190,12 @@ void create_shader(unsigned int& shader_id, GLenum shader_type, std::string rela
                       << infoLog << std::endl;
         }
     }
+    return shader_id;
 }
 
-void create_shader_program(unsigned int& shader_prog_id, std::vector<unsigned int> shaders)
+unsigned int create_shader_program(std::vector<unsigned int> shaders)
 {
-    shader_prog_id = glCreateProgram();
+    unsigned int shader_prog_id = glCreateProgram();
 
     for (auto& s : shaders)
     {
@@ -234,5 +220,28 @@ void create_shader_program(unsigned int& shader_prog_id, std::vector<unsigned in
     {
         glDeleteShader(s);
     }
+
+    return shader_prog_id;
 }
 
+unsigned int create_model(const float* vertices, size_t vertices_size, const unsigned int* indices, size_t indices_size)
+{
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices_size, vertices, GL_STATIC_DRAW);
+
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_size, indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    return VAO;
+}
