@@ -45,20 +45,51 @@ int main()
         1, 2, 3  // second triangle
     };
 
+    /*
+    VAO (Vertex Array Object): This is a container that
+    stores the state associated with the vertex attributes and the vertex buffer object (VBO).
+
+    glGenVertexArrays(1, &VAO); generates a VAO and stores its ID in VAO.
+    glBindVertexArray(VAO); binds the VAO, making it the current VAO that OpenGL will use for subsequent operations.
+    */
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
+    /*
+    VBO (Vertex Buffer Object): This is used to store the vertex data in GPU memory.
+    glGenBuffers(1, &VBO); generates a VBO and stores its ID in VBO.
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); binds the VBO as the current GL_ARRAY_BUFFER, which is a target buffer type for vertex data.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); uploads the vertex data to the VBO.
+        GL_STATIC_DRAW indicates that the data will not change frequently and is meant for drawing.
+    */
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    /*
+    EBO (Element Buffer Object): This is used to store the index data in GPU memory.
+
+    glGenBuffers(1, &EBO); generates an EBO and stores its ID in EBO.
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); binds the EBO as the current GL_ELEMENT_ARRAY_BUFFER, which is a target buffer type for index data.
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); uploads the index data to the EBO
+    */
     unsigned int EBO;
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+    /*
+    glVertexAttribPointer: This function specifies the layout of the vertex data in the VBO.
+    0 is the index of the vertex attribute. It corresponds to the layout location in your vertex shader.
+    3 is the number of components per vertex attribute (x, y, z).
+    GL_FLOAT indicates that the data type of each component is a float.
+    GL_FALSE means the data should not be normalized.
+    3 * sizeof(float) is the stride, which is the byte offset between consecutive vertex attributes.
+    (void*)0 is the offset of the first component of the attribute within the vertex data.
+    glEnableVertexAttribArray(0): This enables the vertex attribute array at index 0.
+    */
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -72,6 +103,18 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        /*
+        glUseProgram(shaderProgram); activates the shader program.
+        glBindVertexArray(VAO); binds the VAO containing the vertex and index data.
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); draws the triangles using the index data.
+
+        GL_TRIANGLES specifies that the data should be interpreted as triangles.
+        6 is the number of elements to draw.
+        GL_UNSIGNED_INT specifies the data type of the indices.
+        0 is the offset in the EBO where the indices start.
+
+        glBindVertexArray(0); unbinds the VAO (optional but good practice).
+        */
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -185,6 +228,13 @@ void create_shader(unsigned int& shader_id, GLenum shader_type, std::string rela
     shader_id = glCreateShader(shader_type);
     std::string shader_source = loadShaderSource(relative_path_to_shader_source);
     const char* source_ptr = shader_source.c_str();
+    /*
+    This function associates the shader source code with the shader object. The parameters are:
+    1-The shader object (fragmentShader)
+    2-The number of strings in the source code array (1 in this case)
+    3-A pointer to the array of source code strings (&fragmentShaderSource)
+    4-An array of string lengths (NULL here, which means the strings are null-terminated)
+    */
     glShaderSource(shader_id, 1, &source_ptr, NULL);
     glCompileShader(shader_id);
 
