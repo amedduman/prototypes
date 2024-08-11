@@ -1,7 +1,12 @@
 #include "../include/GL/glew.h"
 #define GL_SILENCE_DEPRECATION
 #include "../include/GLFW/glfw3.h"
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 using std::cout;
 using std::cerr;
@@ -9,21 +14,23 @@ using std::endl;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+std::string loadShaderSource(const std::string& relativePath);
 
 #pragma region shaders
-const char* vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "}\0";
+//     const char* vertexShaderSource = "#version 330 core\n"
+//                                      "layout (location = 0) in vec3 aPos;\n"
+//                                      "void main()\n"
+//                                      "{\n"
+//                                      "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+//                                      "}\0";
 
-const char* fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                   "}\n";
+// const char* fragmentShaderSource = "#version 330 core\n"
+//                                    "out vec4 FragColor;\n"
+//                                    "void main()\n"
+//                                    "{\n"
+//                                    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+//                                    "}\n";
+
 #pragma endregion
 
 int main()
@@ -59,16 +66,19 @@ int main()
         return -1;
     }
 
+    cout << glGetString(GL_VERSION) << endl;
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    
+
 #pragma endregion
 
-#pragma region compile verex shader
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    std::string shader_source_v = loadShaderSource("src/my_first.vert");
+    const char* source_ptr_v = shader_source_v.c_str();
+    glShaderSource(vertexShader, 1, &source_ptr_v, NULL);
     glCompileShader(vertexShader);
 
     { // error handling code
@@ -83,12 +93,12 @@ int main()
                       << infoLog << std::endl;
         }
     }
-#pragma endregion
 
-#pragma region fragment shader
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    std::string shader_source_f = loadShaderSource("src/my_first.frag");
+    const char* source_ptr_f = shader_source_f.c_str();
+    glShaderSource(fragmentShader, 1, &source_ptr_f, NULL);
     glCompileShader(fragmentShader);
 
     { // error handling code
@@ -103,7 +113,6 @@ int main()
                       << infoLog << std::endl;
         }
     }
-#pragma endregion
 
 #pragma region shader program
     unsigned int shaderProgram;
@@ -159,7 +168,7 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -192,4 +201,47 @@ void processInput(GLFWwindow* window)
     {
         glfwSetWindowShouldClose(window, true);
     }
+}
+
+std::string loadShaderSource(const std::string& relativePath)
+{
+    // Get the current working directory
+    std::filesystem::path currentPath = std::filesystem::current_path();
+
+    // Construct the full path
+    std::filesystem::path fullPath = currentPath / relativePath;
+
+    // Ensure the file exists
+    if (!std::filesystem::exists(fullPath))
+    {
+        throw std::runtime_error("ERROR::SHADER::FILE_NOT_FOUND: " + fullPath.string());
+    }
+
+    std::string shaderCode;
+    std::ifstream shaderFile;
+
+    // Ensure ifstream objects can throw exceptions
+    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    try
+    {
+        // Open file
+        shaderFile.open(fullPath);
+        std::stringstream shaderStream;
+
+        // Read file's buffer contents into stream
+        shaderStream << shaderFile.rdbuf();
+
+        // Close file handler
+        shaderFile.close();
+
+        // Convert stream into string
+        shaderCode = shaderStream.str();
+    }
+    catch (std::ifstream::failure& e)
+    {
+        throw std::runtime_error("ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " + fullPath.string());
+    }
+
+    return shaderCode;
 }
