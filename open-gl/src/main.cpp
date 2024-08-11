@@ -12,92 +12,15 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+GLFWwindow* init_window(int width, int height);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 std::string loadShaderSource(const std::string& relativePath);
 void create_shader(unsigned int& shader_id, GLenum shader_type, std::string relative_path_to_shader_source);
-GLFWwindow* init_window(int width, int height)
-{
-    //int width = 800;
-    //int height = 600;
-
-    if (!glfwInit())
-    {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        return nullptr;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
-    if (!window)
-    {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return nullptr;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    if (glewInit() != GLEW_OK)
-    {
-        std::cerr << "Failed to initialize GLEW" << std::endl;
-        return nullptr;
-    }
-
-    cout << glGetString(GL_VERSION) << endl;
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-    return window;
-}
 
 int main()
 {
     GLFWwindow* window = init_window(800, 600);
-    //init_window(window);
-    {
-        // int width = 800;
-        // int height = 600;
-
-        // if (!glfwInit())
-        // {
-        //     std::cerr << "Failed to initialize GLFW" << std::endl;
-        //     return -1;
-        // }
-
-        // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-        // window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
-        // if (!window)
-        // {
-        //     std::cerr << "Failed to create GLFW window" << std::endl;
-        //     glfwTerminate();
-        //     return -1;
-        // }
-
-        // glfwMakeContextCurrent(window);
-
-        // if (glewInit() != GLEW_OK)
-        // {
-        //     std::cerr << "Failed to initialize GLEW" << std::endl;
-        //     return -1;
-        // }
-
-        // cout << glGetString(GL_VERSION) << endl;
-
-        // glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-        // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    }
 
     unsigned int vertexShader;
     create_shader(vertexShader, GL_VERTEX_SHADER, "src/my_first.vert");
@@ -178,6 +101,44 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+GLFWwindow* init_window(int width, int height)
+{
+    if (!glfwInit())
+    {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        return nullptr;
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
+    if (!window)
+    {
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return nullptr;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    if (glewInit() != GLEW_OK)
+    {
+        std::cerr << "Failed to initialize GLEW" << std::endl;
+        return nullptr;
+    }
+
+    cout << glGetString(GL_VERSION) << endl;
+
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+    return window;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
