@@ -16,17 +16,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 std::string loadShaderSource(const std::string& relativePath);
 void create_shader(unsigned int& shader_id, GLenum shader_type, std::string relative_path_to_shader_source);
-
-int main()
+GLFWwindow* init_window(int width, int height)
 {
-#pragma region init
-    int width = 800;
-    int height = 600;
+    //int width = 800;
+    //int height = 600;
 
     if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW" << std::endl;
-        return -1;
+        return nullptr;
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -39,7 +37,7 @@ int main()
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
-        return -1;
+        return nullptr;
     }
 
     glfwMakeContextCurrent(window);
@@ -47,7 +45,7 @@ int main()
     if (glewInit() != GLEW_OK)
     {
         std::cerr << "Failed to initialize GLEW" << std::endl;
-        return -1;
+        return nullptr;
     }
 
     cout << glGetString(GL_VERSION) << endl;
@@ -56,7 +54,50 @@ int main()
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-#pragma endregion
+    return window;
+}
+
+int main()
+{
+    GLFWwindow* window = init_window(800, 600);
+    //init_window(window);
+    {
+        // int width = 800;
+        // int height = 600;
+
+        // if (!glfwInit())
+        // {
+        //     std::cerr << "Failed to initialize GLFW" << std::endl;
+        //     return -1;
+        // }
+
+        // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+        // window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
+        // if (!window)
+        // {
+        //     std::cerr << "Failed to create GLFW window" << std::endl;
+        //     glfwTerminate();
+        //     return -1;
+        // }
+
+        // glfwMakeContextCurrent(window);
+
+        // if (glewInit() != GLEW_OK)
+        // {
+        //     std::cerr << "Failed to initialize GLEW" << std::endl;
+        //     return -1;
+        // }
+
+        // cout << glGetString(GL_VERSION) << endl;
+
+        // glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+        // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    }
 
     unsigned int vertexShader;
     create_shader(vertexShader, GL_VERTEX_SHADER, "src/my_first.vert");
@@ -64,28 +105,28 @@ int main()
     unsigned int fragmentShader;
     create_shader(fragmentShader, GL_FRAGMENT_SHADER, "src/my_first.frag");
 
-#pragma region shader program
     unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
+    {
+        shaderProgram = glCreateProgram();
 
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+        glAttachShader(shaderProgram, vertexShader);
+        glAttachShader(shaderProgram, fragmentShader);
+        glLinkProgram(shaderProgram);
 
-    { // error handling code
-        int success;
-        char infoLog[512];
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-        if (!success)
-        {
-            glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::SHADER_PROGRAM::LINKING_FAILED\n"
-                      << infoLog << std::endl;
+        { // error handling code
+            int success;
+            char infoLog[512];
+            glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+            if (!success)
+            {
+                glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+                std::cout << "ERROR::SHADER::SHADER_PROGRAM::LINKING_FAILED\n"
+                          << infoLog << std::endl;
+            }
         }
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
     }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-#pragma endregion
 
     float vertices[] = {
         0.5f, 0.5f, 0.0f,   // top right
