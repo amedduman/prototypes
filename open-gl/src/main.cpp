@@ -56,6 +56,7 @@ int main()
 
         glUseProgram(shaderProgram);
 
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
