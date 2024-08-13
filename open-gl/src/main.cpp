@@ -12,12 +12,17 @@ int main()
     unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
 
     float vertices[] = {
-        // positions         // colors
-        0.5f,  -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // bottom left
-        0.0f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f  // top
+        // positions        // colors         // texture coords
+        0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+        0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
+        -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
     };
-    unsigned int indices[] = { 0, 1, 2 };
+    unsigned int indices[] = {
+        // note that we start from 0!
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
 
     unsigned int VAO = create_model(vertices, sizeof(vertices), indices, sizeof(indices));
 
@@ -52,7 +57,7 @@ int main()
         glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
