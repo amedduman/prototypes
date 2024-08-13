@@ -27,7 +27,17 @@ int main()
         processInput(window);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        float timeValue = glfwGetTime();
+        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+        // glGetUniformLocation returns -1 if could not find the location
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
         glUseProgram(shaderProgram);
+        /*
+        Note that finding the uniform location does not require you to use the shader program first,
+        but updating a uniform does require you to first use the program (by calling glUseProgram),
+        because it sets the uniform on the currently active shader program.
+        */
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
