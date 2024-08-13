@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../include/GL/glew.h"
+#include "GL/glew.h"
 #define GL_SILENCE_DEPRECATION
-#include "../include/GLFW/glfw3.h"
+#include "GLFW/glfw3.h"
 #include <string>
 #include <vector>
 
