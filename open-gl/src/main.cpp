@@ -1,6 +1,4 @@
 #include "rendering_helper.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include <iostream>
 
 int main()
@@ -26,57 +24,56 @@ int main()
 
     unsigned int VAO = create_model(vertices, sizeof(vertices), indices, sizeof(indices));
 
-    stbi_set_flip_vertically_on_load(true);
 
     // create and bind texture
-    unsigned int texture1;
+    unsigned int texture1 = create_texture("src/res/container.jpg", false);
     {
-        glGenTextures(1, &texture1);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        // set the texture wrapping/filtering options (on the currently bound texture object)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // load and generate the texture
-        int width, height, nrChannels;
-        unsigned char* data = stbi_load("src/res/container.jpg", &width, &height, &nrChannels, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
-        else
-        {
-            std::cout << "Failed to load texture" << std::endl;
-        }
-        stbi_image_free(data);
+        // glGenTextures(1, &texture1);
+        // glBindTexture(GL_TEXTURE_2D, texture1);
+        // // set the texture wrapping/filtering options (on the currently bound texture object)
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        // // load and generate the texture
+        // int width, height, nrChannels;
+        // unsigned char* data = stbi_load("src/res/container.jpg", &width, &height, &nrChannels, 0);
+        // if (data)
+        // {
+        //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        //     glGenerateMipmap(GL_TEXTURE_2D);
+        // }
+        // else
+        // {
+        //     std::cout << "Failed to load texture" << std::endl;
+        // }
+        // stbi_image_free(data);
     }
 
-    unsigned int texture2;
+    unsigned int texture2 = create_texture("src/res/awesomeface.png", true);
     {
         // create and bind texture
 
-        glGenTextures(1, &texture2);
-        glBindTexture(GL_TEXTURE_2D, texture2);
-        // set the texture wrapping/filtering options (on the currently bound texture object)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // load and generate the texture
-        int width, height, nrChannels;
-        unsigned char* data = stbi_load("src/res/awesomeface.png", &width, &height, &nrChannels, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
-        else
-        {
-            std::cout << "Failed to load texture" << std::endl;
-        }
-        stbi_image_free(data);
+        // glGenTextures(1, &texture2);
+        // glBindTexture(GL_TEXTURE_2D, texture2);
+        // // set the texture wrapping/filtering options (on the currently bound texture object)
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        // // load and generate the texture
+        // int width, height, nrChannels;
+        // unsigned char* data = stbi_load("src/res/awesomeface.png", &width, &height, &nrChannels, 0);
+        // if (data)
+        // {
+        //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        //     glGenerateMipmap(GL_TEXTURE_2D);
+        // }
+        // else
+        // {
+        //     std::cout << "Failed to load texture" << std::endl;
+        // }
+        // stbi_image_free(data);
     }
 
     glUseProgram(shaderProgram);

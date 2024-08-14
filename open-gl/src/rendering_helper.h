@@ -13,3 +13,4 @@ std::string loadShaderSource(const std::string& relativePath);
 unsigned int create_shader(GLenum shader_type, std::string relative_path_to_shader_source);
 unsigned int create_shader_program(std::vector<unsigned int> shaders);
 unsigned int create_model(const float* vertices, size_t vertices_size, const unsigned int* indices, size_t indices_size);
+unsigned int create_texture(const std::string& relativePath, bool has_a_channel);
