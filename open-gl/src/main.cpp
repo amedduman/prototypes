@@ -41,11 +41,25 @@ int main()
 
     glBindVertexArray(VAO);
 
+    float alpha = 1;
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
+
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        {
+            alpha += 0.01f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            alpha -= 0.01f;
+        }
+        if(alpha < 0 ) alpha = 0;
+        if(alpha > 1) alpha = 1;
         glClear(GL_COLOR_BUFFER_BIT);
-       
+
+        glUniform1f(glGetUniformLocation(shaderProgram, "u_alpha"), alpha);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
