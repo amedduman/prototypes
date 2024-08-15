@@ -1,9 +1,14 @@
 #include "rendering_helper.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 int main()
 {
     GLFWwindow* window = init_window(800, 600);
+
+    glfwSwapInterval(1);
 
     unsigned int vertexShader = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
     unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
@@ -39,6 +44,8 @@ int main()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
+    
+
     glBindVertexArray(VAO);
 
     float alpha = 1;
@@ -46,6 +53,11 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
+        // std::cout << glfwGetTime() << "\n";
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
 
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
