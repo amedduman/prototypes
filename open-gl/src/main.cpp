@@ -74,6 +74,16 @@ int main()
         glUniform1f(glGetUniformLocation(shaderProgram, "u_alpha"), alpha);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+        trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+        float sizeX = (sinf(glfwGetTime()) * 0.4) + 0.6f;
+        float sizeY = (sinf(glfwGetTime()) * 0.4) + 0.6f;
+        // if(sizeX < 0.2f) sizeX = 0.2f;
+        trans = glm::scale(trans, glm::vec3(sizeX, sizeY, 1.0));
+        // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
