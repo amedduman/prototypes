@@ -34,54 +34,33 @@ int main()
 
     glUseProgram(shaderProgram);
     
-    // When you set a uniform to 0 or 1 in these lines, you're telling the shader: 
-    // "The sampler uniform 'texture1' should use texture unit 0, and 'texture2' should use texture unit 1".
     glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
-    // You're binding your actual texture objects to these same texture units.
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
-    
-
     glBindVertexArray(VAO);
 
-    float alpha = 1;
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-        // std::cout << glfwGetTime() << "\n";
-        glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
-
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        {
-            alpha += 0.01f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        {
-            alpha -= 0.01f;
-        }
-        if(alpha < 0 ) alpha = 0;
-        if(alpha > 1) alpha = 1;
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUniform1f(glGetUniformLocation(shaderProgram, "u_alpha"), alpha);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-        trans = glm::mat4(1.0f);
-        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
-        float sizeX = (sinf(glfwGetTime()) * 0.4) + 0.6f;
-        float sizeY = (sinf(glfwGetTime()) * 0.4) + 0.6f;
-        // if(sizeX < 0.2f) sizeX = 0.2f;
-        trans = glm::scale(trans, glm::vec3(sizeX, sizeY, 1.0));
-        // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
@@ -91,14 +70,3 @@ int main()
     glfwTerminate();
     return 0;
 }
-
-/*
-some notes about projection and transformations
--> https://learnopengl.com/Getting-started/Coordinate-Systems
-- The projection matrix maps a given frustum range to clip space
-- The output of the vertex shader requires the coordinates to be in clip-space which is what we just did with the transformation matrices.
-OpenGL then performs perspective division on the clip-space coordinates to transform them to normalized-device coordinates.
-OpenGL then uses the parameters from glViewPort to map the normalized-device coordinates
-to screen coordinates where each coordinate corresponds to a point on your screen (in our case a 800x600 screen).
-This process is called the viewport transform.
-*/
