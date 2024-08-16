@@ -91,3 +91,14 @@ int main()
     glfwTerminate();
     return 0;
 }
+
+/*
+some notes about projection and transformations
+-> https://learnopengl.com/Getting-started/Coordinate-Systems
+- The projection matrix maps a given frustum range to clip space
+- The output of the vertex shader requires the coordinates to be in clip-space which is what we just did with the transformation matrices.
+OpenGL then performs perspective division on the clip-space coordinates to transform them to normalized-device coordinates.
+OpenGL then uses the parameters from glViewPort to map the normalized-device coordinates
+to screen coordinates where each coordinate corresponds to a point on your screen (in our case a 800x600 screen).
+This process is called the viewport transform.
+*/
