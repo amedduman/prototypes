@@ -8,8 +8,9 @@ float lastX = 400, lastY = 300;
 float yaw = -90.0;
 float pitch = 0;
 bool firstMouse = true;
+float fov = 45;
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(__attribute__((unused)) GLFWwindow* window, double xpos, double ypos)
 {
     if (firstMouse)
     {
@@ -34,6 +35,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
         pitch = 89.0f;
     if (pitch < -89.0f)
         pitch = -89.0f;
+}
+
+void scroll_callback(__attribute__((unused)) GLFWwindow* window, __attribute__((unused)) double xoffset, double yoffset)
+{
+    fov -= (float)yoffset;
+    if (fov < 1.0f)
+        fov = 1.0f;
+    if (fov > 45.0f)
+        fov = 45.0f;
 }
 
 int main()
@@ -167,7 +177,7 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glfwSetCursorPosCallback(window, mouse_callback);
-
+    glfwSetScrollCallback(window, scroll_callback);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -209,7 +219,7 @@ int main()
         // view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
         glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 
         // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
