@@ -15,19 +15,25 @@ enum Camera_Movement
 struct camera
 {
     bool firstMouse = true;
-    float lastX = 400, lastY = 300;
+    float lastX = 400;
+    float lastY = 300;
 
-    float fov = 45;
+    const float cameraSpeed = 2.5f; // adjust accordingly
+    const float sensitivity = 0.1f;
+
+    float fov = 45; 
+
     float yaw = -90.0;
     float pitch = 0;
 
+    const glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    const glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    glm::vec3 direction;
+    glm::vec3 cameraForward = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    const float cameraSpeed = 2.5f; // adjust accordingly
 
     void handle_keyboard_input(Camera_Movement input_dir, float delta_time)
     {
@@ -36,16 +42,16 @@ struct camera
         switch (input_dir)
         {
         case FORWARD:
-            cameraPos += speed * cameraFront;
+            cameraPos += speed * cameraForward;
             break;
         case BACKWARD:
-            cameraPos -= speed * cameraFront;
+            cameraPos -= speed * cameraForward;
             break;
         case LEFT:
-            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+            cameraPos -= glm::normalize(glm::cross(cameraForward, world_up)) * speed;
             break;
         case RIGHT:
-            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+            cameraPos += glm::normalize(glm::cross(cameraForward, world_up)) * speed;
             break;
         default:
             break;
@@ -66,7 +72,6 @@ struct camera
         lastX = xpos;
         lastY = ypos;
 
-        const float sensitivity = 0.1f;
         xoffset *= sensitivity;
         yoffset *= sensitivity;
 
@@ -78,10 +83,7 @@ struct camera
         if (pitch < -89.0f)
             pitch = -89.0f;
 
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        cameraFront = glm::normalize(direction);
+        update_cam_vectors();
     }
 
     void zoom(float yoffset)
@@ -91,5 +93,52 @@ struct camera
             fov = 1.0f;
         if (fov > 45.0f)
             fov = 45.0f;
+    }
+
+    void update_cam_vectors()
+    {
+        glm::vec3 direction;
+
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+        cameraForward = glm::normalize(direction);
+        cameraRight = glm::normalize(glm::cross(cameraForward, world_up));
+        cameraUp = glm::normalize(glm::cross(cameraRight, cameraForward));
+    }
+
+
+    // what is direction and cameraFront?
+    // TODO: refactor camera code and then implement this function.
+    glm::mat4 get_view_mat()
+    {
+        glm::mat4 view = glm::mat4(1);
+
+        glm::vec3 cameraRight = glm::normalize(glm::cross(cameraForward, glm::vec3(0, 1, 0)));
+
+        glm::vec3 r = cameraRight;
+        glm::vec3 u = glm::normalize(glm::cross(cameraRight, cameraForward));
+        glm::vec3 d = cameraForward;
+
+        glm::mat4 m1 = glm::mat4(
+            r.x, r.y, r.z, 0.0f, // First column
+            u.x, u.y, u.z, 0.0f, // Second column
+            d.x, d.y, d.z, 0.0f, // Third column
+            0.0f, 0.0f, 0.0f, 1.0f  // Fourth column
+        );
+
+        glm::vec3 p = cameraPos;
+
+        glm::mat4 m2 = glm::mat4(
+            1.0f, 0.0f, 0.0f, -p.x, // First column
+            0.0f, 1.0f, 0.0f, -p.y, // Second column
+            0.0f, 0.0f, 1.0f, -p.z, // Third column
+            0.0f, 0.0f, 0.0f, 1.0f  // Fourth column
+        );
+
+        view = m1 * m2;
+
+        return view;
     }
 };
