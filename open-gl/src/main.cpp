@@ -4,6 +4,38 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+float lastX = 400, lastY = 300;
+float yaw = -90.0;
+float pitch = 0;
+bool firstMouse = true;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+    lastX = xpos;
+    lastY = ypos;
+
+    const float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+}
+
 int main()
 {
     GLFWwindow* window = init_window(800, 600);
@@ -122,23 +154,45 @@ int main()
     //                    glm::vec3(0.0f, 1.0f, 0.0f));
 
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    const glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     const glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    const float cameraSpeed = 0.05f; // adjust accordingly
+
+    const float cameraSpeed = 2.5f; // adjust accordingly
+    float deltaTime = 0.0f; // Time between current frame and last frame
+    float lastFrame = 0.0f; // Time of last frame
+
+    glm::vec3 direction;
+    
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    glfwSetCursorPosCallback(window, mouse_callback);
+
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        float speed = cameraSpeed * deltaTime;
+
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        cameraFront = glm::normalize(direction);
+
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            cameraPos += cameraSpeed * cameraFront;
+            cameraPos += speed * cameraFront;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            cameraPos -= cameraSpeed * cameraFront;
+            cameraPos -= speed * cameraFront;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
 
         // const float radius = 10.0f;
         // float camX = sin(glfwGetTime()) * radius;
