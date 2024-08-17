@@ -99,29 +99,27 @@ struct camera
     {
         glm::mat4 view = glm::mat4(1);
 
-        glm::vec3 cameraRight = glm::normalize(glm::cross(cameraForward, glm::vec3(0, 1, 0)));
-
         glm::vec3 r = cameraRight;
-        glm::vec3 u = glm::normalize(glm::cross(cameraRight, cameraForward));
-        glm::vec3 d = cameraForward;
+        glm::vec3 u = cameraUp;
+        glm::vec3 f = cameraForward;
 
-        glm::mat4 m1 = glm::mat4(
-            r.x, r.y, r.z, 0.0f,   // First column
-            u.x, u.y, u.z, 0.0f,   // Second column
-            d.x, d.y, d.z, 0.0f,   // Third column
+        glm::mat4 rotate = glm::mat4(
+            -r.x, -u.x, -f.x, 0.0f,   // First column
+            -r.y, -u.y, -f.y, 0.0f,   // Second column
+            -r.z, -u.z, -f.z, 0.0f,   // Third column
             0.0f, 0.0f, 0.0f, 1.0f // Fourth column
         );
 
         glm::vec3 p = cameraPos;
 
-        glm::mat4 m2 = glm::mat4(
-            1.0f, 0.0f, 0.0f, -p.x, // First column
-            0.0f, 1.0f, 0.0f, -p.y, // Second column
-            0.0f, 0.0f, 1.0f, -p.z, // Third column
-            0.0f, 0.0f, 0.0f, 1.0f  // Fourth column
+        glm::mat4 translate = glm::mat4(
+            1.0f, 0.0f, 0.0f, 0.0f, // First column
+            0.0f, 1.0f, 0.0f, 0.0f, // Second column
+            0.0f, 0.0f, 1.0f, 0.0f, // Third column
+            -p.x, -p.y, -p.z, 1.0f  // Fourth column (translation)
         );
 
-        view = m1 * m2;
+        view = rotate * translate;
 
         return view;
     }
