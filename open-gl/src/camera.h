@@ -33,15 +33,6 @@ struct camera
     {
         float speed = cameraSpeed * delta_time;
 
-        // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        //     cameraPos += speed * cameraFront;
-        // if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        //     cameraPos -= speed * cameraFront;
-        // if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        //     cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
-        // if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        //     cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
-
         switch (input_dir)
         {
         case FORWARD:
@@ -59,11 +50,6 @@ struct camera
         default:
             break;
         }
-
-        // direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        // direction.y = sin(glm::radians(pitch));
-        // direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        // cameraFront = glm::normalize(direction);
     }
 
     void look_around(float xpos, float ypos)
