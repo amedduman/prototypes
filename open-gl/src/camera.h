@@ -26,8 +26,6 @@ struct camera
     float yaw = -90.0;
     float pitch = 0;
 
-    const glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 
     glm::vec3 cameraForward = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -42,16 +40,16 @@ struct camera
         switch (input_dir)
         {
         case FORWARD:
-            cameraPos += speed * cameraForward;
+            cameraPos += cameraForward * speed;
             break;
         case BACKWARD:
-            cameraPos -= speed * cameraForward;
+            cameraPos -= cameraForward * speed;
             break;
         case LEFT:
-            cameraPos -= glm::normalize(glm::cross(cameraForward, world_up)) * speed;
+            cameraPos -= cameraRight * speed;
             break;
         case RIGHT:
-            cameraPos += glm::normalize(glm::cross(cameraForward, world_up)) * speed;
+            cameraPos += cameraRight * speed;
             break;
         default:
             break;
@@ -95,20 +93,6 @@ struct camera
             fov = 45.0f;
     }
 
-    void update_cam_vectors()
-    {
-        glm::vec3 direction;
-
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-        cameraForward = glm::normalize(direction);
-        cameraRight = glm::normalize(glm::cross(cameraForward, world_up));
-        cameraUp = glm::normalize(glm::cross(cameraRight, cameraForward));
-    }
-
-
     // what is direction and cameraFront?
     // TODO: refactor camera code and then implement this function.
     glm::mat4 get_view_mat()
@@ -122,10 +106,10 @@ struct camera
         glm::vec3 d = cameraForward;
 
         glm::mat4 m1 = glm::mat4(
-            r.x, r.y, r.z, 0.0f, // First column
-            u.x, u.y, u.z, 0.0f, // Second column
-            d.x, d.y, d.z, 0.0f, // Third column
-            0.0f, 0.0f, 0.0f, 1.0f  // Fourth column
+            r.x, r.y, r.z, 0.0f,   // First column
+            u.x, u.y, u.z, 0.0f,   // Second column
+            d.x, d.y, d.z, 0.0f,   // Third column
+            0.0f, 0.0f, 0.0f, 1.0f // Fourth column
         );
 
         glm::vec3 p = cameraPos;
@@ -140,5 +124,21 @@ struct camera
         view = m1 * m2;
 
         return view;
+    }
+
+private:
+    const glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    void update_cam_vectors()
+    {
+        glm::vec3 direction;
+
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+        cameraForward = glm::normalize(direction);
+        cameraRight = glm::normalize(glm::cross(cameraForward, world_up));
+        cameraUp = glm::normalize(glm::cross(cameraRight, cameraForward));
     }
 };

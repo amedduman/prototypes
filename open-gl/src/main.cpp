@@ -131,7 +131,7 @@ int main()
         lastFrame = currentFrame;
 
         glm::mat4 view;
-        view = glm::lookAt(cam.cameraPos, cam.cameraPos + cam.cameraForward, cam.world_up);
+        view = glm::lookAt(cam.cameraPos, cam.cameraPos + cam.cameraForward, cam.cameraUp);
         // view = cam.get_view_mat();
 
         glm::mat4 projection;
