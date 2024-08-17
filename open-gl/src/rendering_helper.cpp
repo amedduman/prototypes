@@ -54,14 +54,6 @@ void framebuffer_size_callback(__attribute__((unused)) GLFWwindow* window, int w
     glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-
 std::string loadShaderSource(const std::string& relativePath)
 {
     // Get the current working directory

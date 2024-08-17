@@ -7,6 +7,8 @@
 
 static camera cam;
 
+void processInput(GLFWwindow* window, float delta_time);
+
 void mouse_callback(__attribute__((unused)) GLFWwindow* window, double xpos, double ypos)
 {
     cam.look_around(xpos, ypos);
@@ -112,7 +114,7 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     
-    float deltaTime = 0.0f;
+    float delta_time = 0.0f;
     float lastFrame = 0.0f;
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -121,15 +123,13 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
+        processInput(window, delta_time);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
+        delta_time = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        cam.process_input(window, deltaTime);
-        
         glm::mat4 view;
         view = glm::lookAt(cam.cameraPos, cam.cameraPos + cam.cameraFront, cam.cameraUp);
 
@@ -161,4 +161,21 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+void processInput(GLFWwindow* window, float delta_time)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cam.handle_keyboard_input(FORWARD, delta_time);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cam.handle_keyboard_input(BACKWARD, delta_time);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cam.handle_keyboard_input(LEFT, delta_time);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cam.handle_keyboard_input(RIGHT, delta_time);
 }

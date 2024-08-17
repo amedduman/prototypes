@@ -1,9 +1,16 @@
 #pragma once
 
-#include "GLFW/glfw3.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+
+enum Camera_Movement
+{
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
 
 struct camera
 {
@@ -22,23 +29,41 @@ struct camera
 
     const float cameraSpeed = 2.5f; // adjust accordingly
 
-    void process_input(GLFWwindow* window, float delta_time)
+    void handle_keyboard_input(Camera_Movement input_dir, float delta_time)
     {
         float speed = cameraSpeed * delta_time;
 
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            cameraPos += speed * cameraFront;
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            cameraPos -= speed * cameraFront;
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+        // if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        //     cameraPos += speed * cameraFront;
+        // if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        //     cameraPos -= speed * cameraFront;
+        // if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        //     cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+        // if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        //     cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
 
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        cameraFront = glm::normalize(direction);
+        switch (input_dir)
+        {
+        case FORWARD:
+            cameraPos += speed * cameraFront;
+            break;
+        case BACKWARD:
+            cameraPos -= speed * cameraFront;
+            break;
+        case LEFT:
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+            break;
+        case RIGHT:
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+            break;
+        default:
+            break;
+        }
+
+        // direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        // direction.y = sin(glm::radians(pitch));
+        // direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        // cameraFront = glm::normalize(direction);
     }
 
     void look_around(float xpos, float ypos)
@@ -66,6 +91,11 @@ struct camera
             pitch = 89.0f;
         if (pitch < -89.0f)
             pitch = -89.0f;
+
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        cameraFront = glm::normalize(direction);
     }
 
     void zoom(float yoffset)

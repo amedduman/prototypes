@@ -8,7 +8,6 @@
 
 GLFWwindow* init_window(int width, int height);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
 std::string loadShaderSource(const std::string& relativePath);
 unsigned int create_shader(GLenum shader_type, std::string relative_path_to_shader_source);
 unsigned int create_shader_program(std::vector<unsigned int> shaders);
