@@ -9,7 +9,9 @@ enum Camera_Movement
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN
 };
 
 struct camera
@@ -50,6 +52,12 @@ struct camera
             break;
         case RIGHT:
             cameraPos += cameraRight * speed;
+            break;
+        case UP:
+            cameraPos.y += speed;
+            break;
+        case DOWN:
+            cameraPos.y -= speed;
             break;
         default:
             break;

@@ -186,6 +186,10 @@ void processInput(GLFWwindow* window, float delta_time)
         cam.handle_keyboard_input(LEFT, delta_time);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cam.handle_keyboard_input(RIGHT, delta_time);
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        cam.handle_keyboard_input(UP, delta_time);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        cam.handle_keyboard_input(DOWN, delta_time);
 }
 
 void mouse_callback(__attribute__((unused)) GLFWwindow* window, double xpos, double ypos)
