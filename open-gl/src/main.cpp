@@ -145,12 +145,18 @@ int main()
             glUniform3f(glGetUniformLocation(shaderProgram, "material.diffuse"), 1.0f, 0.5f, 0.31f);
             glUniform3f(glGetUniformLocation(shaderProgram, "material.specular"), 0.5f, 0.5f, 0.5f);
             glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), 32.0f);
-            
-            // glUniform3f(glGetUniformLocation(shaderProgram, "objectColor"), 1.0f, 0.5f, 0.31f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-            glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), cam.cameraPos.x, cam.cameraPos.y, cam.cameraPos.z);
 
+            /*
+            lightingShader.setVec3("light.ambient",  0.2f, 0.2f, 0.2f);
+            lightingShader.setVec3("light.diffuse",  0.5f, 0.5f, 0.5f); // darken diffuse light a bit
+            lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+            */
+            // glUniform3f(glGetUniformLocation(shaderProgram, "objectColor"), 1.0f, 0.5f, 0.31f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "light.ambient"), 0.2f, 0.2f, 0.2f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "light.specular"), 1.0f, 1.0f, 1.0f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "light.position"), lightPos.x, lightPos.y, lightPos.z);
+            glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), cam.cameraPos.x, cam.cameraPos.y, cam.cameraPos.z);
 
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
