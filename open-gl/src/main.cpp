@@ -112,6 +112,7 @@ int main()
     glEnableVertexAttribArray(2);
 
     unsigned int diffuseMap = create_texture("src/res/container2.png", true);
+    unsigned int specularMap = create_texture("src/res/container2_specular.png", true);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -149,6 +150,11 @@ int main()
             glUniform1i(glGetUniformLocation(shaderProgram, "material.diffuse"), 0);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+            // diffuse texture
+            glUniform1i(glGetUniformLocation(shaderProgram, "material.specular"), 1);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, specularMap);
 
             glUniform3f(glGetUniformLocation(shaderProgram, "material.ambient"), 1.0f, 0.5f, 0.31f);
             glUniform3f(glGetUniformLocation(shaderProgram, "material.diffuse"), 1.0f, 0.5f, 0.31f);
