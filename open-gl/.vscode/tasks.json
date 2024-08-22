@@ -4,7 +4,15 @@
         {
             "label": "Run",
             "type": "shell",
-            "command": "clear && make clean && make build && make run"
+            "command": "clear && make clean && make build && make run",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
         }
     ]
 }
