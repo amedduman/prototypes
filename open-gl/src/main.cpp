@@ -184,6 +184,7 @@ int main()
             glUniform3fv(glGetUniformLocation(shaderProgram, "light.position"), 1, &cam.cameraPos[0]);
             glUniform3fv(glGetUniformLocation(shaderProgram, "light.direction"), 1, &cam.cameraForward[0]);
             glUniform1f(glGetUniformLocation(shaderProgram, "light.cutOff"), glm::cos(glm::radians(12.5f)));
+            glUniform1f(glGetUniformLocation(shaderProgram, "light.outerCutOff"), glm::cos(glm::radians(17.5f)));
 
             glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), cam.cameraPos.x, cam.cameraPos.y, cam.cameraPos.z);
 
