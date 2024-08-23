@@ -177,10 +177,14 @@ int main()
             glUniform3f(glGetUniformLocation(shaderProgram, "light.ambient"), 0.2f, 0.2f, 0.2f);
             glUniform3f(glGetUniformLocation(shaderProgram, "light.diffuse"), 0.5f, 0.5f, 0.5f);
             glUniform3f(glGetUniformLocation(shaderProgram, "light.specular"), 1.0f, 1.0f, 1.0f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "light.position"), lightPos.x, lightPos.y, lightPos.z);
             glUniform1f(glGetUniformLocation(shaderProgram, "light.constant"), 1.0f);
             glUniform1f(glGetUniformLocation(shaderProgram, "light.linear"), 0.09f);
             glUniform1f(glGetUniformLocation(shaderProgram, "light.quadratic"), 0.032f);
+
+            glUniform3fv(glGetUniformLocation(shaderProgram, "light.position"), 1, &cam.cameraPos[0]);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "light.direction"), 1, &cam.cameraForward[0]);
+            glUniform1f(glGetUniformLocation(shaderProgram, "light.cutOff"), glm::cos(glm::radians(12.5f)));
+
             glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), cam.cameraPos.x, cam.cameraPos.y, cam.cameraPos.z);
 
             glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
