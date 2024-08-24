@@ -5,11 +5,17 @@
 #include "camera.h"
 #include <iostream>
 
+// Using Assimp
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
+Assimp::Importer importer;
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 static camera cam;
-static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+// static glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 void processInput(GLFWwindow* window, float delta_time);
 void mouse_callback(__attribute__((unused)) GLFWwindow* window, double xpos, double ypos);
