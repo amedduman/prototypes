@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mesh.h"
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -23,7 +24,7 @@ unsigned int TextureFromFile(const char* path, const string& directory)
     unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (data)
     {
-        GLenum format;
+        GLenum format = 1;
         if (nrComponents == 1)
             format = GL_RED;
         else if (nrComponents == 3)
@@ -57,6 +58,7 @@ public:
     Model() = delete;
     Model(char* path);
     ~Model() = default;
+    void Draw(unsigned int shader);
 
 private:
     // model data
@@ -69,13 +71,12 @@ private:
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
-
-    void Draw(unsigned int shader);
 };
 
 // imp ---------------------------------------------------------------------------------------- 
 Model::Model(char* path)
 {
+    loadModel(path);
 }
 
 void Model::Draw(unsigned int shader)
