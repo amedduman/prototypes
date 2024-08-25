@@ -7,6 +7,7 @@
 #include <vector>
 
 using std::vector;
+using std::string;
 
 struct Vertex
 {
@@ -74,5 +75,53 @@ void Mesh::setupMesh()
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
+    glBindVertexArray(0);
+}
+
+void Mesh::Draw(unsigned int shader)
+{
+    /*
+        this solution requires shaders to have:
+
+        struct Material {
+        sampler2D texture_diffuse1;
+        sampler2D texture_diffuse2;
+        .
+        .
+        .
+        sampler2D texture_specular1;
+        sampler2D texture_specular2;
+        .
+        .
+        .
+        };
+        uniform Material material;
+    */
+    unsigned int diffuse_counter = 1;
+    unsigned int specular_counter = 1;
+    for (unsigned int i = 0; i < textures.size(); i++)
+    {
+        string number;
+        string name = textures[i].type;
+
+        if (name == "texture_diffuse")
+            number = std::to_string(diffuse_counter);
+        else if (name == "texture_specular")
+            number = std::to_string(specular_counter);
+
+        string uniform_name = "material." + name + number;
+
+        glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+        glUniform1i(glGetUniformLocation(shader, uniform_name.c_str()), i);
+        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+
+        diffuse_counter++;
+        specular_counter++;
+    }
+    glActiveTexture(GL_TEXTURE0);
+
+    // draw mesh
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
