@@ -6,9 +6,6 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-using std::vector;
-using std::string;
-
 struct Vertex
 {
     glm::vec3 Position;
@@ -26,12 +23,12 @@ class Mesh
 {
 public:
     // mesh data
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<Texture> textures;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<Texture> textures;
 
     Mesh() = delete;
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
     void Draw(unsigned int shader);
     ~Mesh() = default;
 
@@ -43,7 +40,7 @@ private:
 
 // impl -----------------------------------------------------------------------------------
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
 {
     this->vertices = vertices;
     this->indices = indices;
@@ -102,15 +99,15 @@ void Mesh::Draw(unsigned int shader)
     unsigned int specular_counter = 1;
     for (unsigned int i = 0; i < textures.size(); i++)
     {
-        string number;
-        string name = textures[i].type;
+        std::string number;
+        std::string name = textures[i].type;
 
         if (name == "texture_diffuse")
             number = std::to_string(diffuse_counter);
         else if (name == "texture_specular")
             number = std::to_string(specular_counter);
 
-        string uniform_name = "material." + name + number;
+        std::string uniform_name = "material." + name + number;
 
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
         glUniform1i(glGetUniformLocation(shader, uniform_name.c_str()), i);

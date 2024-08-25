@@ -36,9 +36,9 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     std::string path = std::filesystem::absolute("src/res/backpack/backpack.obj").string();
-    char* path_c_str = new char[path.length() + 1];
-    std::strcpy(path_c_str, path.c_str());
-    Model backpack(path_c_str);
+    // char* path_c_str = new char[path.length() + 1];
+    // std::strcpy(path_c_str, path.c_str());
+    Model backpack(path);
 
     glEnable(GL_DEPTH_TEST);
 

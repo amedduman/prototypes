@@ -11,10 +11,10 @@
 #include <vector>
 
 // load texture to GPU
-unsigned int TextureFromFile(const char* path, const string& directory)
+unsigned int TextureFromFile(const char* path, const std::string& directory)
 {
     // Warning: this assume the texture will be at the sama directory with the model.
-    string filename = string(path);
+    std::string filename = std::string(path);
     filename = directory + '/' + filename;
 
     unsigned int textureID;
@@ -56,7 +56,7 @@ class Model
 {
 public:
     Model() = delete;
-    Model(char* path);
+    Model(const std::string& path);
     ~Model() = default;
     void Draw(unsigned int shader);
 
@@ -65,16 +65,16 @@ private:
     std::vector<Mesh> meshes;
     std::string directory;
 
-    vector<Texture> textures_loaded;
+    std::vector<Texture> textures_loaded;
 
-    void loadModel(string path);
+    void loadModel(const std::string& path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
+    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 };
 
-// imp ---------------------------------------------------------------------------------------- 
-Model::Model(char* path)
+// imp ----------------------------------------------------------------------------------------
+Model::Model(const std::string& path)
 {
     loadModel(path);
 }
@@ -85,7 +85,7 @@ void Model::Draw(unsigned int shader)
         meshes[i].Draw(shader);
 }
 
-void Model::loadModel(string path)
+void Model::loadModel(const std::string& path)
 {
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -100,9 +100,9 @@ void Model::loadModel(string path)
     processNode(scene->mRootNode, scene);
 }
 
-std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
+std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
-    vector<Texture> textures;
+    std::vector<Texture> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;
@@ -148,9 +148,9 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 {
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<Texture> textures;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<Texture> textures;
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
