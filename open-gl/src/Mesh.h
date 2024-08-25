@@ -19,6 +19,7 @@ struct Texture
 {
     unsigned int id;
     std::string type; // type e.g. a diffuse or specular texture
+    std::string path;
 };
 
 class Mesh
