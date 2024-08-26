@@ -26,10 +26,6 @@ int main()
     unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
     unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
 
-    // unsigned int light_source_v = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
-    // unsigned int light_source_s = create_shader(GL_FRAGMENT_SHADER, "src/ligth_source.frag");
-    // unsigned int light_source_shader = create_shader_program({light_source_v, light_source_s});
-
     // unsigned int diffuseMap = create_texture("src/res/container2.png", true);
     // unsigned int specularMap = create_texture("src/res/container2_specular.png", true);
 
@@ -48,6 +44,154 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+
+    //--------------
+
+    float vertices[] = {
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+
+        -0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+
+        -0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+        -0.5f,
+        -0.5f,
+
+        -0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        0.5f,
+        -0.5f,
+        0.5f,
+        -0.5f,
+    };
+
+    // first, configure the cube's VAO (and VBO)
+    unsigned int VBO, cubeVAO;
+    glGenVertexArrays(1, &cubeVAO);
+    glGenBuffers(1, &VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(cubeVAO);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+    unsigned int lightCubeVAO;
+    glGenVertexArrays(1, &lightCubeVAO);
+    glBindVertexArray(lightCubeVAO);
+
+    // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    unsigned int light_source_v = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
+    unsigned int light_source_s = create_shader(GL_FRAGMENT_SHADER, "src/ligth_source.frag");
+    unsigned int light_source_shader = create_shader_program({light_source_v, light_source_s});
+
+    //--------------
 
     while (!glfwWindowShouldClose(window))
     {
@@ -79,14 +223,14 @@ int main()
 
         glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), cam.cameraPos.x, cam.cameraPos.y, cam.cameraPos.z);
 
-        { // material
-            glUniform3f(glGetUniformLocation(shaderProgram, "material.ambient"), 1.0f, 0.5f, 0.31f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "material.diffuse"), 1.0f, 0.5f, 0.31f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "material.specular"), 0.5f, 0.5f, 0.5f);
+        glm::vec3 point_light_pos(0.0f, 0.0f, 10.0f);
+        glm::vec3 point_light_color(1.0f, 0.0f, 0.0f);
+
+        { // lighting
             glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), 32.0f);
 
             // directional light
-            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.direction"), 0.2f, 0.5f, 0.2f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.direction"), 0.0f, -10.0f, 10.0f);
             glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.ambient"), 0.2f, 0.2f, 0.2f);
             glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f);
             glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.specular"), 1.0f, 1.0f, 1.0f);
@@ -104,9 +248,9 @@ int main()
             glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.quadratic"), 0.032f);
 
             // point light
-            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].position"), 1, 1, 1);
-            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].ambient"), 1.0f, 0.0f, 0.0f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].diffuse"), 0.5f, 0.5f, 0.5f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "pointLights[0].position"), 1, &point_light_pos[0]);
+            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].ambient"), 0.5f, 0.5f, 0.5f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "pointLights[0].diffuse"), 1, &point_light_color[0]);
             glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
             glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].constant"), 1.0f);
             glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].linear"), 0.09f);
@@ -116,6 +260,23 @@ int main()
         backpack.Draw(shaderProgram);
 
         //--------------------------------------------------------------------------------
+
+        { // draw light source
+            glUseProgram(light_source_shader);
+
+            glUniform3fv(glGetUniformLocation(light_source_shader, "light_color"), 1, &point_light_color[0]);
+
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, point_light_pos);
+            model = glm::scale(model, glm::vec3(0.2f));
+
+            glUniformMatrix4fv(glGetUniformLocation(light_source_shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(glGetUniformLocation(light_source_shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(light_source_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            glBindVertexArray(lightCubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
