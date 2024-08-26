@@ -26,14 +26,9 @@ int main()
     unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
     unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
 
-    // unsigned int diffuseMap = create_texture("src/res/container2.png", true);
-    // unsigned int specularMap = create_texture("src/res/container2_specular.png", true);
-
     stbi_set_flip_vertically_on_load(true);
 
     std::string path = std::filesystem::absolute("src/res/backpack/backpack.obj").string();
-    // char* path_c_str = new char[path.length() + 1];
-    // std::strcpy(path_c_str, path.c_str());
     Model backpack(path);
 
     glEnable(GL_DEPTH_TEST);
@@ -45,7 +40,7 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    //--------------
+#pragma region lamp debug shape
 
     float vertices[] = {
         -0.5f,
@@ -191,7 +186,7 @@ int main()
     unsigned int light_source_s = create_shader(GL_FRAGMENT_SHADER, "src/ligth_source.frag");
     unsigned int light_source_shader = create_shader_program({light_source_v, light_source_s});
 
-    //--------------
+#pragma endregion
 
     while (!glfwWindowShouldClose(window))
     {
@@ -316,3 +311,193 @@ void scroll_callback(__attribute__((unused)) GLFWwindow* window, __attribute__((
 {
     cam.zoom(yoffset);
 }
+
+// Place your key bindings in this file to override the defaultsauto[]
+[
+    // run task
+    {
+        "key" : "[IntlBackslash]",
+        "command" : "workbench.action.tasks.runTask",
+        "args" : "Run"
+    },
+    // left
+    {
+        "key" : "cmd+l",
+        "command" : "cursorRight",
+        "when" : "textInputFocus"
+    },
+    // right
+    {
+        "key" : "cmd+h",
+        "command" : "cursorLeft",
+        "when" : "textInputFocus"
+    },
+    // down
+    {
+        "key" : "cmd+j",
+        "command" : "cursorDown",
+        "when" : "textInputFocus && !suggestWidgetVisible"
+    },
+    // down (suggestionWidget)
+    {
+        "key" : "cmd+j",
+        "command" : "selectNextSuggestion",
+        "when" : "suggestWidgetVisible"
+    },
+    // up
+    {
+        "key" : "cmd+k",
+        "command" : "cursorUp",
+        "when" : "textInputFocus && !suggestWidgetVisible"
+    },
+    // up (suggestionWidget)
+    {
+        "key" : "cmd+k",
+        "command" : "selectPrevSuggestion",
+        "when" : "suggestWidgetVisible"
+    },
+    // put line below
+    {
+        "key" : "cmd+o",
+        "command" : "editor.action.insertLineAfter",
+        "when" : "textInputFocus && !suggestWidgetVisible"
+    },
+    // insert suggestion (auto-complete)
+    {
+        "key" : "cmd+o",
+        "command" : "acceptSelectedSuggestion",
+        "when" : "suggestWidgetVisible"
+    },
+    // set capslock to control key
+    {
+        "key" : "Capslock",
+        "command" : "",
+        "when" : "editorFocus"
+    },
+    // copy
+    {
+        "key" : "cmd+y",
+        "command" : "execCopy",
+        "when" : "editorFocus"
+    },
+    // cut
+    {
+        "key" : "cmd+u",
+        "command" : "execCut",
+        "when" : "editorFocus"
+    },
+    // paste
+    {
+        "key" : "alt+p",
+        "command" : "execPaste",
+        "when" : "editorFocus"
+    },
+    // backspace
+    {
+        "key" : "cmd+i",
+        "command" : "deleteLeft",
+        "when" : "editorFocus"
+    },
+    // move end of line
+    {
+        "key" : "cmd+]",
+        "command" : "cursorEnd",
+        "when" : "editorFocus"
+    },
+    // move start of line
+    {
+        "key" : "cmd+[",
+        "command" : "cursorHome",
+        "when" : "editorFocus"
+    },
+    // move end of line (selected)
+    {
+        "key" : "ctrl+]",
+        "command" : "cursorEndSelect",
+        "when" : "editorFocus"
+    },
+    // move start of line (selected)
+    {
+        "key" : "ctrl+[",
+        "command" : "cursorHomeSelect",
+        "when" : "editorFocus"
+    },
+    // page down
+    {
+        "key" : "alt+j",
+        "command" : "cursorPageDown",
+        "when" : "editorFocus"
+    },
+    // page up
+    {
+        "key" : "alt+k",
+        "command" : "cursorPageUp",
+        "when" : "editorFocus"
+    },
+    // select down
+    {
+        "key" : "ctrl+j",
+        "command" : "cursorDownSelect",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // select up
+    {
+        "key" : "ctrl+k",
+        "command" : "cursorUpSelect",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // select left
+    {
+        "key" : "ctrl+l",
+        "command" : "cursorRightSelect",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // select right
+    {
+        "key" : "ctrl+h",
+        "command" : "cursorLeftSelect",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // left by work
+    {
+        "key" : "alt+h",
+        "command" : "cursorWordEndLeft",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // right by word
+    {
+        "key" : "alt+l",
+        "command" : "cursorWordEndRight",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // left by word (selected)
+    {
+        "key" : "alt+ctrl+h",
+        "command" : "cursorWordEndLeftSelect",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // right by word (selected)
+    {
+        "key" : "alt+ctrl+l",
+        "command" : "cursorWordEndRightSelect",
+        "when" : "editorFocus && !suggestWidgetVisible"
+    },
+    // escape
+    {
+        "key" : "cmd+i",
+        "command" : "hideSuggestWidget",
+        "when" : "editorFocus && suggestWidgetVisible"
+    },
+    // next tab
+    {
+        "key" : "cmd+up",
+        "command" : "workbench.action.nextEditor",
+        "when" : "editorFocus && !suggestWidgetVisible",
+    },
+    // previous tab
+    {
+        "key" : "cmd+down",
+        "command" : "workbench.action.previousEditor",
+        "when" : "editorFocus && !suggestWidgetVisible",
+    },
+]
