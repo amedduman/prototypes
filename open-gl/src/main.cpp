@@ -18,16 +18,16 @@ void scroll_callback(__attribute__((unused)) GLFWwindow* window, __attribute__((
 
 // utility function for loading a 2D texture from file
 // ---------------------------------------------------
-unsigned int loadTexture(char const* path)
+unsigned int loadTexture(const std::string& path)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
-    unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+    unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
     if (data)
     {
-        GLenum format;
+        GLenum format = 1;
         if (nrComponents == 1)
             format = GL_RED;
         else if (nrComponents == 3)
@@ -68,6 +68,7 @@ int main()
     stbi_set_flip_vertically_on_load(true);
     
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
 
     float delta_time = 0.0f;
     float lastFrame = 0.0f;
@@ -158,8 +159,8 @@ int main()
 
     // load textures
     // -------------
-    unsigned int cubeTexture = loadTexture("res/textures/marble.jpg");
-    unsigned int floorTexture = loadTexture("res/textures/metal.png");
+    unsigned int cubeTexture = loadTexture(std::filesystem::absolute("src/res/textures/marble.jpg"));
+    unsigned int floorTexture = loadTexture(std::filesystem::absolute("src/res/textures/metal.png"));
 
 #pragma endregion
 
