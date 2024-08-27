@@ -63,12 +63,16 @@ int main()
 
     unsigned int vertexShader = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
     unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
+    unsigned int single_color_fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/single_color.frag");
     unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
+    unsigned int single_color_shaderProgram = create_shader_program({vertexShader, single_color_fragmentShader});
 
     stbi_set_flip_vertically_on_load(true);
     
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
+    glDepthFunc(GL_LESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     float delta_time = 0.0f;
     float lastFrame = 0.0f;
@@ -173,7 +177,9 @@ int main()
         }
 
         processInput(window, delta_time);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        glStencilMask(0x00); // do not write to stencil buffer
 
         glUseProgram(shaderProgram);
 
@@ -184,6 +190,16 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+        // floor
+        glBindVertexArray(planeVAO);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        model = glm::mat4(1.0f);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF); // write to the stencil buffer
+        glStencilMask(0xFF);
 
         // cubes
         glBindVertexArray(cubeVAO);
@@ -200,13 +216,37 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // floor
-        glBindVertexArray(planeVAO);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-        model = glm::mat4(1.0f);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+
+        glUseProgram(single_color_shaderProgram);
+
+        { // draw scaled up cubes
+            glUniformMatrix4fv(glGetUniformLocation(single_color_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(glGetUniformLocation(single_color_shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(single_color_shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            glBindVertexArray(cubeVAO);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, cubeTexture);
+            // 1
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+            model = glm::scale(model, glm::vec3(1.1f, 1.1f, 1.1f));
+            glUniformMatrix4fv(glGetUniformLocation(single_color_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+            // 2
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(1.1f, 1.1f, 1.1f));
+            glUniformMatrix4fv(glGetUniformLocation(single_color_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glEnable(GL_DEPTH_TEST);
+
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
