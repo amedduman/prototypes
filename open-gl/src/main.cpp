@@ -16,6 +16,45 @@ void processInput(GLFWwindow* window, float delta_time);
 void mouse_callback(__attribute__((unused)) GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(__attribute__((unused)) GLFWwindow* window, __attribute__((unused)) double xoffset, double yoffset);
 
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+unsigned int loadTexture(char const* path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
+
 int main()
 {
     GLFWwindow* window = init_window(SCR_WIDTH, SCR_HEIGHT);
@@ -27,10 +66,7 @@ int main()
     unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
 
     stbi_set_flip_vertically_on_load(true);
-
-    std::string path = std::filesystem::absolute("src/res/backpack/backpack.obj").string();
-    Model backpack(path);
-
+    
     glEnable(GL_DEPTH_TEST);
 
     float delta_time = 0.0f;
@@ -40,151 +76,90 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-#pragma region lamp debug shape
+    #pragma region cube and plane
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    // ------------------------------------------------------------------
+    float cubeVertices[] = {
+        // positions          // texture Coords
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-    float vertices[] = {
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
 
-        -0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
+        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
 
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
 
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
 
-        -0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-        -0.5f,
-        -0.5f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
+    float planeVertices[] = {
+        // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
+        5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
+        -5.0f, -0.5f, 5.0f, 0.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
 
-        -0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        0.5f,
-        -0.5f,
-        0.5f,
-        -0.5f,
-    };
-
-    // first, configure the cube's VAO (and VBO)
-    unsigned int VBO, cubeVAO;
+        5.0f, -0.5f, 5.0f, 2.0f, 0.0f,
+        -5.0f, -0.5f, -5.0f, 0.0f, 2.0f,
+        5.0f, -0.5f, -5.0f, 2.0f, 2.0f};
+    // cube VAO
+    unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &VBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+    glGenBuffers(1, &cubeVBO);
     glBindVertexArray(cubeVAO);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-
-    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
-    unsigned int lightCubeVAO;
-    glGenVertexArrays(1, &lightCubeVAO);
-    glBindVertexArray(lightCubeVAO);
-
-    // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+    // plane VAO
+    unsigned int planeVAO, planeVBO;
+    glGenVertexArrays(1, &planeVAO);
+    glGenBuffers(1, &planeVBO);
+    glBindVertexArray(planeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
 
-    unsigned int light_source_v = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
-    unsigned int light_source_s = create_shader(GL_FRAGMENT_SHADER, "src/ligth_source.frag");
-    unsigned int light_source_shader = create_shader_program({light_source_v, light_source_s});
+    // load textures
+    // -------------
+    unsigned int cubeTexture = loadTexture("res/textures/marble.jpg");
+    unsigned int floorTexture = loadTexture("res/textures/metal.png");
 
 #pragma endregion
 
@@ -196,13 +171,8 @@ int main()
             lastFrame = currentFrame;
         }
 
-        { // input
-            processInput(window, delta_time);
-        }
-
-        { // render
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        }
+        processInput(window, delta_time);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
 
@@ -211,67 +181,32 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(cam.fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-        glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), cam.cameraPos.x, cam.cameraPos.y, cam.cameraPos.z);
+        // cubes
+        glBindVertexArray(cubeVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, cubeTexture);
+        // 1
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        // 2
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        glm::vec3 point_light_pos(0.0f, 0.0f, 10.0f);
-        glm::vec3 point_light_color(1.0f, 0.0f, 0.0f);
-
-        { // lighting
-            glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), 32.0f);
-
-            // directional light
-            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.direction"), 0.0f, -10.0f, 10.0f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.ambient"), 0.2f, 0.2f, 0.2f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.specular"), 1.0f, 1.0f, 1.0f);
-
-            // spot light
-            glUniform3fv(glGetUniformLocation(shaderProgram, "spotLight.position"), 1, &cam.cameraPos[0]);
-            glUniform3fv(glGetUniformLocation(shaderProgram, "spotLight.direction"), 1, &cam.cameraForward[0]);
-            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
-            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.outerCutOff"), glm::cos(glm::radians(17.5f)));
-            glUniform3f(glGetUniformLocation(shaderProgram, "spotLight.ambient"), 0.2f, 0.2f, 0.2f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "spotLight.diffuse"), 0.5f, 0.5f, 0.5f);
-            glUniform3f(glGetUniformLocation(shaderProgram, "spotLight.specular"), 1.0f, 1.0f, 1.0f);
-            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.linear"), 0.09f);
-            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.quadratic"), 0.032f);
-
-            // point light
-            glUniform3fv(glGetUniformLocation(shaderProgram, "pointLights[0].position"), 1, &point_light_pos[0]);
-            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].ambient"), 0.5f, 0.5f, 0.5f);
-            glUniform3fv(glGetUniformLocation(shaderProgram, "pointLights[0].diffuse"), 1, &point_light_color[0]);
-            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
-            glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].constant"), 1.0f);
-            glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].linear"), 0.09f);
-            glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].quadratic"), 0.032f);
-        }
-
-        backpack.Draw(shaderProgram);
-
-        //--------------------------------------------------------------------------------
-
-        { // draw light source
-            glUseProgram(light_source_shader);
-
-            glUniform3fv(glGetUniformLocation(light_source_shader, "light_color"), 1, &point_light_color[0]);
-
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, point_light_pos);
-            model = glm::scale(model, glm::vec3(0.2f));
-
-            glUniformMatrix4fv(glGetUniformLocation(light_source_shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            glUniformMatrix4fv(glGetUniformLocation(light_source_shader, "view"), 1, GL_FALSE, glm::value_ptr(view));
-            glUniformMatrix4fv(glGetUniformLocation(light_source_shader, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-            glBindVertexArray(lightCubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        // floor
+        glBindVertexArray(planeVAO);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        model = glm::mat4(1.0f);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+        glBindVertexArray(0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -311,193 +246,3 @@ void scroll_callback(__attribute__((unused)) GLFWwindow* window, __attribute__((
 {
     cam.zoom(yoffset);
 }
-
-// Place your key bindings in this file to override the defaultsauto[]
-[
-    // run task
-    {
-        "key" : "[IntlBackslash]",
-        "command" : "workbench.action.tasks.runTask",
-        "args" : "Run"
-    },
-    // left
-    {
-        "key" : "cmd+l",
-        "command" : "cursorRight",
-        "when" : "textInputFocus"
-    },
-    // right
-    {
-        "key" : "cmd+h",
-        "command" : "cursorLeft",
-        "when" : "textInputFocus"
-    },
-    // down
-    {
-        "key" : "cmd+j",
-        "command" : "cursorDown",
-        "when" : "textInputFocus && !suggestWidgetVisible"
-    },
-    // down (suggestionWidget)
-    {
-        "key" : "cmd+j",
-        "command" : "selectNextSuggestion",
-        "when" : "suggestWidgetVisible"
-    },
-    // up
-    {
-        "key" : "cmd+k",
-        "command" : "cursorUp",
-        "when" : "textInputFocus && !suggestWidgetVisible"
-    },
-    // up (suggestionWidget)
-    {
-        "key" : "cmd+k",
-        "command" : "selectPrevSuggestion",
-        "when" : "suggestWidgetVisible"
-    },
-    // put line below
-    {
-        "key" : "cmd+o",
-        "command" : "editor.action.insertLineAfter",
-        "when" : "textInputFocus && !suggestWidgetVisible"
-    },
-    // insert suggestion (auto-complete)
-    {
-        "key" : "cmd+o",
-        "command" : "acceptSelectedSuggestion",
-        "when" : "suggestWidgetVisible"
-    },
-    // set capslock to control key
-    {
-        "key" : "Capslock",
-        "command" : "",
-        "when" : "editorFocus"
-    },
-    // copy
-    {
-        "key" : "cmd+y",
-        "command" : "execCopy",
-        "when" : "editorFocus"
-    },
-    // cut
-    {
-        "key" : "cmd+u",
-        "command" : "execCut",
-        "when" : "editorFocus"
-    },
-    // paste
-    {
-        "key" : "alt+p",
-        "command" : "execPaste",
-        "when" : "editorFocus"
-    },
-    // backspace
-    {
-        "key" : "cmd+i",
-        "command" : "deleteLeft",
-        "when" : "editorFocus"
-    },
-    // move end of line
-    {
-        "key" : "cmd+]",
-        "command" : "cursorEnd",
-        "when" : "editorFocus"
-    },
-    // move start of line
-    {
-        "key" : "cmd+[",
-        "command" : "cursorHome",
-        "when" : "editorFocus"
-    },
-    // move end of line (selected)
-    {
-        "key" : "ctrl+]",
-        "command" : "cursorEndSelect",
-        "when" : "editorFocus"
-    },
-    // move start of line (selected)
-    {
-        "key" : "ctrl+[",
-        "command" : "cursorHomeSelect",
-        "when" : "editorFocus"
-    },
-    // page down
-    {
-        "key" : "alt+j",
-        "command" : "cursorPageDown",
-        "when" : "editorFocus"
-    },
-    // page up
-    {
-        "key" : "alt+k",
-        "command" : "cursorPageUp",
-        "when" : "editorFocus"
-    },
-    // select down
-    {
-        "key" : "ctrl+j",
-        "command" : "cursorDownSelect",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // select up
-    {
-        "key" : "ctrl+k",
-        "command" : "cursorUpSelect",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // select left
-    {
-        "key" : "ctrl+l",
-        "command" : "cursorRightSelect",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // select right
-    {
-        "key" : "ctrl+h",
-        "command" : "cursorLeftSelect",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // left by work
-    {
-        "key" : "alt+h",
-        "command" : "cursorWordEndLeft",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // right by word
-    {
-        "key" : "alt+l",
-        "command" : "cursorWordEndRight",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // left by word (selected)
-    {
-        "key" : "alt+ctrl+h",
-        "command" : "cursorWordEndLeftSelect",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // right by word (selected)
-    {
-        "key" : "alt+ctrl+l",
-        "command" : "cursorWordEndRightSelect",
-        "when" : "editorFocus && !suggestWidgetVisible"
-    },
-    // escape
-    {
-        "key" : "cmd+i",
-        "command" : "hideSuggestWidget",
-        "when" : "editorFocus && suggestWidgetVisible"
-    },
-    // next tab
-    {
-        "key" : "cmd+up",
-        "command" : "workbench.action.nextEditor",
-        "when" : "editorFocus && !suggestWidgetVisible",
-    },
-    // previous tab
-    {
-        "key" : "cmd+down",
-        "command" : "workbench.action.previousEditor",
-        "when" : "editorFocus && !suggestWidgetVisible",
-    },
-]
