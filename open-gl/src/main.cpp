@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <map>
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -80,6 +81,8 @@ int main()
     
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float delta_time = 0.0f;
     float lastFrame = 0.0f;
@@ -206,7 +209,7 @@ int main()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
 
-    unsigned int grassTexture = loadTexture(std::filesystem::absolute("src/res/grass.png"));
+    unsigned int grassTexture = loadTexture(std::filesystem::absolute("src/res/blending_transparent_window.png"));
     stbi_set_flip_vertically_on_load(true);
     #pragma endregion
     
@@ -238,20 +241,6 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        // vegetation
-        glBindVertexArray(vegetationVAO);
-        glBindTexture(GL_TEXTURE_2D, grassTexture);
-        for (unsigned int i = 0; i < vegetation.size(); i++)
-        {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, vegetation[i]);
-            // model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-            // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f ,0.0f ,0.0f));
-            // model = glm::translate(model, vegetation[i]);
-            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-        }
-
         // cubes
         glBindVertexArray(cubeVAO);
         glActiveTexture(GL_TEXTURE0);
@@ -267,7 +256,32 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        
+        // window
+        std::map<float, glm::vec3> sorted;
+        for (unsigned int i = 0; i < vegetation.size(); i++)
+        {
+            float distance = glm::length(cam.cameraPos - vegetation[i]);
+            sorted[distance] = vegetation[i];
+        }
+        glBindVertexArray(vegetationVAO);
+        glBindTexture(GL_TEXTURE_2D, grassTexture);
+        for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, it->second);
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            // shader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
+        // glBindVertexArray(vegetationVAO);
+        // glBindTexture(GL_TEXTURE_2D, grassTexture);
+        // for (unsigned int i = 0; i < vegetation.size(); i++)
+        // {
+            // model = glm::mat4(1.0f);
+            // model = glm::translate(model, vegetation[i]);
+            // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            // glDrawArrays(GL_TRIANGLES, 0, 6);
+        // }
 
         glBindVertexArray(0);
 
