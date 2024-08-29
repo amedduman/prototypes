@@ -67,6 +67,37 @@ unsigned int loadTexture(const std::string& path)
     return textureID;
 }
 
+unsigned int loadCubemap(std::vector<std::string> faces)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < faces.size(); i++)
+    {
+        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                         0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return textureID;
+}
+
 int main()
 {
     GLFWwindow* window = init_window(SCR_WIDTH, SCR_HEIGHT);
@@ -76,10 +107,6 @@ int main()
     unsigned int vertexShader = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
     unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
     unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
-
-    unsigned int screen_vs = create_shader(GL_VERTEX_SHADER, "src/screen.vert");
-    unsigned int screen_fs = create_shader(GL_FRAGMENT_SHADER, "src/screen.frag");
-    unsigned int screen_shader = create_shader_program({screen_vs, screen_fs});
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -180,59 +207,21 @@ int main()
     // load textures
     // -------------
     unsigned int cubeTexture = loadTexture(std::filesystem::absolute("src/res/container.jpg"));
-    unsigned int floorTexture = loadTexture(std::filesystem::absolute("src/res/textures/metal.png"));
+    // unsigned int floorTexture = loadTexture(std::filesystem::absolute("src/res/textures/metal.png"));
 
 #pragma endregion
 
-#pragma region screen quad
-    float quadVertices[] = {
-        // positions   // texCoords
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
+    std::vector<std::string> faces
+    {
+        "src/res/skybox/right.jpg",
+        "src/res/skybox/left.jpg",
+        "src/res/skybox/top.jpg",
+        "src/res/skybox/bottom.jpg",
+        "src/res/skybox/front.jpg",
+        "src/res/skybox/back.jpg"
+    };
 
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 1.0f, 1.0f};
-
-    unsigned int quadVAO, quadVBO;
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glBindVertexArray(0);
-#pragma endregion
-
-    unsigned int framebuffer;
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    // color buffer
-    unsigned int textureColorbuffer;
-    glGenTextures(1, &textureColorbuffer);
-    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-    // depth and stencil buffer
-    unsigned int rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-    // checking
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    unsigned int cubemapTexture = loadCubemap(faces);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -243,10 +232,6 @@ int main()
         }
 
         processInput(window, delta_time);
-        // first pass
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glEnable(GL_DEPTH_TEST);
-
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
 
@@ -261,21 +246,21 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
         // floor
-        glBindVertexArray(planeVAO);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-        model = glm::mat4(1.0f);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        // glBindVertexArray(planeVAO);
+        // glBindTexture(GL_TEXTURE_2D, floorTexture);
+        // model = glm::mat4(1.0f);
+        // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        // glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // cubes
         glBindVertexArray(cubeVAO);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, cubeTexture);
         // 1
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        // model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        // glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
         // 2
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
@@ -283,17 +268,6 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glBindVertexArray(0);
-
-        // second pass
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(screen_shader);
-        glBindVertexArray(quadVAO);
-        glDisable(GL_DEPTH_TEST);
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
