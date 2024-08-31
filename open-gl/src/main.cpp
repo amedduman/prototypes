@@ -150,6 +150,8 @@ int main()
 
 #pragma endregion
 
+    Model backpack(std::filesystem::absolute("src/res/backpack/backpack.obj").string());
+
     while (!glfwWindowShouldClose(window))
     {
         { // per-frame time logic
@@ -172,9 +174,11 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
         glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, &cam.cameraPos[0]);
+        glUniform1f(glGetUniformLocation(shaderProgram, "time"), glfwGetTime());
 
-        glBindVertexArray(planeVAO);
-        glDrawArrays(GL_POINTS, 0, 4);
+        backpack.Draw(shaderProgram);
+        // glBindVertexArray(planeVAO);
+        // glDrawArrays(GL_POINTS, 0, 4);
 
         glBindVertexArray(0);
 
