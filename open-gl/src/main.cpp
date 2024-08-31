@@ -109,8 +109,18 @@ int main()
     glfwSwapInterval(1);
 
     unsigned int vertexShader = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
+    unsigned int geometryShader = create_shader(GL_GEOMETRY_SHADER, "src/my_first.geom");
     unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
-    unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
+    unsigned int shaderProgram = create_shader_program({vertexShader, geometryShader, fragmentShader});
+
+    // create and attach geometry shader
+    // std::string gShaderCode = loadShaderSource("src/my_first.geom");
+    // const char* gShaderCode_ptr = gShaderCode.c_str();
+    // unsigned int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+    // glShaderSource(geometryShader, 1, &gShaderCode_ptr, NULL);
+    // glCompileShader(geometryShader);
+    // glAttachShader(shaderProgram, geometryShader);
+    // glLinkProgram(shaderProgram);
 
     stbi_set_flip_vertically_on_load(true);
 
