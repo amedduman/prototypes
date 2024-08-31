@@ -113,15 +113,6 @@ int main()
     unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
     unsigned int shaderProgram = create_shader_program({vertexShader, geometryShader, fragmentShader});
 
-    // create and attach geometry shader
-    // std::string gShaderCode = loadShaderSource("src/my_first.geom");
-    // const char* gShaderCode_ptr = gShaderCode.c_str();
-    // unsigned int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-    // glShaderSource(geometryShader, 1, &gShaderCode_ptr, NULL);
-    // glCompileShader(geometryShader);
-    // glAttachShader(shaderProgram, geometryShader);
-    // glLinkProgram(shaderProgram);
-
     stbi_set_flip_vertically_on_load(true);
 
     // glEnable(GL_CULL_FACE);
@@ -140,10 +131,10 @@ int main()
 #pragma region plane
 
     float points[] = {
-        -0.5f, 0.5f, // top-left
-        0.5f, 0.5f,  // top-right
-        0.5f, -0.5f, // bottom-right
-        -0.5f, -0.5f // bottom-left
+        -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, // top-left
+        0.5f, 0.5f, 0.0f, 1.0f, 0.0f,  // top-right
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
+        -0.5f, -0.5f, 1.0f, 1.0f, 0.0f // bottom-left
     };
     unsigned int planeVAO, planeVBO;
     glGenVertexArrays(1, &planeVAO);
@@ -152,7 +143,9 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
     glBindVertexArray(0);
 
 #pragma endregion
