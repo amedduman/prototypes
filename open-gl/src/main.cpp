@@ -108,14 +108,7 @@ int main()
 
     glfwSwapInterval(1);
 
-    unsigned int vertexShader = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
-    unsigned int geometryShader = create_shader(GL_GEOMETRY_SHADER, "src/my_first.geom");
-    unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
-    unsigned int shaderProgram = create_shader_program({vertexShader, geometryShader, fragmentShader});
-
-    stbi_set_flip_vertically_on_load(true);
-
-    // glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
@@ -127,6 +120,14 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+
+    unsigned int vertexShader = create_shader(GL_VERTEX_SHADER, "src/my_first.vert");
+    unsigned int fragmentShader = create_shader(GL_FRAGMENT_SHADER, "src/my_first.frag");
+    unsigned int shaderProgram = create_shader_program({vertexShader, fragmentShader});
+
+    stbi_set_flip_vertically_on_load(true);
+
+    unsigned int metal_tex = loadTexture("src/res/textures/wood.png");
 
 #pragma region plane
 
@@ -150,7 +151,7 @@ int main()
 
 #pragma endregion
 
-    Model backpack(std::filesystem::absolute("src/res/backpack/backpack.obj").string());
+    Model backpack(std::filesystem::absolute("src/res/plane.obj").string());
 
     while (!glfwWindowShouldClose(window))
     {
@@ -173,12 +174,43 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-        glUniform3fv(glGetUniformLocation(shaderProgram, "cameraPos"), 1, &cam.cameraPos[0]);
-        glUniform1f(glGetUniformLocation(shaderProgram, "time"), glfwGetTime());
+        glBindTexture(GL_TEXTURE_2D, metal_tex);
+
+        glm::vec3 point_light_pos(0.0f, 0.3f, 0.0f);
+        glm::vec3 point_light_color(1.0f, 1.0f, 1.0f);
+        { // lighting
+            glUniform3fv(glGetUniformLocation(shaderProgram, "viewPos"), 1, &cam.cameraPos[0]);
+            glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), 32.0f);
+
+            // directional light
+            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.direction"), 0.0f, -10.0f, 10.0f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.ambient"), 0.2f, 0.2f, 0.2f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.diffuse"), 0.5f, 0.5f, 0.5f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "dirLight.specular"), 1.0f, 1.0f, 1.0f);
+
+            // spot light
+            glUniform3fv(glGetUniformLocation(shaderProgram, "spotLight.position"), 1, &cam.cameraPos[0]);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "spotLight.direction"), 1, &cam.cameraForward[0]);
+            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
+            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.outerCutOff"), glm::cos(glm::radians(17.5f)));
+            glUniform3f(glGetUniformLocation(shaderProgram, "spotLight.ambient"), 0.2f, 0.2f, 0.2f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "spotLight.diffuse"), 0.5f, 0.5f, 0.5f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "spotLight.specular"), 1.0f, 1.0f, 1.0f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.constant"), 1.0f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.linear"), 0.09f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "spotLight.quadratic"), 0.032f);
+
+            // point light
+            glUniform3fv(glGetUniformLocation(shaderProgram, "pointLights[0].position"), 1, &point_light_pos[0]);
+            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].ambient"), 0.5f, 0.5f, 0.5f);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "pointLights[0].diffuse"), 1, &point_light_color[0]);
+            glUniform3f(glGetUniformLocation(shaderProgram, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].constant"), 1.0f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].linear"), 0.09f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "pointLights[0].quadratic"), 0.032f);
+        }
 
         backpack.Draw(shaderProgram);
-        // glBindVertexArray(planeVAO);
-        // glDrawArrays(GL_POINTS, 0, 4);
 
         glBindVertexArray(0);
 
